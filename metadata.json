@@ -1,0 +1,7 @@
+{
+  "name": "Resmus 2026",
+  "description": "Modern reseplanerare för Sverige med live-karta för SL, Västtrafik, Resrobot och Trafikverket.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

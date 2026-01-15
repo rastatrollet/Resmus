@@ -1,0 +1,55 @@
+:root {
+  /* Default Sky Blue Theme */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+}
+
+/* Scrollbar tweaks if needed */
+
+/* Prevent screenshots and context menu */
+.no-context-menu,
+.no-context-menu * {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Hover to copy functionality */
+.hover-copy {
+  cursor: pointer;
+  position: relative;
+}
+
+.hover-copy:hover::after {
+  content: 'Klicka för att kopiera';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.hover-copy:hover {
+  background-color: rgba(var(--color-primary-500), 0.1);
+  /* Approximate if using tailwind var, otherwise keep reliable color */
+  background-color: rgba(14, 165, 233, 0.1);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
