@@ -19,8 +19,8 @@ export default defineConfig({
     sourcemap: true
   },
   define: {
-    'import.meta.env.VITE_VASTTRAFIK_AUTH': JSON.stringify(process.env.VITE_VASTTRAFIK_AUTH),
-    'import.meta.env.VITE_TRAFIKLAB_API_KEY': JSON.stringify(process.env.VITE_TRAFIKLAB_API_KEY),
-    'import.meta.env.VITE_TRAFIKLAB_STATIC_KEY': JSON.stringify(process.env.VITE_TRAFIKLAB_STATIC_KEY)
+    'import.meta.env.VITE_VASTTRAFIK_AUTH': JSON.stringify(process.env.VITE_VASTTRAFIK_AUTH || ""),
+    'import.meta.env.VITE_TRAFIKLAB_API_KEY': JSON.stringify(process.env.VITE_TRAFIKLAB_API_KEY || ""),
+    'import.meta.env.VITE_TRAFIKLAB_STATIC_KEY': JSON.stringify(process.env.VITE_TRAFIKLAB_STATIC_KEY || "")
   }
 });

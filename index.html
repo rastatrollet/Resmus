@@ -28,7 +28,70 @@
   </script>
   -->
 
-  <!-- Local CSS is handled by Vite -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sky: {
+              50: 'var(--color-primary-50)',
+              100: 'var(--color-primary-100)',
+              200: 'var(--color-primary-200)',
+              300: 'var(--color-primary-300)',
+              400: 'var(--color-primary-400)',
+              500: 'var(--color-primary-500)',
+              600: 'var(--color-primary-600)',
+              700: 'var(--color-primary-700)',
+              800: 'var(--color-primary-800)',
+              900: 'var(--color-primary-900)',
+              950: 'var(--color-primary-950)',
+            }
+          },
+          padding: {
+            'safe-top': 'env(safe-area-inset-top)',
+            'safe-bottom': 'env(safe-area-inset-bottom)',
+          },
+          margin: {
+            'safe-bottom': 'env(safe-area-inset-bottom)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar for Webkit */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
+    /* In-App Browser Iframe fix */
+    .iframe-container {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Safe Area for Bottom Nav */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  </style>
   <link rel="manifest" href="/manifest.json" />
 
   <link rel="stylesheet" href="/index.css">
