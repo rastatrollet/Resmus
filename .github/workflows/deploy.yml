@@ -17,6 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
     env:
       VITE_VASTTRAFIK_AUTH: ${{ secrets.VITE_VASTTRAFIK_AUTH }}
       VITE_TRAFIKLAB_API_KEY: ${{ secrets.VITE_TRAFIKLAB_API_KEY }}
