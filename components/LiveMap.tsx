@@ -218,13 +218,6 @@ export const LiveMap = () => {
 
     return (
         <div className="w-full h-full relative z-0">
-            {/* DEBUG BANNER: Remove after fixing */}
-            <div className="absolute top-0 left-0 right-0 z-[9999] bg-yellow-100 p-2 text-xs font-mono border-b border-yellow-300 shadow-sm opacity-90 pointer-events-none">
-                <div className="font-bold text-red-600">DEBUG MODE</div>
-                <div>AUTH Key Length: {import.meta.env.VITE_VASTTRAFIK_AUTH ? import.meta.env.VITE_VASTTRAFIK_AUTH.length : '0 (MISSING)'}</div>
-                <div>AUTH Preview: {import.meta.env.VITE_VASTTRAFIK_AUTH ? import.meta.env.VITE_VASTTRAFIK_AUTH.substring(0, 8) + '...' : 'N/A'}</div>
-                <div>(Om Key Length är 0 saknas nyckeln i bygget)</div>
-            </div>
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
