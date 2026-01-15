@@ -91,11 +91,17 @@ const getVasttrafikToken = async (): Promise<string | null> => {
 
     for (let i = 0; i < 2; i++) {
         try {
+            // DEBUG: Inspect key
+            if (i === 0) {
+                console.log(`[DEBUG] VASTTRAFIK_AUTH Length: ${API_KEYS.VASTTRAFIK_AUTH.length}`);
+                console.log(`[DEBUG] VASTTRAFIK_AUTH Prefix: ${API_KEYS.VASTTRAFIK_AUTH.substring(0, 5)}...`);
+            }
+
             const res = await fetchWithCors(API_URLS.VASTTRAFIK_TOKEN, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH}`
+                    'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH.trim()}`
                 },
                 body: 'grant_type=client_credentials'
             });
