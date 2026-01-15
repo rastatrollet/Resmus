@@ -4,22 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Register Service Worker for PWA capabilities
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    try {
-      // Use relative path to avoid origin mismatch issues in preview environments
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(registration => {
-
-          // Suppress known origin mismatch errors in preview environments
-          // console.log('SW registration failed (non-critical): ', registrationError.message);
-        });
-    } catch (e) {
-      // Ignore initial registration errors
-    }
-  });
-}
+// Service worker registration removed as PWA is not fully configured yet
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
