@@ -1,5 +1,5 @@
 {
-  "version": "23e105b",
-  "message": "Mobile UI: solid light blue header/footer, remove gradients and white space",
-  "timestamp": "2026-01-16T12:24:57.398Z"
+  "version": "6cabc6c",
+  "message": "Production fix: hardcode API keys in config.ts for GitHub Pages",
+  "timestamp": "2026-01-16T12:31:58.646Z"
 }
