@@ -59,15 +59,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       icon: <Monitor className="text-sky-500" size={20} />,
       items: [
         {
-          label: 'Accentfärg',
-          value: '',
-          action: (
-            <div className="py-2">
-              <ThemePicker />
-            </div>
-          )
-        },
-        {
           label: 'Tema',
           value: theme === 'light' ? 'Ljust' : theme === 'dark' ? 'Mörkt' : 'System',
           action: (

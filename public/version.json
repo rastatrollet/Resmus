@@ -1,5 +1,5 @@
 {
-  "version": "ad579ac",
-  "message": "Fix duplicate map details and vehicle icons",
-  "timestamp": "2026-01-16T11:47:11.896Z"
+  "version": "7c6a8cf",
+  "message": "Fix build errors: proper closing tags and valid icons",
+  "timestamp": "2026-01-16T12:05:41.515Z"
 }

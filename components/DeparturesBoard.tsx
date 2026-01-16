@@ -55,7 +55,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
 
   const [customTime, setCustomTime] = useState<string>(''); // YYYY-MM-DDTHH:MM
-  const [timeWindow, setTimeWindow] = useState(60); // Default 60 mins
+  const [timeWindow, setTimeWindow] = useState(480); // Default 8 hours
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -588,7 +588,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
           {/* Blue Header Bar (With Integrated Controls) */}
           {station && (
-            <div className="bg-sky-500 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
+            <div className="bg-sky-400 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
 
               {/* Grid Layout for Column Headers - Absolute to match content below */}
               <div className="grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 w-full items-center">
@@ -887,7 +887,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                             <div className="flex justify-end">
                               {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
                                 <div className="flex flex-col items-center">
-                                  <span className="inline-flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white min-w-[24px] h-[24px] px-1.5 rounded-md font-black text-[11px] shadow-sm border border-blue-500 dark:border-blue-400 ring-1 ring-blue-700/50 dark:ring-blue-400/50 transition-all group-hover/row:scale-110 group-hover/row:shadow-md group-hover/row:border-white/50">
+                                  <span className="inline-flex items-center justify-center bg-slate-800 dark:bg-slate-700 text-white min-w-[24px] h-[24px] px-1.5 rounded-md font-black text-[11px] shadow-sm border border-slate-700 dark:border-slate-600 ring-1 ring-slate-900/50 dark:ring-slate-600/50 transition-all group-hover/row:scale-110 group-hover/row:shadow-md group-hover/row:border-white/50">
                                     {dep.track}
                                   </span>
                                 </div>
