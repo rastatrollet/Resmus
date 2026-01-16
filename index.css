@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Default Sky Blue Theme */
   --color-primary-50: #f0f9ff;
