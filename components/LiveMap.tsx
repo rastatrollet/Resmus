@@ -4,7 +4,7 @@ import { AnimatedMarker } from './AnimatedMarker';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TransitService } from '../services/transitService';
-import { BusFront, Navigation, TrainFront } from 'lucide-react';
+import { BusFront, Navigation, TrainFront, TramFront } from 'lucide-react';
 import { renderToString } from 'react-dom/server';
 
 // Fix for default Leaflet marker icon
@@ -124,46 +124,7 @@ const VehicleMarker = ({ v, onSelect }: { v: any, onSelect: (v: any) => void }) 
                 click: () => onSelect(v)
             }}
         >
-            <Popup className="custom-popup" maxWidth={300} minWidth={250} closeButton={true}>
-                <div className="font-sans text-slate-800 p-1">
-                    {/* Header: Line + Destination */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                        <div className="flex items-center gap-2">
-                            <div className={`px-2 py-0.5 rounded font-black text-white text-sm shadow-sm`} style={{ backgroundColor: v.transportMode === 'TRAM' || v.transportMode?.toUpperCase() === 'TRAM' ? '#0d9488' : '#0ea5e9' }}>
-                                {v.line}
-                            </div>
-                            <h3 className="font-bold text-sm leading-tight text-slate-900 line-clamp-1">
-                                {v.dest || 'Mot Destination'}
-                            </h3>
-                        </div>
-                    </div>
 
-                    {/* Status Only (No Speed) */}
-                    <div className="mb-3">
-                        {/* Centered Delay Information */}
-                        <div className={`p-3 rounded-lg border flex flex-col items-center justify-center ${v.delay > 0 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                            <span className={`text-[10px] uppercase font-bold tracking-wider mb-0.5 ${v.delay > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                Status
-                            </span>
-                            <span className={`text-xl font-black ${v.delay > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                                {v.delay > 0 ? `+${v.delay} min` : 'I tid'}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Details: Next Stop & ID */}
-                    <div className="space-y-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 font-bold uppercase tracking-wide">Nästa hållplats</span>
-                            <span className="font-bold text-slate-700">{v.nextStop || v.label || 'Info saknas'}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-400 font-bold uppercase tracking-wide">Fordon</span>
-                            <span className="font-medium text-slate-600">{v.transportMode === 'TRAM' ? 'Spårvagn' : 'Buss'}</span>
-                        </div>
-                    </div>
-                </div>
-            </Popup>
         </AnimatedMarker>
     );
 };
@@ -325,7 +286,7 @@ export const LiveMap = () => {
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md ${selectedVehicle.transportMode === 'TRAM' ? 'bg-teal-600' : 'bg-sky-500'}`}>
-                                {selectedVehicle.transportMode === 'TRAM' ? <TrainFront size={20} /> : <BusFront size={20} />}
+                                {selectedVehicle.transportMode === 'TRAM' ? <TramFront size={20} /> : <BusFront size={20} />}
                             </div>
                             <div>
                                 <h3 className="font-black text-lg text-slate-800 leading-none">Linje {selectedVehicle.line}</h3>

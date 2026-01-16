@@ -23,6 +23,8 @@ export const API_URLS = {
   TRAFIKLAB_SIRI_URL: "https://opendata.samtrafiken.se/siri-itxpt/VehicleMonitoring",
   // ResRobot v2.1
   RESROBOT_API: "https://api.resrobot.se/v2.1",
+  // New Trafiklab Realtime API
+  TRAFIKLAB_REALTIME_API: "https://realtime-api.trafiklab.se/v1",
 };
 
 export const TRAFIKLAB_OPERATORS = [

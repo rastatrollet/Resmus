@@ -11,7 +11,12 @@ if (!rootElement) {
   throw new Error("Could not find root element");
 }
 
-const root = ReactDOM.createRoot(rootElement);
+let root = (rootElement as any)._reactRootContainer;
+if (!root) {
+  root = ReactDOM.createRoot(rootElement);
+  (rootElement as any)._reactRootContainer = root;
+}
+
 root.render(
   <React.StrictMode>
     <ErrorBoundary>

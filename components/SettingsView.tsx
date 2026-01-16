@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings, Moon, Sun, Monitor, Download, Smartphone, Info, ChevronRight, Palette } from 'lucide-react';
+import { Settings, Moon, Sun, Monitor, Download, Smartphone, Info, ChevronRight, Palette, Globe, Server } from 'lucide-react';
+import { Provider } from '../types';
 import { ThemePicker } from './ThemePicker';
 
 interface SettingsViewProps {
@@ -24,16 +25,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
     }
   };
 
+  const [provider, setProvider] = useState<Provider>(() => {
+    return (localStorage.getItem('resmus_default_provider') as Provider) || Provider.VASTTRAFIK;
+  });
+
+  const updateProvider = (newProvider: Provider) => {
+    setProvider(newProvider);
+    localStorage.setItem('resmus_default_provider', newProvider);
+    // Dispatch event so DeparturesBoard can listen if it wants (optional, but good practice)
+    window.dispatchEvent(new Event('storage'));
+  };
+
   const updateTheme = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
 
     const root = window.document.documentElement;
     const isDark = newTheme === 'dark' || (newTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
     if (isDark) {
       root.classList.add('dark');
+      metaThemeColor?.setAttribute('content', '#0f172a');
     } else {
       root.classList.remove('dark');
+      metaThemeColor?.setAttribute('content', '#0ea5e9');
     }
   };
 
@@ -79,6 +95,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       ]
     },
     {
+      title: 'Datakälla',
+      icon: <Server className="text-emerald-500" size={20} />,
+      items: [
+        {
+          label: 'Förvald API-tjänst',
+          value: provider === Provider.VASTTRAFIK ? 'Västtrafik (Standard)' : 'Trafiklab (Hela Sverige)',
+          action: (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => updateProvider(Provider.VASTTRAFIK)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${provider === Provider.VASTTRAFIK ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500'}`}
+              >
+                Västtrafik
+              </button>
+              <button
+                onClick={() => updateProvider(Provider.RESROBOT)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${provider === Provider.RESROBOT ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500'}`}
+              >
+                Hela Sverige
+              </button>
+            </div>
+          )
+        }
+      ]
+    },
+    {
       title: 'App',
       icon: <Smartphone className="text-purple-500" size={20} />,
       items: [
@@ -105,12 +147,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       items: [
         {
           label: 'Version',
-          value: '2026.1.0',
+          value: '2026.2.0 (Beta)',
           action: null
         },
         {
           label: 'Utvecklaren',
           value: 'Resmus Development',
+          action: null
+        },
+        {
+          label: 'Senast uppdaterad',
+          value: new Date().toLocaleString(),
           action: null
         }
       ]

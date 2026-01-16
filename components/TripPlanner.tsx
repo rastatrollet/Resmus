@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, MapPin, Loader2, AlertCircle, Bus, TramFront, Ship, Footprints, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowDown, CalendarClock, ChevronRight, Flag, MessageCircle, Send, Bot, User, Navigation, AlertTriangle, WifiOff } from 'lucide-react';
 import { TransitService } from '../services/transitService';
-import { Station, Journey, TripLeg } from '../types';
+import { Station, Journey, TripLeg, Provider } from '../types';
 import { JourneySkeleton, ThemedSpinner } from './Loaders';
 
 export const TripPlanner: React.FC = () => {
@@ -10,6 +10,7 @@ export const TripPlanner: React.FC = () => {
   const [toQuery, setToQuery] = useState('');
   const [fromStation, setFromStation] = useState<Station | null>(null);
   const [toStation, setToStation] = useState<Station | null>(null);
+  const [provider, setProvider] = useState<Provider>(Provider.VASTTRAFIK);
 
   const [searchResultsFrom, setSearchResultsFrom] = useState<Station[]>([]);
   const [searchResultsTo, setSearchResultsTo] = useState<Station[]>([]);
@@ -76,7 +77,7 @@ export const TripPlanner: React.FC = () => {
 
   const handleSearchLocation = async (q: string, setResults: (s: Station[]) => void) => {
     try {
-      const results = await TransitService.searchStations(q);
+      const results = await TransitService.searchStations(q, provider);
       setResults(results);
     } catch (err) {
       console.error("Search failed", err);
@@ -128,7 +129,7 @@ export const TripPlanner: React.FC = () => {
         isoDateTime = `${tripDate}T${tripTime}:00`;
       }
 
-      const results = await TransitService.planTrip(fromStation.id, toStation.id, isoDateTime);
+      const results = await TransitService.planTrip(fromStation.id, toStation.id, isoDateTime, provider);
       if (results.length === 0) {
         setError("Inga resor hittades för den valda tiden/rutten.");
       }
@@ -263,6 +264,22 @@ export const TripPlanner: React.FC = () => {
         <div className="relative bg-white dark:bg-slate-900 p-1 rounded-[1.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800">
 
           <div className="p-4 pb-3">
+            {/* Provider Toggle */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+              <button
+                onClick={() => { setProvider(Provider.VASTTRAFIK); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${provider === Provider.VASTTRAFIK ? 'bg-white dark:bg-slate-700 shadow text-sky-600 dark:text-sky-400' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Västtrafik
+              </button>
+              <button
+                onClick={() => { setProvider(Provider.RESROBOT); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${provider === Provider.RESROBOT ? 'bg-white dark:bg-slate-700 shadow text-green-600 dark:text-green-400' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Resrobot (Hela Sverige)
+              </button>
+            </div>
+
             <div className="relative">
               {/* Visual Connector Line */}
               <div className="absolute left-[1.15rem] top-9 bottom-9 w-[2px] bg-gradient-to-b from-slate-300 via-slate-200 to-sky-500 dark:from-slate-600 dark:to-sky-900 rounded-full"></div>
@@ -727,24 +744,24 @@ export const TripPlanner: React.FC = () => {
               )}
             </div>
 
-            {/* Chat Input */}
-            <div className="border-t border-slate-200 dark:border-slate-700 p-4">
-              <div className="flex gap-2">
+            {/* Chat Input - Compact Footer */}
+            <div className="border-t border-slate-200 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm rounded-b-2xl">
+              <div className="flex gap-2 items-center">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Fråga om resor i Göteborg..."
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-sky-500 transition-colors"
+                  placeholder="Sök resa..."
+                  className="flex-1 bg-white dark:bg-slate-800 border-0 ring-1 ring-slate-200 dark:ring-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-sm"
                   disabled={chatLoading}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!chatInput.trim() || chatLoading}
-                  className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:bg-slate-300 text-white p-2 rounded-xl transition-colors"
+                  className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:bg-slate-300 text-white w-8 h-8 flex items-center justify-center rounded-full transition-all shadow-md hover:scale-105 active:scale-95"
                 >
-                  <Send size={16} />
+                  <Send size={14} className="ml-0.5" />
                 </button>
               </div>
             </div>

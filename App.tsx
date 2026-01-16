@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { List, Settings, Search, AlertTriangle, BusFront, Maximize, Minimize, Star, Globe, Trophy } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faList, faCog, faSearch, faExclamationTriangle, faBus, faExpand, faCompress, faStar, faGlobe, faTrophy } from '@fortawesome/free-solid-svg-icons';
 import { DigitalClock } from './components/DigitalClock';
 import { DeparturesBoard } from './components/DeparturesBoard';
 import { TripPlanner } from './components/TripPlanner';
@@ -15,6 +16,7 @@ import { TranslationProvider, useTranslation } from './components/TranslationPro
 
 
 import { UpdateNotification } from './components/UpdateNotification';
+import { TravelAssistant } from './components/TravelAssistant';
 
 const AppContent = () => {
   // Update checker is now handled by the notification component internally or we can hoist it. 
@@ -98,27 +100,28 @@ const AppContent = () => {
   return (
     <div className="flex h-[100dvh] w-screen bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300 font-sans selection:bg-sky-500/30 no-context-menu">
       <UpdateNotification />
+      <TravelAssistant />
 
       {/* --- DESKTOP SIDEBAR (Visible on lg screens) --- */}
       <aside className={`hidden ${isFullscreen ? 'hidden' : 'md:flex'} w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50`}>
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <BusFront className="text-white" size={22} />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 lg:w-14 lg:h-14 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/30 transition-all duration-300">
+              <FontAwesomeIcon icon={faBus} className="text-xl lg:text-2xl transform -scale-x-100" />
             </div>
             <div>
-              <h1 className="font-black text-xl text-slate-800 dark:text-white tracking-tight leading-none">Resmus</h1>
+              <h1 className="font-black text-2xl lg:text-3xl text-slate-800 dark:text-white tracking-tighter leading-none transition-all duration-300">Resmus</h1>
             </div>
           </div>
 
           <nav className="space-y-2">
             {[
-              { to: "/", icon: List, label: "Avgångar" },
-              { to: "/favorites", icon: Star, label: "Favoriter" },
-              { to: "/map", icon: Globe, label: "Karta" },
-              { to: "/disruptions", icon: AlertTriangle, label: "Störningar" },
-              { to: "/settings", icon: Settings, label: "Inställningar" }
-            ].map(({ to, icon: Icon, label }) => (
+              { to: "/", icon: faList, label: "Avgångar" },
+              { to: "/favorites", icon: faStar, label: "Favoriter" },
+              { to: "/map", icon: faGlobe, label: "Karta" },
+              { to: "/disruptions", icon: faExclamationTriangle, label: "Störningar" },
+              { to: "/settings", icon: faCog, label: "Inställningar" }
+            ].map(({ to, icon, label }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -126,7 +129,7 @@ const AppContent = () => {
               >
                 {({ isActive }) => (
                   <>
-                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                    <FontAwesomeIcon icon={icon} className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
                     {label}
                   </>
                 )}
@@ -141,7 +144,7 @@ const AppContent = () => {
             onClick={toggleFullscreen}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
           >
-            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+            {isFullscreen ? <FontAwesomeIcon icon={faCompress} className="w-5 h-5" /> : <FontAwesomeIcon icon={faExpand} className="w-5 h-5" />}
             {isFullscreen ? 'Avsluta helskärm' : 'Helskärmsläge'}
           </button>
 
@@ -155,19 +158,23 @@ const AppContent = () => {
       <div className="flex-1 flex flex-col h-full relative w-full">
         {/* Header - Mobile Only */}
         <header className="md:hidden flex-none bg-sky-500 dark:bg-slate-900 text-white shadow-lg z-[60] pt-safe-top relative overflow-hidden transition-colors">
-          <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-sky-600 dark:from-slate-900 dark:to-slate-800"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none mix-blend-overlay"></div>
+          {/* Modern 2026 Gradient - Cleaner but vibrant */}
+          <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-sky-500 to-cyan-400 dark:from-slate-900 dark:to-slate-800"></div>
+
+          {/* Subtle texture/glow for premium feel */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full pointer-events-none mix-blend-overlay"></div>
 
           <div className="max-w-4xl mx-auto w-full px-4 h-14 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white/10 dark:bg-white/5 rounded-xl flex items-center justify-center border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-md">
-                <BusFront className="text-white" size={18} />
+              {/* Iconic "Old Resmus" Bus Button - Modernized */}
+              <div className="w-9 h-9 bg-white text-sky-600 dark:bg-sky-500 dark:text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-900/10 border border-white/50 backdrop-blur-sm">
+                <FontAwesomeIcon icon={faBus} className="text-sm transform -scale-x-100" />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="font-black text-lg leading-none tracking-tight">Resmus</span>
+                <span className="font-black text-xl tracking-tighter text-white drop-shadow-sm">Resmus</span>
               </div>
             </div>
-            <div className="bg-white/10 dark:bg-white/5 px-3 py-1 rounded-full border border-white/10 text-xs backdrop-blur-md shadow-inner font-medium">
+            <div className="bg-white/10 dark:bg-white/5 px-3 py-1 rounded-full border border-white/20 text-xs backdrop-blur-md shadow-inner font-bold tracking-wider text-white/90">
               <DigitalClock />
             </div>
           </div>
@@ -187,13 +194,7 @@ const AppContent = () => {
             })()}
           </h2>
 
-          <NavLink
-            to="/search"
-            className={({ isActive }) => `flex items-center gap-3 px-6 py-3 rounded-full font-bold text-sm shadow-md transition-all duration-300 ${isActive ? 'bg-sky-500 text-white ring-4 ring-sky-500/20' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-sky-500 hover:text-sky-500'}`}
-          >
-            <Search size={20} strokeWidth={2.5} />
-            <span className="uppercase tracking-wider">Sök resa</span>
-          </NavLink>
+
         </header>
 
         {/* Content Body */}
@@ -234,7 +235,7 @@ const AppContent = () => {
                   onClick={toggleFullscreen}
                   className="bg-slate-900/90 dark:bg-slate-100/90 hover:bg-slate-900 dark:hover:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-full font-bold shadow-xl backdrop-blur-md flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
                 >
-                  <Minimize size={18} />
+                  <FontAwesomeIcon icon={faCompress} className="text-lg" />
                   <span>Avsluta helskärm</span>
                 </button>
               </div>
@@ -247,15 +248,15 @@ const AppContent = () => {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sky-500 pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-sky-600">
           <div className="flex justify-around items-end h-14">
             {[
-              { to: "/", icon: List, label: "Avgångar" },
-              { to: "/disruptions", icon: AlertTriangle, label: "Info" },
-              { to: "/settings", icon: Settings, label: "Mer" }
-            ].map(({ to, icon: Icon, label }) => (
+              { to: "/", icon: faList, label: "Avgångar" },
+              { to: "/disruptions", icon: faExclamationTriangle, label: "Info" },
+              { to: "/settings", icon: faCog, label: "Mer" }
+            ].map(({ to, icon, label }) => (
               <NavLink key={to} to={to} className={({ isActive }) => `flex-1 flex flex-col items-center justify-center h-full gap-1 transition-all active:scale-95 ${isActive ? 'text-white' : 'text-white/60 hover:text-white/80'}`}>
                 {({ isActive }) => (
                   <>
                     <div className={`p-1 rounded-full transition-all ${isActive ? 'bg-white/10' : ''}`}>
-                      <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                      <FontAwesomeIcon icon={icon} className="text-xl" />
                     </div>
                     <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
                       {label}

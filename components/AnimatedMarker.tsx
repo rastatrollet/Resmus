@@ -21,9 +21,10 @@ export const AnimatedMarker: React.FC<AnimatedMarkerProps> = ({ position, icon, 
     const startTimeRef = useRef<number>(0);
     const animationFrameRef = useRef<number>();
 
-    // Duration matches refresh rate (15s) + buffer to ensure "always moving" effect.
-    // User requested "vehicles move all the time".
-    const DURATION = 20000;
+    // Duration matches refresh rate (15s) + small buffer.
+    // If set too long (30s) while updates come at 15s, the vehicle appears to move at half speed.
+    // 16s ensures it moves at ~real speed and bridges small gaps.
+    const DURATION = 16000;
 
     useEffect(() => {
         const marker = markerRef.current;
@@ -64,7 +65,7 @@ export const AnimatedMarker: React.FC<AnimatedMarkerProps> = ({ position, icon, 
         return () => {
             if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         };
-    }, [position]);
+    }, [position[0], position[1]]);
 
     // We pass the *initial* position to the Marker to mount it.
     // Subsequent moves are handled by the effect calling setLatLng directly.

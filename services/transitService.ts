@@ -117,12 +117,14 @@ const getVasttrafikToken = async (): Promise<string | null> => {
 };
 
 // Västtrafik Departures (V4)
-const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arrivals', dateTime?: string): Promise<Departure[]> => {
+const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arrivals', dateTime?: string, timeSpanInMinutes: number = 60): Promise<Departure[]> => {
     const token = await getVasttrafikToken();
     if (!token) return [];
 
     const endpoint = mode === 'arrivals' ? 'arrivals' : 'departures';
-    let url = `${API_URLS.VASTTRAFIK_API}/stop-areas/${gid}/${endpoint}?limit=100`;
+    // Increase limit for longer time windows to ensure we fill the board
+    const limit = timeSpanInMinutes > 300 ? 200 : 120;
+    let url = `${API_URLS.VASTTRAFIK_API}/stop-areas/${gid}/${endpoint}?limit=${limit}&timeSpan=${timeSpanInMinutes}`;
 
     if (dateTime) {
         const vtDate = formatDateForVT(dateTime);
@@ -241,7 +243,10 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
                 type: transportMode
             };
         });
-    } catch (e) { return []; }
+    } catch (e) {
+        console.error("Fetch Västtrafik Departures Error (Limit: " + limit + ", TimeSpan: " + timeSpanInMinutes + ")", e);
+        return [];
+    }
 };
 
 // Helper to getting vehicle positions
@@ -460,18 +465,26 @@ export const TransitService = {
         } catch (e) { return []; }
     },
 
-    getDepartures: async (stationId: string, provider: Provider, mode: 'departures' | 'arrivals', dateTime?: string): Promise<Departure[]> => {
+    getDepartures: async (stationId: string, provider: Provider, mode: 'departures' | 'arrivals', dateTime?: string, duration: number = 60): Promise<Departure[]> => {
         if (provider === Provider.RESROBOT) {
-            return ResrobotService.getDepartures(stationId);
+            return ResrobotService.getDepartures(stationId, duration);
         }
-        return fetchVasttrafikDepartures(stationId, mode, dateTime);
+        return fetchVasttrafikDepartures(stationId, mode, dateTime, duration);
     },
 
-    planTrip: async (fromId: string, toId: string, dateTime?: string): Promise<Journey[]> => {
+    planTrip: async (originId: string, destId: string, dateTime?: string, provider: Provider = Provider.VASTTRAFIK): Promise<Journey[]> => {
+        // Check if IDs are Resrobot IDs (start with '74') or if provider is set
+        const isResrobot = provider === Provider.RESROBOT || originId.startsWith('74') || destId.startsWith('74');
+
+        if (isResrobot) {
+            return ResrobotService.planTrip(originId, destId, dateTime);
+        }
+
+        // Default to Västtrafik logic
         const token = await getVasttrafikToken();
         if (!token) return [];
 
-        let url = `${API_URLS.VASTTRAFIK_API}/journeys?originGid=${fromId}&destinationGid=${toId}&limit=6&includeIntermediateStops=true`;
+        let url = `${API_URLS.VASTTRAFIK_API}/journeys?originGid=${originId}&destinationGid=${destId}&limit=6&includeIntermediateStops=true`;
 
         if (dateTime) {
             const vtDate = formatDateForVT(dateTime);
@@ -557,16 +570,39 @@ export const TransitService = {
         const token = await getVasttrafikToken();
         if (!token) return [];
 
-        // Use service-journeys endpoint to get the specific trip details/calls
-        const url = `${API_URLS.VASTTRAFIK_API}/service-journeys/${encodeURIComponent(journeyRef)}?limit=100`;
+        let url = "";
+
+        // Check if journeyRef is already a full URL or relative path (V4 detailsReference)
+        if (journeyRef.startsWith('http') || journeyRef.startsWith('/')) {
+            url = journeyRef;
+            // If it's a relative path starting with /, prepend the API base if needed, 
+            // but usually detailsReference is full absolute URL in V4 responses.
+            // If it's relative...
+            if (journeyRef.startsWith('/')) {
+                url = `${API_URLS.VASTTRAFIK_API.replace('/pr/v4', '')}${journeyRef}`;
+            }
+        } else {
+            // Assume it's an ID (GID)
+            url = `${API_URLS.VASTTRAFIK_API}/service-journeys/${encodeURIComponent(journeyRef)}`;
+        }
+
+        // Add limit if not present logic is tricky with strings, but we can append param
+        // V4 detailsReference usually includes everything needed?
+        // Let's force limit=120 if possible, but safe append
+        const separator = url.includes('?') ? '&' : '?';
+        if (!url.includes('limit=')) {
+            url += `${separator}limit=100`;
+        }
 
         try {
             // console.log("Fetching journey details from URL:", url);
             const res = await fetchWithCors(url, { headers: { 'Authorization': `Bearer ${token}` } });
 
             if (!res.ok) {
+                // Try fallback: If it was a GID call that failed (404), maybe it needed to be a different endpoint?
+                // But usually 404 means just not found.
                 const errorText = await res.text();
-                console.error("Journey details API error:", errorText);
+                console.error("Journey details API error:", errorText, "URL:", url);
                 return [];
             }
 

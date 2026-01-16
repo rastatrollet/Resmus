@@ -1,5 +1,5 @@
 {
-  "name": "Resmus 2026",
+  "name": "Resmus",
   "short_name": "Resmus",
   "start_url": "./",
   "display": "standalone",
@@ -9,13 +9,13 @@
   "scope": "./",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/447/447031.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/447/447031.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
