@@ -1,11 +1,11 @@
 // API Keys - använder GitHub Secrets i production
 export const API_KEYS = {
   // Västtrafik Planera Resa v4 (Client Credentials Base64)
-  VASTTRAFIK_AUTH: import.meta.env.VITE_VASTTRAFIK_AUTH || "",
+  VASTTRAFIK_AUTH: import.meta.env.VITE_VASTTRAFIK_AUTH || "bG9kZ1FVSGxjOTVzZFlsQTBmazZWQjluYWVrYTpTcDdXUDJKY2xaTGpHRDVYV190azhpbUVkTWNh",
   // Trafiklab GTFS Regional Realtime Key
-  TRAFIKLAB_API_KEY: import.meta.env.VITE_TRAFIKLAB_API_KEY || "",
+  TRAFIKLAB_API_KEY: import.meta.env.VITE_TRAFIKLAB_API_KEY || "600ef54ef3234bd1880624c148baa8f7",
   // Trafiklab GTFS Regional Static Key
-  TRAFIKLAB_STATIC_KEY: import.meta.env.VITE_TRAFIKLAB_STATIC_KEY || "",
+  TRAFIKLAB_STATIC_KEY: import.meta.env.VITE_TRAFIKLAB_STATIC_KEY || "07e9c042923d42cf8ec3189056c7ea60",
   // ResRobot v2.1
   RESROBOT_API_KEY: import.meta.env.VITE_RESROBOT_API_KEY || "d1adb079-6671-4598-a6b5-8b66a871b11b",
 };
