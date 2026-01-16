@@ -1,5 +1,5 @@
 {
-  "version": "4b2f8cd",
-  "message": "Add map to mobile navigation",
-  "timestamp": "2026-01-16T12:13:04.249Z"
+  "version": "6f25c3c",
+  "message": "Fix dark mode toggle and add API credentials to .env",
+  "timestamp": "2026-01-16T12:18:46.357Z"
 }

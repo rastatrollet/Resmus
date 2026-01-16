@@ -157,17 +157,12 @@ const AppContent = () => {
       {/* --- MAIN CONTENT AREA --- */}
       <div className="flex-1 flex flex-col h-full relative w-full">
         {/* Header - Mobile Only */}
-        <header className="md:hidden flex-none bg-sky-500 dark:bg-slate-900 text-white shadow-lg z-[60] pt-safe-top relative overflow-hidden transition-colors">
-          {/* Modern 2026 Gradient - Cleaner but vibrant */}
-          <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-sky-500 to-cyan-400 dark:from-slate-900 dark:to-slate-800"></div>
-
-          {/* Subtle texture/glow for premium feel */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full pointer-events-none mix-blend-overlay"></div>
+        <header className="md:hidden flex-none bg-sky-400 dark:bg-slate-900 text-white shadow-lg z-[60] pt-safe-top relative overflow-hidden transition-colors">
 
           <div className="max-w-4xl mx-auto w-full px-4 h-14 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-3">
               {/* Iconic "Old Resmus" Bus Button - Modernized */}
-              <div className="w-9 h-9 bg-white text-sky-600 dark:bg-sky-500 dark:text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-900/10 border border-white/50 backdrop-blur-sm">
+              <div className="w-9 h-9 bg-sky-500 text-white dark:bg-sky-500 dark:text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-900/10 border border-sky-600 backdrop-blur-sm">
                 <FontAwesomeIcon icon={faBus} className="text-sm transform -scale-x-100" />
               </div>
               <div className="flex flex-col justify-center">
@@ -245,7 +240,7 @@ const AppContent = () => {
         </main>
 
         {/* Footer Navigation - MOBILE ONLY */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sky-500 pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-sky-600">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sky-400 pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-sky-500">
           <div className="flex justify-around items-end h-14">
             {[
               { to: "/", icon: faList, label: "Avgångar" },

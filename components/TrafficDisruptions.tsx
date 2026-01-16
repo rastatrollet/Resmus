@@ -372,7 +372,7 @@ export const TrafficDisruptions: React.FC = () => {
 
 
             {/* Content */}
-            <div className="p-4 sm:p-6 space-y-3 pb-8">
+            <div className="p-3 sm:p-6 space-y-3 pb-8">
 
                 {/* Error State */}
                 {error && (
