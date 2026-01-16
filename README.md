@@ -9,7 +9,7 @@
 ![React](https://img.shields.io/badge/React-18-blue.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.2-purple.svg)
 
-[**🔗 Gå till appen (Live)**](https://rastatrollet.github.io/Resmus/)
+[**🔗 Gå till appen (Live)**][(https://rastatrollet.github.io/Resmus/](http://localhost:5173/Resmus/#/)
 
 ![Resmus Banner](https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop)
 
