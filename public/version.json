@@ -1,5 +1,5 @@
 {
-  "version": "4733d44",
-  "message": "Add .env.production with API keys for GitHub Pages deployment",
-  "timestamp": "2026-01-16T12:33:20.649Z"
+  "version": "9cd078b",
+  "message": "Fix production API keys using Vite define config",
+  "timestamp": "2026-01-16T12:35:41.716Z"
 }
