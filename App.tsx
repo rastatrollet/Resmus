@@ -249,6 +249,7 @@ const AppContent = () => {
           <div className="flex justify-around items-end h-14">
             {[
               { to: "/", icon: faList, label: "Avgångar" },
+              { to: "/map", icon: faGlobe, label: "Karta" },
               { to: "/disruptions", icon: faExclamationTriangle, label: "Info" },
               { to: "/settings", icon: faCog, label: "Mer" }
             ].map(({ to, icon, label }) => (

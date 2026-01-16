@@ -1,5 +1,5 @@
 {
-  "version": "7c6a8cf",
-  "message": "Fix build errors: proper closing tags and valid icons",
-  "timestamp": "2026-01-16T12:05:41.515Z"
+  "version": "451eea3",
+  "message": "UI improvements: light blue header, black platform badges, 8h default window, removed accent colors",
+  "timestamp": "2026-01-16T12:07:15.414Z"
 }
