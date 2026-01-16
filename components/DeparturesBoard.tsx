@@ -789,7 +789,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                         <div className="flex justify-end">
                           {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
                             <div className="flex flex-col items-center">
-                              <span className="inline-flex items-center justify-center bg-slate-800 dark:bg-slate-700 text-white min-w-[28px] h-[28px] px-1.5 rounded-lg font-black text-[12px] shadow-sm ring-1 ring-slate-900/10 dark:ring-white/10 transition-all group-hover/row:scale-110">
+                              <span className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 min-w-[28px] h-[28px] px-1.5 rounded-lg font-black text-[12px] shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all group-hover/row:scale-110 group-hover/row:ring-sky-200 dark:group-hover/row:ring-sky-800">
                                 {dep.track}
                               </span>
                             </div>

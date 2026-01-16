@@ -274,10 +274,9 @@ export const TrafficDisruptions: React.FC = () => {
 
     // Apply filters
     const filteredDisruptions = activeDisruptions.filter(disruption => {
-        // Automatic filter: hide disruptions that ended more than 7 days ago
+        // Strict filter: hide disruptions that have ended 
         const now = new Date();
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        if (disruption.endTime && new Date(disruption.endTime) < sevenDaysAgo) {
+        if (disruption.endTime && new Date(disruption.endTime) < now) {
             return false;
         }
 

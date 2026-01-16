@@ -14,7 +14,10 @@ import { NotFound } from './components/NotFound';
 import { TranslationProvider, useTranslation } from './components/TranslationProvider';
 
 
+import { useUpdateChecker } from './hooks/useUpdateChecker';
+
 const AppContent = () => {
+  useUpdateChecker(); // Check for updates and show toast
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const location = useLocation();
 
