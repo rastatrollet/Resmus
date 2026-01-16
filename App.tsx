@@ -14,10 +14,12 @@ import { NotFound } from './components/NotFound';
 import { TranslationProvider, useTranslation } from './components/TranslationProvider';
 
 
-import { useUpdateChecker } from './hooks/useUpdateChecker';
+import { UpdateNotification } from './components/UpdateNotification';
 
 const AppContent = () => {
-  useUpdateChecker(); // Check for updates and show toast
+  // Update checker is now handled by the notification component internally or we can hoist it. 
+  // But UpdateNotification uses the hook itself as per my design.
+
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const location = useLocation();
 
@@ -93,10 +95,9 @@ const AppContent = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
-
   return (
     <div className="flex h-[100dvh] w-screen bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300 font-sans selection:bg-sky-500/30 no-context-menu">
-
+      <UpdateNotification />
 
       {/* --- DESKTOP SIDEBAR (Visible on lg screens) --- */}
       <aside className={`hidden ${isFullscreen ? 'hidden' : 'md:flex'} w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50`}>
@@ -157,23 +158,23 @@ const AppContent = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-sky-600 dark:from-slate-900 dark:to-slate-800"></div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none mix-blend-overlay"></div>
 
-          <div className="max-w-4xl mx-auto w-full px-5 h-16 flex items-center justify-between relative z-10">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 bg-white/10 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-md">
-                <BusFront className="text-white" size={22} />
+          <div className="max-w-4xl mx-auto w-full px-4 h-14 flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/10 dark:bg-white/5 rounded-xl flex items-center justify-center border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-md">
+                <BusFront className="text-white" size={18} />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="font-black text-xl leading-none tracking-tight">Resmus</span>
+                <span className="font-black text-lg leading-none tracking-tight">Resmus</span>
               </div>
             </div>
-            <div className="bg-white/10 dark:bg-white/5 px-4 py-1.5 rounded-full border border-white/10 text-sm backdrop-blur-md shadow-inner font-medium">
+            <div className="bg-white/10 dark:bg-white/5 px-3 py-1 rounded-full border border-white/10 text-xs backdrop-blur-md shadow-inner font-medium">
               <DigitalClock />
             </div>
           </div>
         </header>
 
         {/* Header - Desktop Only - Search Bar Location */}
-        <header className="hidden md:flex flex-none h-20 items-center justify-between px-8 z-40 bg-slate-50 dark:bg-slate-950">
+        <header className="hidden md:flex flex-none h-16 items-center justify-between px-8 z-40 bg-slate-50 dark:bg-slate-950">
           <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
             {(() => {
               if (location.pathname === '/') return 'Avgångar';

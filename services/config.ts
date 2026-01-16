@@ -6,6 +6,8 @@ export const API_KEYS = {
   TRAFIKLAB_API_KEY: import.meta.env.VITE_TRAFIKLAB_API_KEY || "",
   // Trafiklab GTFS Regional Static Key
   TRAFIKLAB_STATIC_KEY: import.meta.env.VITE_TRAFIKLAB_STATIC_KEY || "",
+  // ResRobot v2.1
+  RESROBOT_API_KEY: import.meta.env.VITE_RESROBOT_API_KEY || "d1adb079-6671-4598-a6b5-8b66a871b11b",
 };
 
 export const API_URLS = {
@@ -19,6 +21,8 @@ export const API_URLS = {
   TRAFIKLAB_GTFS_RT: "https://opendata.samtrafiken.se/gtfs-rt/sweden/VehiclePositions.pb",
   // Trafiklab SIRI ITxPT (JSON-based vehicle positions)
   TRAFIKLAB_SIRI_URL: "https://opendata.samtrafiken.se/siri-itxpt/VehicleMonitoring",
+  // ResRobot v2.1
+  RESROBOT_API: "https://api.resrobot.se/v2.1",
 };
 
 export const TRAFIKLAB_OPERATORS = [

@@ -143,18 +143,7 @@ export const TrafficDisruptions: React.FC = () => {
                 console.error("VT Fetch failed:", e);
             }
 
-            // Mock disruption requested by user
-            unified.push({
-                id: 'mock-vasttagen-delay',
-                provider: Provider.VASTTRAFIK,
-                title: 'Västtågen, förseningar mellan Göteborg och Uddevalla.',
-                description: 'Orsaken är bomfel.',
-                severity: 'normal',
-                startTime: new Date(Date.now() - 26 * 60 * 1000).toISOString(),
-                updatedTime: new Date(Date.now() - 26 * 60 * 1000).toISOString(), // 26 min sedan
-                type: 'TRAIN',
-                affected: []
-            });
+
 
             // Sort by severity first, then by update time
             unified.sort((a, b) => {
@@ -357,10 +346,16 @@ export const TrafficDisruptions: React.FC = () => {
                         <div className="flex gap-2">
                             <button
                                 onClick={handleToggleNotifications}
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${notificationsEnabled ? 'bg-sky-400 text-white shadow-lg shadow-sky-400/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${notificationsEnabled ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                 title={notificationsEnabled ? "Notiser på" : "Aktivera notiser"}
                             >
-                                {notificationsEnabled ? <BellRing size={18} /> : <BellOff size={18} />}
+                                {notificationsEnabled && (
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white dark:border-slate-900"></span>
+                                    </span>
+                                )}
+                                {notificationsEnabled ? <BellRing size={18} className="animate-wiggle" /> : <BellOff size={18} />}
                             </button>
                             <button
                                 onClick={fetchSituations}

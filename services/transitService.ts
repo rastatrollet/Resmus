@@ -1,5 +1,6 @@
 import { Departure, Provider, Station, TrafficSituation, Journey, TripLeg, JourneyDetail } from '../types';
 import { API_KEYS, API_URLS } from './config';
+import { ResrobotService } from './resrobotService';
 
 // Cache for API responses
 const apiCache = new Map<string, { data: any; timestamp: number }>();
@@ -233,7 +234,7 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
                 status,
                 bgColor,
                 fgColor,
-                journeyRef: entry.detailsReference || serviceJourney?.gid,
+                journeyRef: entry.detailsReference || serviceJourney?.gid || serviceJourney?.id,
                 hasDisruption,
                 disruptionSeverity,
                 disruptionMessage: situations.length > 0 ? (situations[0].title || situations[0].description) : undefined,
@@ -418,7 +419,11 @@ export const TransitService = {
         } catch (e) { return []; }
     },
 
-    searchStations: async (query: string): Promise<Station[]> => {
+    searchStations: async (query: string, provider: Provider = Provider.VASTTRAFIK): Promise<Station[]> => {
+        if (provider === Provider.RESROBOT) {
+            return ResrobotService.searchStations(query);
+        }
+
         const token = await getVasttrafikToken();
         if (!token) return [];
 
@@ -456,6 +461,9 @@ export const TransitService = {
     },
 
     getDepartures: async (stationId: string, provider: Provider, mode: 'departures' | 'arrivals', dateTime?: string): Promise<Departure[]> => {
+        if (provider === Provider.RESROBOT) {
+            return ResrobotService.getDepartures(stationId);
+        }
         return fetchVasttrafikDepartures(stationId, mode, dateTime);
     },
 

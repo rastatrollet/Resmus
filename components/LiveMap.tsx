@@ -217,7 +217,7 @@ export const LiveMap = () => {
     const position: [number, number] = [57.70887, 11.97456];
 
     return (
-        <div className="w-full h-full relative z-0">
+        <div className="w-full h-[100dvh] md:h-full relative z-0">
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -321,7 +321,7 @@ export const LiveMap = () => {
 
             {/* Selected Journey Card */}
             {selectedVehicle && (
-                <div className="absolute bottom-6 left-4 right-4 z-[400] md:left-auto md:w-80 md:right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-slate-200/60 animate-in slide-in-from-bottom-4 fade-in duration-300">
+                <div className="absolute bottom-20 left-4 right-4 z-[400] md:left-auto md:w-80 md:right-4 md:bottom-6 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-slate-200/60 animate-in slide-in-from-bottom-4 fade-in duration-300 pb-safe">
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md ${selectedVehicle.transportMode === 'TRAM' ? 'bg-teal-600' : 'bg-sky-500'}`}>
@@ -366,7 +366,7 @@ export const LiveMap = () => {
                 </div>
             )}
 
-            <div className="absolute top-4 right-4 z-[400] bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-1 items-center">
+            <div className="absolute top-safe-top mt-4 right-4 z-[400] bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-1 items-center">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Live</div>
                 <div className="flex items-center gap-1.5 text-sky-600">
                     <span className="relative flex h-2 w-2">

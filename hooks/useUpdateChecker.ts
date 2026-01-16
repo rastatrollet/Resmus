@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useToast } from '../components/ToastProvider';
+import { useEffect, useState, useRef } from 'react';
 
-interface VersionInfo {
+export interface VersionInfo {
     version: string;
     message: string;
     timestamp: string;
 }
 
 export const useUpdateChecker = () => {
-    const toast = useToast();
-    const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
+    const [updateInfo, setUpdateInfo] = useState<VersionInfo | null>(null);
+    const initialVersion = useRef<string | null>(null);
 
+    // Initial check and setup polling
     useEffect(() => {
-        const checkUpdate = async () => {
+        const fetchVersion = async (isInitial = false) => {
             try {
-                // Determine base URL dynamically (handles subdomain on standard deployments)
+                // Determine base URL dynamically
                 const baseUrl = import.meta.env.BASE_URL.endsWith('/')
                     ? import.meta.env.BASE_URL
                     : `${import.meta.env.BASE_URL}/`;
@@ -24,48 +25,44 @@ export const useUpdateChecker = () => {
                 if (!res.ok) return;
 
                 const data: VersionInfo = await res.json();
-                const storedVersion = localStorage.getItem('resmus_version');
 
-                // If first time loading (no stored version), just save it
-                if (!storedVersion) {
-                    localStorage.setItem('resmus_version', data.version);
-                    setCurrentVersion(data.version);
-                    return;
+                if (isInitial) {
+                    initialVersion.current = data.version;
+                    // console.log("Initial version:", data.version);
+                } else {
+                    if (initialVersion.current && data.version !== initialVersion.current) {
+                        // console.log(`New version found: ${data.version} (current: ${initialVersion.current})`);
+                        setUpdateInfo(data);
+                        setUpdateAvailable(true);
+                    }
                 }
-
-                // If version mismatch, update available!
-                if (storedVersion !== data.version) {
-                    console.log(`Update found! Old: ${storedVersion}, New: ${data.version}`);
-
-                    // Show Toast
-                    toast.info(
-                        "Ny uppdatering tillgänglig! 🚀",
-                        `Nytt: "${data.message || 'Förbättringar och buggfixar'}"`
-                    );
-
-                    // Update stored version
-                    localStorage.setItem('resmus_version', data.version);
-                    setCurrentVersion(data.version);
-
-                    // Optional: Auto-reload after a delay or let user reload manually?
-                    // For a smoother experience, we just let them know. 
-                    // Service Worker (if reused later) handles the hard reload mostly.
-                    // But for static pages, a reload is good to fetch new assets.
-                }
-
             } catch (e) {
                 console.error("Failed to check for updates", e);
             }
         };
 
-        // Check immediately on mount
-        checkUpdate();
+        // Initial fetch to set baseline
+        fetchVersion(true);
 
-        // Then check every 60 seconds
-        const interval = setInterval(checkUpdate, 60000);
-
+        // Check every 60 seconds
+        const interval = setInterval(() => fetchVersion(false), 60000);
         return () => clearInterval(interval);
     }, []);
 
-    return currentVersion;
+    const updateNow = () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.update();
+                }
+            });
+        }
+        window.location.reload();
+    };
+
+    const dismiss = () => {
+        setUpdateAvailable(false);
+    };
+
+    return { hasUpdate: updateAvailable, updateInfo, updateNow, dismiss };
 };

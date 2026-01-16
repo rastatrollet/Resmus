@@ -7,6 +7,7 @@ import { DepartureSkeleton, ThemedSpinner } from './Loaders';
 import { WeatherDisplay } from './WeatherDisplay';
 import { DepartureRouteMap } from './DepartureRouteMap';
 import { useAlarms } from '../hooks/useAlarms';
+import { TripPlanner } from './TripPlanner';
 
 interface DeparturesBoardProps {
   initialStation?: Station;
@@ -38,6 +39,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   // Search & Station State
   const [query, setQuery] = useState('');
   const [station, setStation] = useState<Station | null>(initialStation || null);
+  const [provider, setProvider] = useState<Provider>(Provider.VASTTRAFIK);
   const [departures, setDepartures] = useState<Departure[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -388,489 +390,532 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
 
-      {/* Search & Header Section */}
-      <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2">
-        {/* Floating Search */}
-        <div className="px-4 pt-4 pb-2 space-y-2">
+      {/* --- Root Mode Switcher (Integrated into Header) --- */}
+      <div className="flex-none z-30 bg-white dark:bg-slate-900 shadow-sm border-b border-slate-100 dark:border-slate-800 px-4 pt-3 pb-3">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button
+            onClick={() => setRootView('station')}
+            className={`flex-1 py-2 text-sm font-black rounded-lg transition-all flex items-center justify-center gap-2 ${rootView === 'station' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-400'}`}
+          >
+            <MapPin size={16} />Hållplats
+          </button>
+          <button
+            onClick={() => setRootView('planner')}
+            className={`flex-1 py-2 text-sm font-black rounded-lg transition-all flex items-center justify-center gap-2 ${rootView === 'planner' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-400'}`}
+          >
+            <Navigation size={16} />Sök Resa
+          </button>
+        </div>
+      </div>
 
-          <div className="relative shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 z-30 transition-all focus-within:ring-2 ring-sky-500/50">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-slate-400" strokeWidth={2.5} />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-10 py-3 bg-transparent border-none text-slate-800 dark:text-slate-100 placeholder-slate-400 rounded-xl font-bold text-base outline-none"
-              placeholder="Sök hållplats..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              autoFocus={!station}
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              {isSearching ? <ThemedSpinner size={16} className="text-sky-500" /> : query.length > 0 ? <button onClick={() => setQuery('')} className="p-1 rounded-full text-slate-400 hover:text-slate-600"><ChevronUp className="w-3.5 h-3.5" /></button> : null}
-            </div>
-          </div>
+      {rootView === 'planner' ? (
+        <div className="flex-1 overflow-hidden relative">
+          <TripPlanner />
+        </div>
+      ) : (
+        <>
+          {/* Search & Header Section */}
+          <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2">
+            {/* Floating Search */}
+            <div className="px-4 pt-4 pb-2 space-y-2">
 
-          {/* Search Results Dropdown */}
-          {(searchResults.length > 0 || (showSuggestions && !query && !station)) && (
-            <div className="absolute top-[80px] left-4 right-4 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[50vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 pb-2">
-              {/* Location Option - Show when query is empty */}
-              {(!query && showSuggestions && !station) && (
-                <button onMouseDown={handleUseLocation} className="w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 text-sky-600 dark:text-sky-400">
-                  <div className="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
-                    <Navigation size={14} fill="currentColor" />
-                  </div>
-                  <span className="font-bold text-sm">Visa hållplatser nära mig</span>
-                </button>
+              <div className="relative shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 z-30 transition-all focus-within:ring-2 ring-sky-500/50">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" strokeWidth={2.5} />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-10 py-3 bg-transparent border-none text-slate-800 dark:text-slate-100 placeholder-slate-400 rounded-xl font-bold text-base outline-none"
+                  placeholder="Sök hållplats..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  autoFocus={!station}
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  {isSearching ? <ThemedSpinner size={16} className="text-sky-500" /> : query.length > 0 ? <button onClick={() => setQuery('')} className="p-1 rounded-full text-slate-400 hover:text-slate-600"><ChevronUp className="w-3.5 h-3.5" /></button> : null}
+                </div>
+              </div>
+
+              {!station && (
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                  <button
+                    onClick={() => { setProvider(Provider.VASTTRAFIK); setQuery(''); setSearchResults([]); }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${provider === Provider.VASTTRAFIK ? 'bg-white dark:bg-slate-700 shadow text-sky-600 dark:text-sky-400' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Västtrafik
+                  </button>
+                  <button
+                    onClick={() => { setProvider(Provider.RESROBOT); setQuery(''); setSearchResults([]); }}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${provider === Provider.RESROBOT ? 'bg-white dark:bg-slate-700 shadow text-green-600 dark:text-green-400' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Resrobot (Hela Sverige)
+                  </button>
+                </div>
               )}
 
-              {locationError && !query && (
-                <div className="px-4 py-2 text-xs text-red-500 font-bold bg-red-50 dark:bg-red-900/10 mx-2 mt-2 rounded-lg">{locationError}</div>
-              )}
-
-              {searchResults.map((s, idx) => (
-                <button key={`${s.id}-${idx}`} onClick={() => handleSelectStation(s)} className="w-full text-left px-4 py-2.5 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 border-b border-slate-50 dark:border-slate-800">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600"><MapPin size={14} /></div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">{s.name}</div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Station Title & Controls */}
-          {station && (
-            <div className="flex flex-col px-1 animate-in slide-in-from-top-4 fade-in duration-500 mt-2">
-              <div className="flex justify-between items-start">
-                <div>
-
-                  <div className="flex items-center gap-3 min-w-0">
-                    <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
-                    {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
-                  </div>
-
-
-                  {/* Show withdrawn lines */}
-                  {withdrawnLines.size > 0 && (
-                    <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
-                      <AlertCircle size={14} />
-                      <span className="text-xs font-bold uppercase tracking-wide">
-                        Linje {Array.from(withdrawnLines).join(', ')} indragen
-                      </span>
-                    </div>
+              {/* Search Results Dropdown */}
+              {(searchResults.length > 0 || (showSuggestions && !query && !station)) && (
+                <div className="absolute top-[80px] left-4 right-4 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[50vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 pb-2">
+                  {/* Location Option - Show when query is empty */}
+                  {(!query && showSuggestions && !station) && (
+                    <button onMouseDown={handleUseLocation} className="w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 text-sky-600 dark:text-sky-400">
+                      <div className="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                        <Navigation size={14} fill="currentColor" />
+                      </div>
+                      <span className="font-bold text-sm">Visa hållplatser nära mig</span>
+                    </button>
                   )}
 
-                  {/* Station Disruptions - "Mini snygg ruta" */}
-                  {/* Station Disruptions - "Mini snygg ruta" */}
-                  {stationDisruptions.length > 0 && (
-                    <div className="mt-2">
-                      {/* Always use the collapsible "Mini" style, but red if severe */}
-                      <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
-                        onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
+                  {locationError && !query && (
+                    <div className="px-4 py-2 text-xs text-red-500 font-bold bg-red-50 dark:bg-red-900/10 mx-2 mt-2 rounded-lg">{locationError}</div>
+                  )}
 
-                        {/* Decorative Background Element */}
-                        <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
+                  {searchResults.map((s, idx) => (
+                    <button key={`${s.id}-${idx}`} onClick={() => handleSelectStation(s)} className="w-full text-left px-4 py-2.5 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 border-b border-slate-50 dark:border-slate-800">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600"><MapPin size={14} /></div>
+                      <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">{s.name}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                        <div className="flex-1 min-w-0 pl-1">
-                          <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
-                            {(() => {
-                              const d = stationDisruptions[0];
-                              const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
-                              const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
+              {/* Station Title & Controls */}
+              {station && (
+                <div className="flex flex-col px-1 animate-in slide-in-from-top-4 fade-in duration-500 mt-2">
+                  <div className="flex justify-between items-start">
+                    <div>
 
-                              let scope = "";
-                              if (lines && stops) scope = `${lines}, ${stops}`;
-                              else if (lines) scope = lines;
-                              else if (stops) scope = stops;
-                              else scope = "Hållplatsen";
-
-                              let status = d.title;
-                              if (status.toLowerCase().includes('indragen')) status = "är indragen";
-
-                              return `Information: ${scope} ${status}. ${d.description}`;
-                            })()}
-                          </p>
-
-                          {stationDisruptions.length > 1 && (
-                            <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
-                              <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
-                                +{stationDisruptions.length - 1} meddelande(n) till
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
-                          <ChevronUp size={14} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
-                        </div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
+                        {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
                       </div>
 
-                      {/* Expanded Details - Only show remaining messages if needed, or simply nothing since the first is fully shown? 
+
+                      {/* Show withdrawn lines */}
+                      {withdrawnLines.size > 0 && (
+                        <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
+                          <AlertCircle size={14} />
+                          <span className="text-xs font-bold uppercase tracking-wide">
+                            Linje {Array.from(withdrawnLines).join(', ')} indragen
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Station Disruptions - "Mini snygg ruta" */}
+                      {/* Station Disruptions - "Mini snygg ruta" */}
+                      {stationDisruptions.length > 0 && (
+                        <div className="mt-2">
+                          {/* Always use the collapsible "Mini" style, but red if severe */}
+                          <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
+                            onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
+
+                            {/* Decorative Background Element */}
+                            <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
+
+                            <div className="flex-1 min-w-0 pl-1">
+                              <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
+                                {(() => {
+                                  const d = stationDisruptions[0];
+                                  const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
+                                  const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
+
+                                  let scope = "";
+                                  if (lines && stops) scope = `${lines}, ${stops}`;
+                                  else if (lines) scope = lines;
+                                  else if (stops) scope = stops;
+                                  else scope = "Hållplatsen";
+
+                                  let status = d.title;
+                                  if (status.toLowerCase().includes('indragen')) status = "är indragen";
+
+                                  return `Information: ${scope} ${status}. ${d.description}`;
+                                })()}
+                              </p>
+
+                              {stationDisruptions.length > 1 && (
+                                <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
+                                  <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
+                                    +{stationDisruptions.length - 1} meddelande(n) till
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
+                              <ChevronUp size={14} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
+                            </div>
+                          </div>
+
+                          {/* Expanded Details - Only show remaining messages if needed, or simply nothing since the first is fully shown? 
                               Actually, user might want to see the pure titles or other msgs. 
                               The prompt implies just showing the formatted text. 
                               But 'onClick' implies expansion.
                               I will keep expansion for valid details access if user wants to see list.
                           */}
-                      {showDisruptionDetails && stationDisruptions.length > 0 && (
-                        <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
-                          {stationDisruptions.map((d, index) => (
-                            <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
-                              <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
-                              <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
-                                {d.description}
-                              </p>
+                          {showDisruptionDetails && stationDisruptions.length > 0 && (
+                            <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
+                              {stationDisruptions.map((d, index) => (
+                                <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
+                                  <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
+                                  <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
+                                    {d.description}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toggleFavorite(station)}
-                    className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
-                  >
-                    <Star size={18} fill={isStationFavorite(station) ? "currentColor" : "none"} strokeWidth={2.5} />
-                  </button>
-                  <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-3">
-                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center gap-1">
-                  <button onClick={() => setViewMode('departures')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'departures' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>
-                    <ArrowUpRight size={14} /> Avgångar
-                  </button>
-                  <button onClick={() => setViewMode('arrivals')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'arrivals' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>
-                    <ArrowDownRight size={14} /> Ankomster
-                  </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => toggleFavorite(station)}
+                        className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <Star size={18} fill={isStationFavorite(station) ? "currentColor" : "none"} strokeWidth={2.5} />
+                      </button>
+                      <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center gap-1">
+                      <button onClick={() => setViewMode('departures')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'departures' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>
+                        <ArrowUpRight size={14} /> Avgångar
+                      </button>
+                      <button onClick={() => setViewMode('arrivals')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${viewMode === 'arrivals' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>
+                        <ArrowDownRight size={14} /> Ankomster
+                      </button>
 
-                  <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                      <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-                  {/* Improved Date Picker */}
-                  <div className="relative flex items-center">
-                    {customTime ? (
-                      <div className="flex items-center bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 rounded text-[10px] font-bold text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-800">
-                        <span>{new Date(customTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
-                        <button onClick={() => setCustomTime('')} className="ml-1.5 text-sky-400 hover:text-sky-600"><X size={10} /></button>
+                      {/* Improved Date Picker */}
+                      <div className="relative flex items-center">
+                        {customTime ? (
+                          <div className="flex items-center bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 rounded text-[10px] font-bold text-sky-600 dark:text-sky-400 border border-sky-100 dark:border-sky-800">
+                            <span>{new Date(customTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <button onClick={() => setCustomTime('')} className="ml-1.5 text-sky-400 hover:text-sky-600"><X size={10} /></button>
+                          </div>
+                        ) : (
+                          <div className="relative group">
+                            <button className="p-1.5 text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 transition-colors rounded-md hover:bg-slate-200 dark:hover:bg-slate-700" title="Välj tid">
+                              <CalendarClock size={14} />
+                            </button>
+                            <input
+                              type="datetime-local"
+                              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                              onChange={(e) => setCustomTime(e.target.value)}
+                            />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="relative group">
-                        <button className="p-1.5 text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 transition-colors rounded-md hover:bg-slate-200 dark:hover:bg-slate-700" title="Välj tid">
-                          <CalendarClock size={14} />
-                        </button>
-                        <input
-                          type="datetime-local"
-                          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                          onChange={(e) => setCustomTime(e.target.value)}
-                        />
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Blue Header Bar */}
+          {station && (
+            <div className="bg-sky-500 text-white text-xs font-black uppercase tracking-wider py-2 px-4 grid grid-cols-[60px_1fr_45px_45px_32px] gap-1 items-center sticky top-0 z-10 shadow-md relative">
+              <div onClick={toggleSort} className="cursor-pointer flex items-center gap-1 hover:text-sky-200">
+                Linje <ArrowUpDown size={10} />
+              </div>
+              <div>Destination</div>
+              <div className="text-right">Tid</div>
+              <div className="text-right">Ny Tid</div>
+              <div className="text-right">
+                Läge
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Blue Header Bar */}
-      {station && (
-        <div className="bg-sky-500 text-white text-xs font-black uppercase tracking-wider py-2 px-4 grid grid-cols-[60px_1fr_45px_45px_32px] gap-1 items-center sticky top-0 z-10 shadow-md relative">
-          <div onClick={toggleSort} className="cursor-pointer flex items-center gap-1 hover:text-sky-200">
-            Linje <ArrowUpDown size={10} />
-          </div>
-          <div>Destination</div>
-          <div className="text-right">Tid</div>
-          <div className="text-right">Ny Tid</div>
-          <div className="text-right">
-            Läge
-          </div>
-        </div>
-      )}
-
-      {/* List Content */}
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 pb-20">
-        {!station ? (
-          <div className="p-4">
+          {/* List Content */}
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 pb-20">
+            {!station ? (
+              <div className="p-4">
 
 
-            {favorites.length > 0 && (
-              <div className="mb-2">
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Dina Favoriter</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {favorites.map(fav => (
-                    <div key={fav.id} onClick={() => handleSelectStation(fav)} className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-sky-500 dark:hover:border-sky-500 transition-colors shadow-sm">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center flex-shrink-0">
-                          <Star size={14} fill="currentColor" />
+                {favorites.length > 0 && (
+                  <div className="mb-2">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Dina Favoriter</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {favorites.map(fav => (
+                        <div key={fav.id} onClick={() => handleSelectStation(fav)} className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-sky-500 dark:hover:border-sky-500 transition-colors shadow-sm">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center flex-shrink-0">
+                              <Star size={14} fill="currentColor" />
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-white truncate text-sm">{fav.name}</span>
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} className="text-slate-300 hover:text-red-500 transition-colors p-1">
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                        <span className="font-bold text-slate-800 dark:text-white truncate text-sm">{fav.name}</span>
-                      </div>
-                      <button onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} className="text-slate-300 hover:text-red-500 transition-colors p-1">
-                        <Trash2 size={14} />
-                      </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {!favorites.length && (
+                  <div className="flex flex-col items-center justify-center pt-20 text-center opacity-40">
+                    <Star size={48} className="text-slate-300 mb-4" />
+                    <p className="font-bold text-slate-400">Du har inga favoriter än.</p>
+                    <p className="text-xs text-slate-400 mt-1">Sök på en hållplats och klicka på stjärnan.</p>
+                  </div>
+                )}
               </div>
-            )}
+            ) : (
+              <>
+                {loading && departures.length === 0 ? (
+                  <div>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <DepartureSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : sortedDepartures.length > 0 ? (
+                  <div>
+                    {sortedDepartures.map((dep, idx) => {
+                      const isCancelled = dep.status === 'CANCELLED';
+                      const hasRealtime = !!dep.realtime;
+                      const isDeviation = hasRealtime && dep.realtime !== dep.time;
 
-            {!favorites.length && (
-              <div className="flex flex-col items-center justify-center pt-20 text-center opacity-40">
-                <Star size={48} className="text-slate-300 mb-4" />
-                <p className="font-bold text-slate-400">Du har inga favoriter än.</p>
-                <p className="text-xs text-slate-400 mt-1">Sök på en hållplats och klicka på stjärnan.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            {loading && departures.length === 0 ? (
-              <div>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <DepartureSkeleton key={i} />
-                ))}
-              </div>
-            ) : sortedDepartures.length > 0 ? (
-              <div>
-                {sortedDepartures.map((dep, idx) => {
-                  const isCancelled = dep.status === 'CANCELLED';
-                  const hasRealtime = !!dep.realtime;
-                  const isDeviation = hasRealtime && dep.realtime !== dep.time;
+                      // Check for Disruption (Any severity, as long as it's not cancelled)
+                      // This ensures the blue 'i' icon appears for delays, moves, or general info.
+                      const hasDisruptionInfo = dep.hasDisruption && !isCancelled;
 
-                  // Check for Disruption (Any severity, as long as it's not cancelled)
-                  // This ensures the blue 'i' icon appears for delays, moves, or general info.
-                  const hasDisruptionInfo = dep.hasDisruption && !isCancelled;
+                      let displayDirection = dep.direction;
+                      if ((displayDirection === 'Okänd' || displayDirection === '') && station) {
+                        displayDirection = viewMode === 'arrivals' ? "Ankommande" : station.name;
+                      }
+                      const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
 
-                  let displayDirection = dep.direction;
-                  if ((displayDirection === 'Okänd' || displayDirection === '') && station) {
-                    displayDirection = viewMode === 'arrivals' ? "Ankommande" : station.name;
-                  }
-                  const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
+                      const getDisplayTime = (timeStr: string, ts?: string) => {
+                        if (!ts) return timeStr;
+                        const diff = (new Date(ts).getTime() - Date.now()) / 60000;
+                        if (diff <= 3) {
+                          const m = Math.floor(diff);
+                          if (m <= 0) return "Nu"; // Changed to handle -0 and negative nicely
+                          return `${m} min`;
+                        }
+                        return timeStr;
+                      };
 
-                  const getDisplayTime = (timeStr: string, ts?: string) => {
-                    if (!ts) return timeStr;
-                    const diff = (new Date(ts).getTime() - Date.now()) / 60000;
-                    if (diff <= 3) {
-                      const m = Math.floor(diff);
-                      if (m <= 0) return "Nu"; // Changed to handle -0 and negative nicely
-                      return `${m} min`;
-                    }
-                    return timeStr;
-                  };
+                      // Filter out departures that have already happened (> 1 min ago)
+                      // We do this check here to filter "live" without refetching
+                      // TODO: Better might be to filter `sortedDepartures` but useEffect runs every 15s.
+                      // Calculate if past departure
+                      const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
+                      if (diff < -0.5) return null; // Hide if more than 30s past departure
 
-                  // Filter out departures that have already happened (> 1 min ago)
-                  // We do this check here to filter "live" without refetching
-                  // TODO: Better might be to filter `sortedDepartures` but useEffect runs every 15s.
-                  // Calculate if past departure
-                  const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
-                  if (diff < -0.5) return null; // Hide if more than 30s past departure
-
-                  return (
-                    // Alarm ID creation moved inside click handler to avoid computation on render
-                    <div
-                      key={`${dep.id}-${idx}`}
-                      className={`relative group/row ${isCancelled ? '' : ''}`}
-                    >
-                      <div
-                        onClick={() => toggleDepartureExpand(dep)}
-                        className={`grid grid-cols-[60px_1fr_45px_45px_32px] gap-1 items-center px-2 py-1 border-b border-slate-100 dark:border-slate-800 transition-colors relative z-10 cursor-pointer
+                      return (
+                        // Alarm ID creation moved inside click handler to avoid computation on render
+                        <div
+                          key={`${dep.id}-${idx}`}
+                          className={`relative group/row ${isCancelled ? '' : ''}`}
+                        >
+                          <div
+                            onClick={() => toggleDepartureExpand(dep)}
+                            className={`grid grid-cols-[60px_1fr_45px_45px_32px] gap-1 items-center px-2 py-1 border-b border-slate-100 dark:border-slate-800 transition-colors relative z-10 cursor-pointer
                             ${isCancelled
-                            ? 'bg-red-50/70 dark:bg-red-900/20 border-l-2 border-l-red-500'
-                            : 'border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-900'
-                          }
+                                ? 'bg-red-50/70 dark:bg-red-900/20 border-l-2 border-l-red-500'
+                                : 'border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-900'
+                              }
                         ${expandedDepartureId === dep.id ? 'bg-slate-50 dark:bg-slate-900 shadow-inner' : ''}
                          `}>
 
-                        {/* Linje */}
-                        <div className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform"
-                          title="Sätt avgångslarm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Add an alarm for 5 mins before (or user choice - defaults to 5 min warning)
-                            const dueTime = new Date(dep.datetime).getTime();
-                            if (dueTime > Date.now()) {
-                              const alarmId = `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`;
-                              // Safety check for stopPoint
-                              const stationName = dep.stopPoint?.name || station?.name || "Unknown Station";
+                            {/* Linje */}
+                            <div className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform"
+                              title="Sätt avgångslarm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Add an alarm for 5 mins before (or user choice - defaults to 5 min warning)
+                                const dueTime = new Date(dep.datetime).getTime();
+                                if (dueTime > Date.now()) {
+                                  const alarmId = `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`;
+                                  // Safety check for stopPoint
+                                  const stationName = dep.stopPoint?.name || station?.name || "Unknown Station";
 
-                              addAlarm({
-                                id: alarmId,
-                                departureTime: dep.timestamp,
-                                dueTime: dueTime,
-                                stationName: stationName,
-                                line: dep.line,
-                                direction: dep.direction
-                              });
+                                  addAlarm({
+                                    id: alarmId,
+                                    departureTime: dep.timestamp,
+                                    dueTime: dueTime,
+                                    stationName: stationName,
+                                    line: dep.line,
+                                    direction: dep.direction
+                                  });
 
-                              toast.success(`Larm satt!`, `Du får en notis inför avgång med linje ${dep.line}.`);
-                            }
-                          }}>
-                          <div className={`relative inline-block ${isCancelled ? 'opacity-70 grayscale-[0.4]' : ''}`}>
-                            <div
-                              className="h-6 min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
-                              style={{
-                                backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line),
-                                color: dep.fgColor || '#ffffff',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
-                              }}
-                            >
-                              {dep.track === 'X' ? <CarTaxiFront size={16} strokeWidth={2.5} /> : (
-                                <span className="mx-0.5">{dep.line === '?' ? '-' : dep.line}</span>
+                                  toast.success(`Larm satt!`, `Du får en notis inför avgång med linje ${dep.line}.`);
+                                }
+                              }}>
+                              <div className={`relative inline-block ${isCancelled ? 'opacity-70 grayscale-[0.4]' : ''}`}>
+                                <div
+                                  className="h-6 min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
+                                  style={{
+                                    backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line),
+                                    color: dep.fgColor || '#ffffff',
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                  }}
+                                >
+                                  {dep.track === 'X' ? <CarTaxiFront size={16} strokeWidth={2.5} /> : (
+                                    <span className="mx-0.5">{dep.line === '?' ? '-' : dep.line}</span>
+                                  )}
+                                </div>
+
+                                {/* Alarm Indicator */}
+                                {alarms.some(a => a.id === `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`) && (
+                                  <div className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full p-0.5 shadow-sm border border-white z-10 animate-in zoom-in-50">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Destination */}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`font-bold text-sm truncate leading-tight ${isCancelled ? 'text-slate-400 line-through decoration-red-400 decoration-2' : 'text-slate-800 dark:text-slate-100'}`}>
+                                  {showOriginPrefix ? `Från ${displayDirection}` : displayDirection}
+                                </div>
+
+                                {/* TRAFFIC INFORMATION ICON */}
+                                {hasDisruptionInfo && <DisruptionInfoIcon />}
+                              </div>
+
+                              {dep.track === 'X' && (
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <span className="bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 text-[9px] font-black uppercase px-1 rounded border border-sky-200 dark:border-sky-800">Förbokas</span>
+                                  <span className="text-[9px] text-slate-400 hidden sm:inline">Ring 0771-91 90 90 (minst 1h innan)</span>
+                                </div>
+                              )}
+
+                              {dep.disruptionMessage && (
+                                <div className="flex items-start gap-1 mt-1 animate-in zoom-in-95 origin-top-left">
+                                  <AlertCircle size={10} className="text-red-500 mt-[1px] flex-shrink-0" />
+                                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 leading-tight">
+                                    {dep.disruptionMessage}
+                                  </span>
+                                </div>
+                              )}
+
+                              {isCancelled && !dep.disruptionMessage && (
+                                <div className="flex items-center gap-1 mt-0.5 text-red-600 dark:text-red-400">
+                                  <Ban size={10} strokeWidth={3} />
+                                  <span className="text-[10px] font-black uppercase tracking-wider">Inställd</span>
+                                </div>
                               )}
                             </div>
 
-                            {/* Alarm Indicator */}
-                            {alarms.some(a => a.id === `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`) && (
-                              <div className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full p-0.5 shadow-sm border border-white z-10 animate-in zoom-in-50">
-                                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Destination */}
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <div className={`font-bold text-sm truncate leading-tight ${isCancelled ? 'text-slate-400 line-through decoration-red-400 decoration-2' : 'text-slate-800 dark:text-slate-100'}`}>
-                              {showOriginPrefix ? `Från ${displayDirection}` : displayDirection}
+                            {/* Tid - Only strikethrough if CANCELLED */}
+                            <div className={`text-right font-bold text-sm leading-tight ${isCancelled ? 'text-slate-400/50 line-through decoration-slate-300' : (isDeviation ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white')}`}>
+                              {getDisplayTime(dep.time, dep.timestamp)}
                             </div>
 
-                            {/* TRAFFIC INFORMATION ICON */}
-                            {hasDisruptionInfo && <DisruptionInfoIcon />}
-                          </div>
-
-                          {dep.track === 'X' && (
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <span className="bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 text-[9px] font-black uppercase px-1 rounded border border-sky-200 dark:border-sky-800">Förbokas</span>
-                              <span className="text-[9px] text-slate-400 hidden sm:inline">Ring 0771-91 90 90 (minst 1h innan)</span>
-                            </div>
-                          )}
-
-                          {dep.disruptionMessage && (
-                            <div className="flex items-start gap-1 mt-1 animate-in zoom-in-95 origin-top-left">
-                              <AlertCircle size={10} className="text-red-500 mt-[1px] flex-shrink-0" />
-                              <span className="text-[10px] font-bold text-red-600 dark:text-red-400 leading-tight">
-                                {dep.disruptionMessage}
-                              </span>
-                            </div>
-                          )}
-
-                          {isCancelled && !dep.disruptionMessage && (
-                            <div className="flex items-center gap-1 mt-0.5 text-red-600 dark:text-red-400">
-                              <Ban size={10} strokeWidth={3} />
-                              <span className="text-[10px] font-black uppercase tracking-wider">Inställd</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Tid - Only strikethrough if CANCELLED */}
-                        <div className={`text-right font-bold text-sm leading-tight ${isCancelled ? 'text-slate-400/50 line-through decoration-slate-300' : (isDeviation ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white')}`}>
-                          {getDisplayTime(dep.time, dep.timestamp)}
-                        </div>
-
-                        {/* Ny Tid */}
-                        <div className="text-right">
-                          {isCancelled ? (
-                            <div className="flex justify-end">
-                              <X size={20} className="text-red-500" strokeWidth={3} />
-                            </div>
-                          ) : (isDeviation ? (
-                            <span className="font-black text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 px-1 py-0.5 rounded leading-none">
-                              {getDisplayTime(dep.realtime || dep.time, dep.timestamp)}
-                            </span>
-                          ) : null)}
-                        </div>
-
-                        {/* Läge (Track) - Premium Redesign */}
-                        <div className="flex justify-end">
-                          {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
-                            <div className="flex flex-col items-center">
-                              <span className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 min-w-[28px] h-[28px] px-1.5 rounded-lg font-black text-[12px] shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all group-hover/row:scale-110 group-hover/row:ring-sky-200 dark:group-hover/row:ring-sky-800">
-                                {dep.track}
-                              </span>
-                            </div>
-                          ) : <span className="text-slate-300 font-bold">-</span>)}
-                        </div>
-                      </div>
-
-                      {/* Expanded Details Map */}
-                      {expandedDepartureId === dep.id && (
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 fade-in duration-200 cursor-default" onClick={(e) => e.stopPropagation()}>
-                          {loadingDetails ? (
-                            <div className="h-32 flex items-center justify-center">
-                              <ThemedSpinner size={24} className="text-sky-500" />
-                            </div>
-                          ) : journeyDetails.length > 0 ? (
-                            <div>
-                              <div className="mb-2 flex items-center justify-between">
-                                <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Färdväg</h4>
-                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{journeyDetails.length} hållplatser</span>
-                              </div>
-                              <DepartureRouteMap stops={journeyDetails} color={dep.bgColor || '#0ea5e9'} />
-
-                              {/* Journey Details Timeline List */}
-                              <div className="mt-4 pl-2 relative">
-                                {/* Vertical Line */}
-                                <div className="absolute top-2 left-[19px] bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800"></div>
-
-                                <div className="space-y-0">
-                                  {journeyDetails.map((stop, idx) => {
-                                    const isFirst = idx === 0;
-                                    const isLast = idx === journeyDetails.length - 1;
-
-                                    return (
-                                      <div key={idx} className="relative flex items-center gap-3 py-2 group">
-                                        {/* Dot */}
-                                        <div className={`relative z-10 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${isFirst || isLast ? 'bg-slate-800 dark:bg-white w-5 h-5' : 'bg-slate-400 dark:bg-slate-600'}`}>
-                                          {(isFirst || isLast) && <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-white dark:bg-slate-900 rounded-full"></div>}
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-3">
-                                          <div className="min-w-0">
-                                            <div className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{stop.name}</div>
-                                          </div>
-                                          <div className="text-right flex-shrink-0">
-                                            <div className="font-bold text-sm text-slate-700 dark:text-slate-300">{stop.time}</div>
-                                            {stop.track && (
-                                              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1 rounded inline-block mt-0.5">
-                                                Läge {stop.track}
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
+                            {/* Ny Tid */}
+                            <div className="text-right">
+                              {isCancelled ? (
+                                <div className="flex justify-end">
+                                  <X size={20} className="text-red-500" strokeWidth={3} />
                                 </div>
-                              </div>
+                              ) : (isDeviation ? (
+                                <span className="font-black text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 px-1 py-0.5 rounded leading-none">
+                                  {getDisplayTime(dep.realtime || dep.time, dep.timestamp)}
+                                </span>
+                              ) : null)}
                             </div>
-                          ) : (
-                            <div className="text-center py-4 text-slate-400 text-xs">
-                              Ingen färdvägsinformation tillgänglig.
+
+                            {/* Läge (Track) - Premium Redesign */}
+                            <div className="flex justify-end">
+                              {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
+                                <div className="flex flex-col items-center">
+                                  <span className="inline-flex items-center justify-center bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 min-w-[28px] h-[28px] px-1.5 rounded-lg font-black text-[12px] shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all group-hover/row:scale-110 group-hover/row:ring-sky-200 dark:group-hover/row:ring-sky-800">
+                                    {dep.track}
+                                  </span>
+                                </div>
+                              ) : <span className="text-slate-300 font-bold">-</span>)}
+                            </div>
+                          </div>
+
+                          {/* Expanded Details Map */}
+                          {expandedDepartureId === dep.id && (
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 fade-in duration-200 cursor-default" onClick={(e) => e.stopPropagation()}>
+                              {loadingDetails ? (
+                                <div className="h-32 flex items-center justify-center">
+                                  <ThemedSpinner size={24} className="text-sky-500" />
+                                </div>
+                              ) : journeyDetails.length > 0 ? (
+                                <div>
+                                  <div className="mb-2 flex items-center justify-between">
+                                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Färdväg</h4>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{journeyDetails.length} hållplatser</span>
+                                  </div>
+                                  <DepartureRouteMap stops={journeyDetails} color={dep.bgColor || '#0ea5e9'} />
+
+                                  {/* Journey Details Timeline List */}
+                                  <div className="mt-4 pl-2 relative">
+                                    {/* Vertical Line */}
+                                    <div className="absolute top-2 left-[19px] bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800"></div>
+
+                                    <div className="space-y-0">
+                                      {journeyDetails.map((stop, idx) => {
+                                        const isFirst = idx === 0;
+                                        const isLast = idx === journeyDetails.length - 1;
+
+                                        return (
+                                          <div key={idx} className="relative flex items-center gap-3 py-2 group">
+                                            {/* Dot */}
+                                            <div className={`relative z-10 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${isFirst || isLast ? 'bg-slate-800 dark:bg-white w-5 h-5' : 'bg-slate-400 dark:bg-slate-600'}`}>
+                                              {(isFirst || isLast) && <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-white dark:bg-slate-900 rounded-full"></div>}
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-3">
+                                              <div className="min-w-0">
+                                                <div className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{stop.name}</div>
+                                              </div>
+                                              <div className="text-right flex-shrink-0">
+                                                <div className="font-bold text-sm text-slate-700 dark:text-slate-300">{stop.time}</div>
+                                                {stop.track && (
+                                                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1 rounded inline-block mt-0.5">
+                                                    Läge {stop.track}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-center py-4 text-slate-400 text-xs">
+                                  Ingen färdvägsinformation tillgänglig.
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-                <div className="py-6"></div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center pt-16 text-slate-400 opacity-60">
-                <AlertCircle className="w-8 h-8 mb-2" />
-                <p className="text-sm font-bold">Inga avgångar hittades</p>
-                {customTime && <p className="text-xs mt-1">Försök att ändra tiden eller sök igen.</p>}
-              </div>
+                      )
+                    })}
+                    <div className="py-6"></div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-16 text-slate-400 opacity-60">
+                    <AlertCircle className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-bold">Inga avgångar hittades</p>
+                    {customTime && <p className="text-xs mt-1">Försök att ändra tiden eller sök igen.</p>}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div >
 
   );
