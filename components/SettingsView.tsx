@@ -51,7 +51,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       root.classList.remove('dark');
       metaThemeColor?.setAttribute('content', '#0ea5e9');
     }
+
+    // Notify App.tsx of theme change
+    window.dispatchEvent(new Event('storage'));
   };
+
 
   const settingsSections = [
     {
