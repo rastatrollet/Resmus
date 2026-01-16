@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Departure, Provider, Station, StopOnTrip, JourneyDetail } from '../types';
 import { TransitService } from '../services/transitService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faMapPin, faArrowUpRight, faArrowDownRight, faChevronUp, faExclamationCircle, faExclamationTriangle, faArrowsAltV, faCalendarAlt, faTimes, faBus, faLocationArrow, faTram, faShip, faBan, faStar, faTrash, faWalking, faTaxi, faFilter, faChevronLeft, faChevronRight, faInfoCircle, faClock, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faMapPin, faArrowUp, faArrowDown, faChevronUp, faExclamationCircle, faExclamationTriangle, faArrowsAltV, faCalendarAlt, faTimes, faBus, faLocationArrow, faTram, faShip, faBan, faStar, faTrash, faWalking, faTaxi, faFilter, faChevronLeft, faChevronRight, faInfoCircle, faClock, faGlobe } from '@fortawesome/free-solid-svg-icons';
 import { DepartureSkeleton, ThemedSpinner } from './Loaders';
 
 import { WeatherDisplay } from './WeatherDisplay';
@@ -481,497 +481,497 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                   )}
                 </div>
               </div>
-
+            </div>
           )}
 
 
 
-              {/* STATION HEADER - VISIBLE ONLY WHEN STATION IS SELECTED - MOVED BELOW BLUE HEADER */}
-              {station && (
-                <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <div className="flex flex-col px-4 pt-4 animate-in slide-in-from-top-4 fade-in duration-500">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
-                          <FontAwesomeIcon icon={faMapPin} className="text-sky-500 flex-shrink-0 text-xl opacity-20" />
-                          {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
-                        </div>
+          {/* STATION HEADER - VISIBLE ONLY WHEN STATION IS SELECTED - MOVED BELOW BLUE HEADER */}
+          {station && (
+            <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col px-4 pt-4 animate-in slide-in-from-top-4 fade-in duration-500">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 min-w-0 mr-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
+                      <FontAwesomeIcon icon={faMapPin} className="text-sky-500 flex-shrink-0 text-xl opacity-20" />
+                      {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
+                    </div>
 
-                        {/* Show withdrawn lines */}
-                        {withdrawnLines.size > 0 && (
-                          <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
-                            <FontAwesomeIcon icon={faExclamationCircle} className="text-sm" />
-                            <span className="text-xs font-bold uppercase tracking-wide">
-                              Linje {Array.from(withdrawnLines).join(', ')} indragen
-                            </span>
-                          </div>
-                        )}
+                    {/* Show withdrawn lines */}
+                    {withdrawnLines.size > 0 && (
+                      <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
+                        <FontAwesomeIcon icon={faExclamationCircle} className="text-sm" />
+                        <span className="text-xs font-bold uppercase tracking-wide">
+                          Linje {Array.from(withdrawnLines).join(', ')} indragen
+                        </span>
+                      </div>
+                    )}
 
-                        {/* Station Disruptions - "Mini snygg ruta" */}
-                        {stationDisruptions.length > 0 && (
-                          <div className="mt-2 text-left">
-                            {/* Always use the collapsible "Mini" style, but red if severe */}
-                            <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
-                              onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
+                    {/* Station Disruptions - "Mini snygg ruta" */}
+                    {stationDisruptions.length > 0 && (
+                      <div className="mt-2 text-left">
+                        {/* Always use the collapsible "Mini" style, but red if severe */}
+                        <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
+                          onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
 
-                              {/* Decorative Background Element */}
-                              <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
+                          {/* Decorative Background Element */}
+                          <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
 
-                              <div className="flex-1 min-w-0 pl-1">
-                                <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
-                                  {(() => {
-                                    const d = stationDisruptions[0];
-                                    const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
-                                    const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
+                          <div className="flex-1 min-w-0 pl-1">
+                            <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
+                              {(() => {
+                                const d = stationDisruptions[0];
+                                const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
+                                const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
 
-                                    let scope = "";
-                                    if (lines && stops) scope = `${lines}, ${stops}`;
-                                    else if (lines) scope = lines;
-                                    else if (stops) scope = stops;
-                                    else scope = "Hållplatsen";
+                                let scope = "";
+                                if (lines && stops) scope = `${lines}, ${stops}`;
+                                else if (lines) scope = lines;
+                                else if (stops) scope = stops;
+                                else scope = "Hållplatsen";
 
-                                    let status = d.title;
-                                    if (status.toLowerCase().includes('indragen')) status = "är indragen";
+                                let status = d.title;
+                                if (status.toLowerCase().includes('indragen')) status = "är indragen";
 
-                                    return `Trafikläge: ${scope} ${status}. ${d.description}`;
-                                  })()}
-                                </p>
+                                return `Trafikläge: ${scope} ${status}. ${d.description}`;
+                              })()}
+                            </p>
 
-                                {stationDisruptions.length > 1 && (
-                                  <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
-                                    <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
-                                      +{stationDisruptions.length - 1} meddelande(n) till
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
-                                <FontAwesomeIcon icon={faChevronUp} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
-                              </div>
-                            </div>
-
-                            {/* Expanded Details - Only show remaining messages if needed */}
-                            {showDisruptionDetails && stationDisruptions.length > 0 && (
-                              <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
-                                {stationDisruptions.map((d, index) => (
-                                  <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
-                                    <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
-                                    <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
-                                      {d.description}
-                                    </p>
-                                  </div>
-                                ))}
+                            {stationDisruptions.length > 1 && (
+                              <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
+                                <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
+                                  +{stationDisruptions.length - 1} meddelande(n) till
+                                </span>
                               </div>
                             )}
                           </div>
+
+                          <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
+                            <FontAwesomeIcon icon={faChevronUp} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
+                          </div>
+                        </div>
+
+                        {/* Expanded Details - Only show remaining messages if needed */}
+                        {showDisruptionDetails && stationDisruptions.length > 0 && (
+                          <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
+                            {stationDisruptions.map((d, index) => (
+                              <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
+                                <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
+                                <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
+                                  {d.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
+                    )}
+                  </div>
 
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => toggleFavorite(station)}
-                          className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
-                        >
-                          <FontAwesomeIcon icon={faStar} className="text-lg" />
-                        </button>
-                        <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                          <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                        </button>
-                      </div>
-                    </div>
-
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => toggleFavorite(station)}
+                      className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
+                    >
+                      <FontAwesomeIcon icon={faStar} className="text-lg" />
+                    </button>
+                    <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                      <FontAwesomeIcon icon={faTimes} className="text-lg" />
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {/* Blue Header Bar (With Integrated Controls) */}
-              {station && (
-                <div className="bg-sky-500 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
+              </div>
+            </div>
+          )}
 
-                  {/* Grid Layout for Column Headers - Absolute to match content below */}
-                  <div className="grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 w-full items-center">
-                    <div onClick={toggleSort} className="cursor-pointer flex items-center gap-1 hover:text-sky-200">
-                      Linje <FontAwesomeIcon icon={faArrowsAltV} className="text-[10px]" />
-                    </div>
-                    <div>Destination</div>
-                    <div className="text-right">Tid</div>
-                    <div className="text-right">Ny</div>
-                    <div className="text-right">Läge</div>
+          {/* Blue Header Bar (With Integrated Controls) */}
+          {station && (
+            <div className="bg-sky-500 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
+
+              {/* Grid Layout for Column Headers - Absolute to match content below */}
+              <div className="grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 w-full items-center">
+                <div onClick={toggleSort} className="cursor-pointer flex items-center gap-1 hover:text-sky-200">
+                  Linje <FontAwesomeIcon icon={faArrowsAltV} className="text-[10px]" />
+                </div>
+                <div>Destination</div>
+                <div className="text-right">Tid</div>
+                <div className="text-right">Ny</div>
+                <div className="text-right">Läge</div>
+              </div>
+
+              {/* Centered View Controls (Floating) */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-sky-600/90 rounded-full px-2 py-0.5 shadow-sm backdrop-blur-sm border border-sky-400/50">
+                {/* Avg/Ank Toggles */}
+                <button
+                  onClick={() => setViewMode('departures')}
+                  className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
+                  title="Avgångar"
+                >
+                  <FontAwesomeIcon icon={faArrowUp} className="text-xs rotate-45" />
+                  <span className="text-[9px] font-black uppercase tracking-wider">Avgångar</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('arrivals')}
+                  className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
+                  title="Ankomster"
+                >
+                  <FontAwesomeIcon icon={faArrowDown} className="text-xs rotate-45" />
+                  <span className="text-[9px] font-black uppercase tracking-wider">Ankomst</span>
+                </button>
+
+                <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
+
+                {/* Time Picker Compact */}
+                {/* Time Controls (Merged) */}
+                <div className="flex items-center bg-sky-800/20 rounded-full pl-0.5 pr-0.5 py-0.5 gap-0.5 border border-sky-400/20 backdrop-blur-sm">
+                  <div className="relative group flex items-center justify-center">
+                    {customTime ? (
+                      <button onClick={() => setCustomTime('')} className="p-1 text-sky-200 hover:text-white bg-sky-800/50 rounded-full">
+                        <span className="text-[9px] font-bold px-1">{new Date(customTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </button>
+                    ) : (
+                      <>
+                        <button className="p-1 text-sky-100 hover:text-white transition-colors rounded-full hover:bg-sky-500" title="Välj tid">
+                          <FontAwesomeIcon icon={faCalendarAlt} className="text-sm" />
+                        </button>
+                        <input
+                          type="datetime-local"
+                          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                          onChange={(e) => setCustomTime(e.target.value)}
+                        />
+                      </>
+                    )}
                   </div>
 
-                  {/* Centered View Controls (Floating) */}
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-sky-600/90 rounded-full px-2 py-0.5 shadow-sm backdrop-blur-sm border border-sky-400/50">
-                    {/* Avg/Ank Toggles */}
-                    <button
-                      onClick={() => setViewMode('departures')}
-                      className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
-                      title="Avgångar"
-                    >
-                      <FontAwesomeIcon icon={faArrowUpRight} className="text-xs" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">Avgångar</span>
-                    </button>
-                    <button
-                      onClick={() => setViewMode('arrivals')}
-                      className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
-                      title="Ankomster"
-                    >
-                      <FontAwesomeIcon icon={faArrowDownRight} className="text-xs" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">Ankomst</span>
-                    </button>
+                  <div className="w-[1px] h-3 bg-white/20 mx-0.5"></div>
 
-                    <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
+                  {/* Shortcuts inline */}
+                  {[360, 1440].map(mins => (
+                    <button
+                      key={mins}
+                      onClick={() => { setTimeWindow(mins); fetchData(); }}
+                      className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold transition-all ${timeWindow === mins ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                      title={`Visa ${mins === 1440 ? '24h' : '6h'} framåt`}
+                    >
+                      {mins === 360 ? '6h' : '24h'}
+                    </button>
+                  ))}
+                </div>
 
-                    {/* Time Picker Compact */}
-                    {/* Time Controls (Merged) */}
-                    <div className="flex items-center bg-sky-800/20 rounded-full pl-0.5 pr-0.5 py-0.5 gap-0.5 border border-sky-400/20 backdrop-blur-sm">
-                      <div className="relative group flex items-center justify-center">
-                        {customTime ? (
-                          <button onClick={() => setCustomTime('')} className="p-1 text-sky-200 hover:text-white bg-sky-800/50 rounded-full">
-                            <span className="text-[9px] font-bold px-1">{new Date(customTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
+
+                {/* Time Window Selector */}
+
+
+                <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
+
+                {/* Min/Tid Toggle */}
+                <button
+                  onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
+                  className="p-1 rounded-full text-sky-100 hover:text-white hover:bg-sky-500 transition-colors"
+                  title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
+                >
+                  <FontAwesomeIcon icon={faClock} className="text-sm" />
+                </button>
+              </div>
+
+            </div>
+          )}
+
+          {/* List Content */}
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 pb-20">
+            {!station ? (
+              <div className="p-4">
+
+
+                {favorites.length > 0 && (
+                  <div className="mb-2">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Dina Favoriter</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {favorites.map(fav => (
+                        <div key={fav.id} onClick={() => handleSelectStation(fav)} className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-sky-500 dark:hover:border-sky-500 transition-colors shadow-sm">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center flex-shrink-0">
+                              <FontAwesomeIcon icon={faStar} className="text-sm" />
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-white truncate text-sm">{fav.name}</span>
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} className="text-slate-300 hover:text-red-500 transition-colors p-1">
+                            <FontAwesomeIcon icon={faTrash} className="text-sm" />
                           </button>
-                        ) : (
-                          <>
-                            <button className="p-1 text-sky-100 hover:text-white transition-colors rounded-full hover:bg-sky-500" title="Välj tid">
-                              <FontAwesomeIcon icon={faCalendarAlt} className="text-sm" />
-                            </button>
-                            <input
-                              type="datetime-local"
-                              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                              onChange={(e) => setCustomTime(e.target.value)}
-                            />
-                          </>
-                        )}
-                      </div>
-
-                      <div className="w-[1px] h-3 bg-white/20 mx-0.5"></div>
-
-                      {/* Shortcuts inline */}
-                      {[360, 1440].map(mins => (
-                        <button
-                          key={mins}
-                          onClick={() => { setTimeWindow(mins); fetchData(); }}
-                          className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold transition-all ${timeWindow === mins ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                          title={`Visa ${mins === 1440 ? '24h' : '6h'} framåt`}
-                        >
-                          {mins === 360 ? '6h' : '24h'}
-                        </button>
+                        </div>
                       ))}
                     </div>
-
-
-                    {/* Time Window Selector */}
-
-
-                    <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
-
-                    {/* Min/Tid Toggle */}
-                    <button
-                      onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
-                      className="p-1 rounded-full text-sky-100 hover:text-white hover:bg-sky-500 transition-colors"
-                      title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
-                    >
-                      <FontAwesomeIcon icon={faClock} className="text-sm" />
-                    </button>
                   </div>
+                )}
 
-                </div>
-              )}
-
-              {/* List Content */}
-              <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 pb-20">
-                {!station ? (
-                  <div className="p-4">
-
-
-                    {favorites.length > 0 && (
-                      <div className="mb-2">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Dina Favoriter</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                          {favorites.map(fav => (
-                            <div key={fav.id} onClick={() => handleSelectStation(fav)} className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-sky-500 dark:hover:border-sky-500 transition-colors shadow-sm">
-                              <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center flex-shrink-0">
-                                  <FontAwesomeIcon icon={faStar} className="text-sm" />
-                                </div>
-                                <span className="font-bold text-slate-800 dark:text-white truncate text-sm">{fav.name}</span>
-                              </div>
-                              <button onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} className="text-slate-300 hover:text-red-500 transition-colors p-1">
-                                <FontAwesomeIcon icon={faTrash} className="text-sm" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {!favorites.length && (
-                      <div className="flex flex-col items-center justify-center pt-20 text-center opacity-40">
-                        <FontAwesomeIcon icon={faStar} className="text-5xl text-slate-300 mb-4" />
-                        <p className="font-bold text-slate-400">Du har inga favoriter än.</p>
-                        <p className="text-xs text-slate-400 mt-1">Sök på en hållplats och klicka på stjärnan.</p>
-                      </div>
-                    )}
+                {!favorites.length && (
+                  <div className="flex flex-col items-center justify-center pt-20 text-center opacity-40">
+                    <FontAwesomeIcon icon={faStar} className="text-5xl text-slate-300 mb-4" />
+                    <p className="font-bold text-slate-400">Du har inga favoriter än.</p>
+                    <p className="text-xs text-slate-400 mt-1">Sök på en hållplats och klicka på stjärnan.</p>
                   </div>
-                ) : (
-                  <>
-                    {loading && departures.length === 0 ? (
-                      <div>
-                        {Array.from({ length: 6 }).map((_, i) => (
-                          <DepartureSkeleton key={i} />
-                        ))}
-                      </div>
-                    ) : sortedDepartures.length > 0 ? (
-                      <div>
-                        {sortedDepartures.map((dep, idx) => {
-                          const isCancelled = dep.status === 'CANCELLED';
-                          const hasRealtime = !!dep.realtime;
-                          const isDeviation = hasRealtime && dep.realtime !== dep.time;
+                )}
+              </div>
+            ) : (
+              <>
+                {loading && departures.length === 0 ? (
+                  <div>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <DepartureSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : sortedDepartures.length > 0 ? (
+                  <div>
+                    {sortedDepartures.map((dep, idx) => {
+                      const isCancelled = dep.status === 'CANCELLED';
+                      const hasRealtime = !!dep.realtime;
+                      const isDeviation = hasRealtime && dep.realtime !== dep.time;
 
-                          // Check for Disruption (Any severity, as long as it's not cancelled)
-                          // This ensures the blue 'i' icon appears for delays, moves, or general info.
-                          const hasDisruptionInfo = dep.hasDisruption && !isCancelled;
+                      // Check for Disruption (Any severity, as long as it's not cancelled)
+                      // This ensures the blue 'i' icon appears for delays, moves, or general info.
+                      const hasDisruptionInfo = dep.hasDisruption && !isCancelled;
 
-                          let displayDirection = dep.direction;
-                          if ((displayDirection === 'Okänd' || displayDirection === '') && station) {
-                            displayDirection = viewMode === 'arrivals' ? "Ankommande" : station.name;
-                          }
-                          const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
+                      let displayDirection = dep.direction;
+                      if ((displayDirection === 'Okänd' || displayDirection === '') && station) {
+                        displayDirection = viewMode === 'arrivals' ? "Ankommande" : station.name;
+                      }
+                      const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
 
-                          const getDisplayTime = (timeStr: string, ts?: string) => {
-                            if (!ts) return timeStr;
-                            const diff = (new Date(ts).getTime() - Date.now()) / 60000;
-                            if (diff <= 3) {
-                              const m = Math.floor(diff);
-                              if (m <= 0) return "Nu"; // Changed to handle -0 and negative nicely
-                              return `${m} min`;
-                            }
-                            return timeStr;
-                          };
+                      const getDisplayTime = (timeStr: string, ts?: string) => {
+                        if (!ts) return timeStr;
+                        const diff = (new Date(ts).getTime() - Date.now()) / 60000;
+                        if (diff <= 3) {
+                          const m = Math.floor(diff);
+                          if (m <= 0) return "Nu"; // Changed to handle -0 and negative nicely
+                          return `${m} min`;
+                        }
+                        return timeStr;
+                      };
 
-                          // Filter out departures that have already happened (> 1 min ago)
-                          // We do this check here to filter "live" without refetching
-                          // TODO: Better might be to filter `sortedDepartures` but useEffect runs every 15s.
-                          // Filter out departures that have already happened (> 0.5 min ago)
-                          const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
-                          if (diff < -0.5) return null;
+                      // Filter out departures that have already happened (> 1 min ago)
+                      // We do this check here to filter "live" without refetching
+                      // TODO: Better might be to filter `sortedDepartures` but useEffect runs every 15s.
+                      // Filter out departures that have already happened (> 0.5 min ago)
+                      const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
+                      if (diff < -0.5) return null;
 
-                          // Smart Time Logic
-                          const minsRemaining = Math.ceil(diff);
-                          const isCloseDeparture = minsRemaining <= 5 && minsRemaining >= -1;
-                          // Show minutes if mode is 'minutes' OR if it's a close departure with realtime data (Smart Time default)
-                          const displayRealtimeInMinutes = timeDisplayMode === 'minutes' || (isCloseDeparture && hasRealtime);
+                      // Smart Time Logic
+                      const minsRemaining = Math.ceil(diff);
+                      const isCloseDeparture = minsRemaining <= 5 && minsRemaining >= -1;
+                      // Show minutes if mode is 'minutes' OR if it's a close departure with realtime data (Smart Time default)
+                      const displayRealtimeInMinutes = timeDisplayMode === 'minutes' || (isCloseDeparture && hasRealtime);
 
-                          // If close departure, HIDE scheduled time, show ONLY realtime in "Ny Tid" col
-                          // If NOT close, show scheduled in "Tid", and realtime in "Ny Tid" ONLY if deviation
+                      // If close departure, HIDE scheduled time, show ONLY realtime in "Ny Tid" col
+                      // If NOT close, show scheduled in "Tid", and realtime in "Ny Tid" ONLY if deviation
 
-                          return (
-                            <div
-                              key={`${dep.id}-${idx}`}
-                              className={`relative group/row ${isCancelled ? '' : ''}`}
-                            >
-                              <div
-                                onClick={() => toggleDepartureExpand(dep)}
-                                className={`grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 items-center px-2 py-0.5 md:py-1 border-b border-slate-100 dark:border-slate-800 transition-colors relative z-10 cursor-pointer
+                      return (
+                        <div
+                          key={`${dep.id}-${idx}`}
+                          className={`relative group/row ${isCancelled ? '' : ''}`}
+                        >
+                          <div
+                            onClick={() => toggleDepartureExpand(dep)}
+                            className={`grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 items-center px-2 py-0.5 md:py-1 border-b border-slate-100 dark:border-slate-800 transition-colors relative z-10 cursor-pointer
                             ${isCancelled
-                                    ? 'bg-red-50/70 dark:bg-red-900/20 border-l-2 border-l-red-500'
-                                    : 'border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-900'
-                                  }
+                                ? 'bg-red-50/70 dark:bg-red-900/20 border-l-2 border-l-red-500'
+                                : 'border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-900'
+                              }
                         ${expandedDepartureId === dep.id ? 'bg-slate-50 dark:bg-slate-900 shadow-inner' : ''}
                          `}>
 
-                                {/* Linje */}
-                                <div className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform"
-                                  title="Sätt avgångslarm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const dueTime = new Date(dep.datetime).getTime();
-                                    if (dueTime > Date.now()) {
-                                      const alarmId = `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`;
-                                      const stationName = dep.stopPoint?.name || station?.name || "Unknown Station";
-                                      addAlarm({
-                                        id: alarmId,
-                                        departureTime: dep.timestamp,
-                                        dueTime: dueTime,
-                                        stationName: stationName,
-                                        line: dep.line,
-                                        direction: dep.direction
-                                      });
-                                      toast.success(`Larm satt!`, `Du får en notis inför avgång med linje ${dep.line}.`);
-                                    }
-                                  }}>
-                                  <div className={`relative inline-block ${isCancelled ? 'opacity-70 grayscale-[0.4]' : ''}`}>
-                                    <div
-                                      className="h-5 md:h-6 min-w-[28px] md:min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-[10px] md:text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
-                                      style={{
-                                        backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line),
-                                        color: dep.fgColor || '#ffffff',
-                                        textShadow: '0 1px 2px rgba(0,0,0,0.5)'
-                                      }}
-                                    >
-                                      {dep.track === 'X' ? <FontAwesomeIcon icon={faTaxi} className="text-[16px]" /> : (
-                                        <span className="mx-0.5">{dep.line === '?' ? '-' : dep.line}</span>
-                                      )}
-                                    </div>
-                                    {alarms.some(a => a.id === `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`) && (
-                                      <div className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full p-0.5 shadow-sm border border-white z-10 animate-in zoom-in-50">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                      </div>
-                                    )}
+                            {/* Linje */}
+                            <div className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform"
+                              title="Sätt avgångslarm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const dueTime = new Date(dep.datetime).getTime();
+                                if (dueTime > Date.now()) {
+                                  const alarmId = `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`;
+                                  const stationName = dep.stopPoint?.name || station?.name || "Unknown Station";
+                                  addAlarm({
+                                    id: alarmId,
+                                    departureTime: dep.timestamp,
+                                    dueTime: dueTime,
+                                    stationName: stationName,
+                                    line: dep.line,
+                                    direction: dep.direction
+                                  });
+                                  toast.success(`Larm satt!`, `Du får en notis inför avgång med linje ${dep.line}.`);
+                                }
+                              }}>
+                              <div className={`relative inline-block ${isCancelled ? 'opacity-70 grayscale-[0.4]' : ''}`}>
+                                <div
+                                  className="h-5 md:h-6 min-w-[28px] md:min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-[10px] md:text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
+                                  style={{
+                                    backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line),
+                                    color: dep.fgColor || '#ffffff',
+                                    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                  }}
+                                >
+                                  {dep.track === 'X' ? <FontAwesomeIcon icon={faTaxi} className="text-[16px]" /> : (
+                                    <span className="mx-0.5">{dep.line === '?' ? '-' : dep.line}</span>
+                                  )}
+                                </div>
+                                {alarms.some(a => a.id === `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`) && (
+                                  <div className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full p-0.5 shadow-sm border border-white z-10 animate-in zoom-in-50">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
                                   </div>
-                                </div>
-
-                                {/* Destination */}
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className={`font-bold text-xs md:text-sm truncate leading-tight ${isCancelled ? 'text-slate-400 line-through decoration-red-400 decoration-2' : 'text-slate-800 dark:text-slate-100'}`}>
-                                      {showOriginPrefix ? `Från ${displayDirection}` : displayDirection}
-                                    </div>
-                                    {hasDisruptionInfo && <DisruptionInfoIcon />}
-                                  </div>
-                                  {dep.track === 'X' && (
-                                    <div className="flex items-center gap-1 mt-0.5">
-                                      <span className="bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 text-[9px] font-black uppercase px-1 rounded border border-sky-200 dark:border-sky-800">Förbokas</span>
-                                      <span className="text-[9px] text-slate-400 hidden sm:inline">Ring 0771-91 90 90 (minst 1h innan)</span>
-                                    </div>
-                                  )}
-                                  {dep.disruptionMessage && (
-                                    <div className="flex items-start gap-1 mt-1 animate-in zoom-in-95 origin-top-left">
-                                      <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 mt-[1px] text-[10px] flex-shrink-0" />
-                                      <span className="text-[10px] font-bold text-red-600 dark:text-red-400 leading-tight">
-                                        {dep.disruptionMessage}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {isCancelled && !dep.disruptionMessage && (
-                                    <div className="flex items-center gap-1 mt-0.5 text-red-600 dark:text-red-400">
-                                      <FontAwesomeIcon icon={faBan} className="text-[10px]" />
-                                      <span className="text-[10px] font-black uppercase tracking-wider">Inställd</span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Tid (Scheduled) - Respects timeDisplayMode */}
-                                <div className={`text-right font-bold text-xs md:text-sm leading-tight whitespace-nowrap ${isCancelled ? 'text-slate-400/50 line-through decoration-slate-300' : (isDeviation ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white')}`}>
-                                  {timeDisplayMode === 'minutes' && displayRealtimeInMinutes
-                                    ? ""
-                                    : dep.time
-                                  }
-                                </div>
-
-                                {/* Ny Tid (Realtime) - Respects timeDisplayMode */}
-                                <div className="text-right whitespace-nowrap">
-                                  {isCancelled ? (
-                                    <div className="flex justify-end">
-                                      <FontAwesomeIcon icon={faTimes} className="text-red-500 text-xl" />
-                                    </div>
-                                  ) : (
-                                    timeDisplayMode === 'minutes' ? (
-                                      (isDeviation || displayRealtimeInMinutes) ? (
-                                        <span className={`font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none inline-block ${displayRealtimeInMinutes ? "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/40" : "text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30"}`}>
-                                          {displayRealtimeInMinutes ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : getDisplayTime(dep.realtime || dep.time, dep.timestamp)}
-                                        </span>
-                                      ) : null
-                                    ) : (
-                                      hasRealtime && isDeviation ? (
-                                        <span className="font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 inline-block">
-                                          {dep.realtime}
-                                        </span>
-                                      ) : null
-                                    )
-                                  )}
-                                </div>
-
-                                {/* Läge (Track) - Premium Redesign */}
-                                <div className="flex justify-end">
-                                  {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
-                                    <div className="flex flex-col items-center">
-                                      <span className="inline-flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white min-w-[24px] h-[24px] px-1.5 rounded-md font-black text-[11px] shadow-sm border border-blue-500 dark:border-blue-400 ring-1 ring-blue-700/50 dark:ring-blue-400/50 transition-all group-hover/row:scale-110 group-hover/row:shadow-md group-hover/row:border-white/50">
-                                        {dep.track}
-                                      </span>
-                                    </div>
-                                  ) : <span className="text-slate-300 font-bold">-</span>)}
-                                </div>
+                                )}
                               </div>
+                            </div>
 
-                              {/* Expanded Details Map */}
-                              {expandedDepartureId === dep.id && (
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 fade-in duration-200 cursor-default" onClick={(e) => e.stopPropagation()}>
-                                  {loadingDetails ? (
-                                    <div className="h-32 flex items-center justify-center">
-                                      <ThemedSpinner size={24} className="text-sky-500" />
-                                    </div>
-                                  ) : journeyDetails.length > 0 ? (
-                                    <div>
-                                      <div className="mb-2 flex items-center justify-between">
-                                        <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Färdväg</h4>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{journeyDetails.length} hållplatser</span>
-                                      </div>
-                                      <DepartureRouteMap stops={journeyDetails} color={dep.bgColor || '#0ea5e9'} />
-
-                                      {/* Journey Details Timeline List */}
-                                      <div className="mt-4 pl-2 relative">
-                                        {/* Vertical Line */}
-                                        <div className="absolute top-2 left-[19px] bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800"></div>
-
-                                        <div className="space-y-0">
-                                          {journeyDetails.map((stop, idx) => {
-                                            const isFirst = idx === 0;
-                                            const isLast = idx === journeyDetails.length - 1;
-
-                                            return (
-                                              <div key={idx} className="relative flex items-center gap-3 py-2 group">
-                                                {/* Dot */}
-                                                <div className={`relative z-10 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${isFirst || isLast ? 'bg-slate-800 dark:bg-white w-5 h-5' : 'bg-slate-400 dark:bg-slate-600'}`}>
-                                                  {(isFirst || isLast) && <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-white dark:bg-slate-900 rounded-full"></div>}
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="flex-1 min-w-0 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-3">
-                                                  <div className="min-w-0">
-                                                    <div className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{stop.name}</div>
-                                                  </div>
-                                                  <div className="text-right flex-shrink-0">
-                                                    <div className="font-bold text-sm text-slate-700 dark:text-slate-300">{stop.time}</div>
-                                                    {stop.track && (
-                                                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1 rounded inline-block mt-0.5">
-                                                        Läge {stop.track}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-center py-4 text-slate-400 text-xs">
-                                      Ingen färdvägsinformation tillgänglig.
-                                    </div>
-                                  )}
+                            {/* Destination */}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`font-bold text-xs md:text-sm truncate leading-tight ${isCancelled ? 'text-slate-400 line-through decoration-red-400 decoration-2' : 'text-slate-800 dark:text-slate-100'}`}>
+                                  {showOriginPrefix ? `Från ${displayDirection}` : displayDirection}
+                                </div>
+                                {hasDisruptionInfo && <DisruptionInfoIcon />}
+                              </div>
+                              {dep.track === 'X' && (
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <span className="bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 text-[9px] font-black uppercase px-1 rounded border border-sky-200 dark:border-sky-800">Förbokas</span>
+                                  <span className="text-[9px] text-slate-400 hidden sm:inline">Ring 0771-91 90 90 (minst 1h innan)</span>
+                                </div>
+                              )}
+                              {dep.disruptionMessage && (
+                                <div className="flex items-start gap-1 mt-1 animate-in zoom-in-95 origin-top-left">
+                                  <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 mt-[1px] text-[10px] flex-shrink-0" />
+                                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 leading-tight">
+                                    {dep.disruptionMessage}
+                                  </span>
+                                </div>
+                              )}
+                              {isCancelled && !dep.disruptionMessage && (
+                                <div className="flex items-center gap-1 mt-0.5 text-red-600 dark:text-red-400">
+                                  <FontAwesomeIcon icon={faBan} className="text-[10px]" />
+                                  <span className="text-[10px] font-black uppercase tracking-wider">Inställd</span>
                                 </div>
                               )}
                             </div>
-                          )
-                        })}
-                        <div className="py-6"></div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-16 text-slate-400 opacity-60">
-                        <FontAwesomeIcon icon={faExclamationCircle} className="text-3xl mb-2" />
-                        <p className="text-sm font-bold">Inga avgångar hittades</p>
-                        {customTime && <p className="text-xs mt-1">Försök att ändra tiden eller sök igen.</p>}
-                      </div>
-                    )}
-                  </>
+
+                            {/* Tid (Scheduled) - Respects timeDisplayMode */}
+                            <div className={`text-right font-bold text-xs md:text-sm leading-tight whitespace-nowrap ${isCancelled ? 'text-slate-400/50 line-through decoration-slate-300' : (isDeviation ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white')}`}>
+                              {timeDisplayMode === 'minutes' && displayRealtimeInMinutes
+                                ? ""
+                                : dep.time
+                              }
+                            </div>
+
+                            {/* Ny Tid (Realtime) - Respects timeDisplayMode */}
+                            <div className="text-right whitespace-nowrap">
+                              {isCancelled ? (
+                                <div className="flex justify-end">
+                                  <FontAwesomeIcon icon={faTimes} className="text-red-500 text-xl" />
+                                </div>
+                              ) : (
+                                timeDisplayMode === 'minutes' ? (
+                                  (isDeviation || displayRealtimeInMinutes) ? (
+                                    <span className={`font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none inline-block ${displayRealtimeInMinutes ? "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/40" : "text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30"}`}>
+                                      {displayRealtimeInMinutes ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : getDisplayTime(dep.realtime || dep.time, dep.timestamp)}
+                                    </span>
+                                  ) : null
+                                ) : (
+                                  hasRealtime && isDeviation ? (
+                                    <span className="font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 inline-block">
+                                      {dep.realtime}
+                                    </span>
+                                  ) : null
+                                )
+                              )}
+                            </div>
+
+                            {/* Läge (Track) - Premium Redesign */}
+                            <div className="flex justify-end">
+                              {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
+                                <div className="flex flex-col items-center">
+                                  <span className="inline-flex items-center justify-center bg-blue-600 dark:bg-blue-500 text-white min-w-[24px] h-[24px] px-1.5 rounded-md font-black text-[11px] shadow-sm border border-blue-500 dark:border-blue-400 ring-1 ring-blue-700/50 dark:ring-blue-400/50 transition-all group-hover/row:scale-110 group-hover/row:shadow-md group-hover/row:border-white/50">
+                                    {dep.track}
+                                  </span>
+                                </div>
+                              ) : <span className="text-slate-300 font-bold">-</span>)}
+                            </div>
+                          </div>
+
+                          {/* Expanded Details Map */}
+                          {expandedDepartureId === dep.id && (
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 fade-in duration-200 cursor-default" onClick={(e) => e.stopPropagation()}>
+                              {loadingDetails ? (
+                                <div className="h-32 flex items-center justify-center">
+                                  <ThemedSpinner size={24} className="text-sky-500" />
+                                </div>
+                              ) : journeyDetails.length > 0 ? (
+                                <div>
+                                  <div className="mb-2 flex items-center justify-between">
+                                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Färdväg</h4>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{journeyDetails.length} hållplatser</span>
+                                  </div>
+                                  <DepartureRouteMap stops={journeyDetails} color={dep.bgColor || '#0ea5e9'} />
+
+                                  {/* Journey Details Timeline List */}
+                                  <div className="mt-4 pl-2 relative">
+                                    {/* Vertical Line */}
+                                    <div className="absolute top-2 left-[19px] bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800"></div>
+
+                                    <div className="space-y-0">
+                                      {journeyDetails.map((stop, idx) => {
+                                        const isFirst = idx === 0;
+                                        const isLast = idx === journeyDetails.length - 1;
+
+                                        return (
+                                          <div key={idx} className="relative flex items-center gap-3 py-2 group">
+                                            {/* Dot */}
+                                            <div className={`relative z-10 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${isFirst || isLast ? 'bg-slate-800 dark:bg-white w-5 h-5' : 'bg-slate-400 dark:bg-slate-600'}`}>
+                                              {(isFirst || isLast) && <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-white dark:bg-slate-900 rounded-full"></div>}
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-3">
+                                              <div className="min-w-0">
+                                                <div className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{stop.name}</div>
+                                              </div>
+                                              <div className="text-right flex-shrink-0">
+                                                <div className="font-bold text-sm text-slate-700 dark:text-slate-300">{stop.time}</div>
+                                                {stop.track && (
+                                                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1 rounded inline-block mt-0.5">
+                                                    Läge {stop.track}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-center py-4 text-slate-400 text-xs">
+                                  Ingen färdvägsinformation tillgänglig.
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                    <div className="py-6"></div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-16 text-slate-400 opacity-60">
+                    <FontAwesomeIcon icon={faExclamationCircle} className="text-3xl mb-2" />
+                    <p className="text-sm font-bold">Inga avgångar hittades</p>
+                    {customTime && <p className="text-xs mt-1">Försök att ändra tiden eller sök igen.</p>}
+                  </div>
                 )}
-              </div>
-            </>
-          )
-          }
-        </div >
-      );
+              </>
+            )}
+          </div>
+        </>
+      )
+      }
+    </div >
+  );
 };
