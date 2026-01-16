@@ -1,5 +1,5 @@
 {
-  "version": "6f25c3c",
-  "message": "Fix dark mode toggle and add API credentials to .env",
-  "timestamp": "2026-01-16T12:18:46.357Z"
+  "version": "23e105b",
+  "message": "Mobile UI: solid light blue header/footer, remove gradients and white space",
+  "timestamp": "2026-01-16T12:24:57.398Z"
 }
