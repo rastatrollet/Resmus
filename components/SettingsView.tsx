@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { Settings, Moon, Sun, Monitor, Download, Smartphone, Info, ChevronRight, Palette, Globe, Server } from 'lucide-react';
 import { Provider } from '../types';
-import { ThemePicker } from './ThemePicker';
+import { useTheme } from './ThemeContext';
 
 interface SettingsViewProps {
   deferredPrompt: any;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) => {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved === 'light' || saved === 'dark' || saved === 'system') ? saved : 'system';
-  });
+  const { theme, setTheme } = useTheme();
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -38,24 +35,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
 
   const updateTheme = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-
-    const root = window.document.documentElement;
-    const isDark = newTheme === 'dark' || (newTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-
-    if (isDark) {
-      root.classList.add('dark');
-      metaThemeColor?.setAttribute('content', '#0f172a');
-    } else {
-      root.classList.remove('dark');
-      metaThemeColor?.setAttribute('content', '#0ea5e9');
-    }
-
-    // Notify App.tsx of theme change
-    window.dispatchEvent(new Event('storage'));
   };
 
+
+  const [versionInfo, setVersionInfo] = useState<{ version: string, message: string, timestamp: string } | null>(null);
+
+  React.useEffect(() => {
+    fetch('./version.json') // Relative path works for hash router often, or try /version.json
+      .then(res => res.json())
+      .then(data => setVersionInfo(data))
+      .catch(e => console.error("Could not load version info", e));
+  }, []);
 
   const settingsSections = [
     {
@@ -108,7 +98,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
                 onClick={() => updateProvider(Provider.RESROBOT)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${provider === Provider.RESROBOT ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500'}`}
               >
-                Hela Sverige
+                ResRobot
               </button>
             </div>
           )
@@ -142,17 +132,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       items: [
         {
           label: 'Version',
-          value: '2026.2.0 (Beta)',
-          action: null
-        },
-        {
-          label: 'Utvecklaren',
-          value: 'Resmus Development',
+          value: `2026.2.0 (Beta) ${versionInfo ? `-${versionInfo.version}` : ''} (2026)`,
           action: null
         },
         {
           label: 'Senast uppdaterad',
-          value: new Date().toLocaleString(),
+          value: versionInfo ? new Date(versionInfo.timestamp).toLocaleString() : 'Laddar...',
+          action: null
+        },
+        {
+          label: 'Nytt i denna version',
+          value: versionInfo ? versionInfo.message : 'Ingen information',
+          action: null
+        },
+        {
+          label: 'Datakällor',
+          value: 'Built on open data Västtrafik and Resrobot Now',
           action: null
         }
       ]
@@ -207,7 +202,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
             Resmus 2026 - Modern kollektivtrafik i realtid
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            © 2026 Resmus Development
+            Built on open data Västtrafik and Resrobot Now
           </p>
         </div>
       </div>

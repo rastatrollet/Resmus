@@ -11,12 +11,12 @@ import { applyAccentTheme } from './components/ThemePicker';
 import { FavoritesView } from './components/FavoritesView';
 import { LiveMap } from './components/LiveMap';
 import { NotFound } from './components/NotFound';
-
 import { TranslationProvider, useTranslation } from './components/TranslationProvider';
-
-
 import { UpdateNotification } from './components/UpdateNotification';
 import { TravelAssistant } from './components/TravelAssistant';
+import { AdUnit } from './components/AdUnit';
+import { ToastProvider } from './components/ToastProvider';
+import { ThemeProvider } from './components/ThemeContext';
 
 const AppContent = () => {
   // Update checker is now handled by the notification component internally or we can hoist it. 
@@ -28,17 +28,11 @@ const AppContent = () => {
   // Analytics Tracking for SPA Route Changes
   useEffect(() => {
     if ((window as any).gtag) {
-      (window as any).gtag('config', 'G-XXXXXXXXXX', {
+      (window as any).gtag('config', 'G-TGN3ZKHQBS', {
         page_path: location.pathname + location.search
       });
     }
   }, [location]);
-
-  // Theme Management
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved === 'light' || saved === 'dark' || saved === 'system') ? saved : 'system';
-  });
 
   // Fullscreen State
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -69,25 +63,7 @@ const AppContent = () => {
     // Initialize Accent Theme
     const savedAccent = localStorage.getItem('resmus_accent_theme') || 'sky';
     applyAccentTheme(savedAccent);
-
-    const root = window.document.documentElement;
-    const applyTheme = () => {
-      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      if (isDark) {
-        root.classList.add('dark');
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0f172a');
-      } else {
-        root.classList.remove('dark');
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0ea5e9');
-      }
-    };
-    applyTheme();
-    localStorage.setItem('theme', theme);
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemChange = () => { if (theme === 'system') applyTheme(); };
-    mediaQuery.addEventListener('change', handleSystemChange);
-    return () => mediaQuery.removeEventListener('change', handleSystemChange);
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -136,6 +112,10 @@ const AppContent = () => {
               </NavLink>
             ))}
           </nav>
+
+          <div className="mt-6 mb-6">
+            <AdUnit format="vertical" className="min-h-[200px]" />
+          </div>
         </div>
 
         <div className="mt-auto p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
@@ -188,8 +168,6 @@ const AppContent = () => {
               return 'Resmus';
             })()}
           </h2>
-
-
         </header>
 
         {/* Content Body */}
@@ -197,9 +175,16 @@ const AppContent = () => {
           <div className={`h-full w-full mx-auto bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col overflow-hidden transition-all duration-300
                     ${isFullscreen
               ? 'max-w-none rounded-none border-none'
-              : 'max-w-4xl md:max-w-6xl md:rounded-[2rem] md:border border-slate-200 dark:border-slate-800'
+              : 'w-full md:w-[96%] md:h-[96%] md:rounded-[2rem] md:border border-slate-200 dark:border-slate-800'
             }
                 `}>
+
+            {/* Top Ad Unit */}
+            {!isFullscreen && (
+              <div className="px-4 pt-4 md:px-8 md:pt-6">
+                <AdUnit format="horizontal" className="shadow-sm" />
+              </div>
+            )}
 
             <Routes>
               <Route path="/" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><DeparturesBoard mode="departures" /></div>} />
@@ -268,14 +253,14 @@ const AppContent = () => {
   );
 };
 
-import { ToastProvider } from './components/ToastProvider';
-
 export default () => (
-  <TranslationProvider>
-    <ToastProvider>
-      <HashRouter>
-        <AppContent />
-      </HashRouter>
-    </ToastProvider>
-  </TranslationProvider>
+  <ThemeProvider>
+    <TranslationProvider>
+      <ToastProvider>
+        <HashRouter>
+          <AppContent />
+        </HashRouter>
+      </ToastProvider>
+    </TranslationProvider>
+  </ThemeProvider>
 );

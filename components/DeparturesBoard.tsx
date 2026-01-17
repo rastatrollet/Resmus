@@ -247,7 +247,48 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
     return null;
   };
 
-  const getDefaultLineColor = (type: string | undefined, line: string) => {
+  /* 
+   * Color Mapping based on Operator/Region
+   */
+  const getOperatorColor = (operator: string | undefined) => {
+    const op = (operator || '').toLowerCase();
+
+    // Stockholm (SL) - Red/Blue
+    if (op.includes('sl') || op.includes('stockholm')) return '#d90000'; // SL Red
+
+    // Skånetrafiken - Green
+    if (op.includes('skåne')) return '#00a54f'; // Skåne Green
+
+    // Västtrafik - Blue (Default Resmus Brand)
+    if (op.includes('västtrafik')) return '#0095ff';
+
+    // Östgötatrafiken - Red/Orange
+    if (op.includes('östgöta')) return '#ff5000';
+
+    // UL (Uppsala) - Yellow
+    if (op.includes('upplands') || op.includes('ul')) return '#bfae0a';
+
+    // SJ - Gray/Black
+    if (op.includes('sj')) return '#222222';
+
+    // Vy - Green
+    if (op.includes('vy')) return '#006241';
+
+    // Mälartåg - Red/White
+    if (op.includes('mälar')) return '#e30613';
+
+    // Hallandstrafiken - Blue
+    if (op.includes('halland')) return '#007ac9';
+
+    return null; // Fallback to type-based
+  };
+
+  const getDefaultLineColor = (type: string | undefined, line: string, operator?: string) => {
+
+    // 1. Check Operator specific overrides first (if ResRobot)
+    const opColor = getOperatorColor(operator);
+    if (opColor) return opColor;
+
     const t = (type || '').toUpperCase();
     const lineNum = parseInt(line) || 0;
 
@@ -602,77 +643,45 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
               </div>
 
               {/* Centered View Controls (Floating) */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-sky-600/90 rounded-full px-2 py-0.5 shadow-sm backdrop-blur-sm border border-sky-400/50">
-                {/* Avg/Ank Toggles */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-sky-600/90 rounded-full px-1.5 py-0.5 shadow-sm backdrop-blur-sm border border-sky-400/50">
+                {/* Avg/Ank Toggles (Icons Only) */}
                 <button
                   onClick={() => setViewMode('departures')}
-                  className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
+                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`}
                   title="Avgångar"
                 >
                   <FontAwesomeIcon icon={faArrowUp} className="text-xs rotate-45" />
-                  <span className="text-[9px] font-black uppercase tracking-wider">Avgångar</span>
                 </button>
                 <button
                   onClick={() => setViewMode('arrivals')}
-                  className={`px-2 py-1 flex items-center gap-1 rounded-full transition-all ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-50 hover:text-white hover:bg-sky-500'}`}
+                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`}
                   title="Ankomster"
                 >
                   <FontAwesomeIcon icon={faArrowDown} className="text-xs rotate-45" />
-                  <span className="text-[9px] font-black uppercase tracking-wider">Ankomst</span>
                 </button>
 
                 <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
 
-                {/* Time Picker Compact */}
-                {/* Time Controls (Merged) */}
-                <div className="flex items-center bg-sky-800/20 rounded-full pl-0.5 pr-0.5 py-0.5 gap-0.5 border border-sky-400/20 backdrop-blur-sm">
-                  <div className="relative group flex items-center justify-center">
-                    {customTime ? (
-                      <button onClick={() => setCustomTime('')} className="p-1 text-sky-200 hover:text-white bg-sky-800/50 rounded-full">
-                        <span className="text-[9px] font-bold px-1">{new Date(customTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </button>
-                    ) : (
-                      <>
-                        <button className="p-1 text-sky-100 hover:text-white transition-colors rounded-full hover:bg-sky-500" title="Välj tid">
-                          <FontAwesomeIcon icon={faCalendarAlt} className="text-sm" />
-                        </button>
-                        <input
-                          type="datetime-local"
-                          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                          onChange={(e) => setCustomTime(e.target.value)}
-                        />
-                      </>
-                    )}
-                  </div>
-
-                  <div className="w-[1px] h-3 bg-white/20 mx-0.5"></div>
-
-                  {/* Shortcuts inline */}
-                  {[360, 1440].map(mins => (
-                    <button
-                      key={mins}
-                      onClick={() => { setTimeWindow(mins); fetchData(); }}
-                      className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold transition-all ${timeWindow === mins ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                      title={`Visa ${mins === 1440 ? '24h' : '6h'} framåt`}
-                    >
-                      {mins === 360 ? '6h' : '24h'}
-                    </button>
-                  ))}
+                {/* Time Picker (Compact Icon) - Inputs hidden inside. '6h/24h' shortcuts removed per request. */}
+                <div className="relative flex items-center justify-center w-6 h-6">
+                  {/* If custom time set, show active indicator */}
+                  <button className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${customTime ? 'bg-amber-400 text-amber-900 border border-amber-500' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`} title={customTime ? `Vald tid: ${new Date(customTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Välj tid"}>
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-xs" />
+                  </button>
+                  <input
+                    type="datetime-local"
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                    onChange={(e) => setCustomTime(e.target.value)}
+                  />
                 </div>
-
-
-                {/* Time Window Selector */}
-
-
-                <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
 
                 {/* Min/Tid Toggle */}
                 <button
                   onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
-                  className="p-1 rounded-full text-sky-100 hover:text-white hover:bg-sky-500 transition-colors"
+                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${timeDisplayMode === 'clock' ? 'text-sky-200 hover:text-white' : 'bg-white text-sky-600 shadow-sm'}`}
                   title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
                 >
-                  <FontAwesomeIcon icon={faClock} className="text-sm" />
+                  <FontAwesomeIcon icon={faClock} className="text-xs" />
                 </button>
               </div>
 
@@ -805,7 +814,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                                 <div
                                   className="h-5 md:h-6 min-w-[28px] md:min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-[10px] md:text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
                                   style={{
-                                    backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line),
+                                    backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line, dep.operator),
                                     color: dep.fgColor || '#ffffff',
                                     textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                                   }}

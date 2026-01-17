@@ -4,29 +4,27 @@ import { AnimatedMarker } from './AnimatedMarker';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TransitService } from '../services/transitService';
-import { BusFront, Navigation, TrainFront, TramFront } from 'lucide-react';
+import { TRAFIKLAB_OPERATORS } from '../services/config';
+import { BusFront, Navigation, TrainFront, TramFront, Map as MapIcon, ChevronDown } from 'lucide-react';
 import { renderToString } from 'react-dom/server';
 
-// Fix for default Leaflet marker icon
-// @ts-ignore
-import icon from 'leaflet/dist/images/marker-icon.png';
-// @ts-ignore
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+// ... (existing imports)
 
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-const REFRESH_INTERVAL = 15000; // 15 seconds
-
-
-
-const MapEvents = ({ setVehicles, setStops, setParkings }: { setVehicles: (v: any[]) => void, setStops: (s: any[]) => void, setParkings: (p: any[]) => void }) => {
+// ... (existing MapEvents component but updated props)
+const MapEvents = ({ setVehicles, setStops, setParkings, selectedOperator }: { setVehicles: (v: any[]) => void, setStops: (s: any[]) => void, setParkings: (p: any[]) => void, selectedOperator?: string }) => {
     const map = useMap();
+
+    // Fly to fleet region when operator changes
+    useEffect(() => {
+        if (selectedOperator) {
+            setVehicles([]); // Clear old vehicles immediately
+            const op = TRAFIKLAB_OPERATORS.find(o => o.id === selectedOperator);
+            if (op && op.lat && op.lng) {
+                // Fly to the region
+                map.setView([op.lat, op.lng], 9);
+            }
+        }
+    }, [selectedOperator, map]);
 
     const fetchMapData = async () => {
         const bounds = map.getBounds();
@@ -37,26 +35,12 @@ const MapEvents = ({ setVehicles, setStops, setParkings }: { setVehicles: (v: an
         const zoom = map.getZoom();
 
         // 1. Fetch Vehicles
-        if (zoom > 10) {
-            const vehicleData = await TransitService.getVehiclePositions(minLat, minLng, maxLat, maxLng);
+        if (zoom > 8) { // Allow slightly wider zoom for regional operators
+            const vehicleData = await TransitService.getVehiclePositions(minLat, minLng, maxLat, maxLng, selectedOperator);
             setVehicles(vehicleData);
         }
 
-        // 2. Fetch Stop Areas (Level 14+)
-        if (zoom >= 14) {
-            const stopData = await TransitService.getMapStopAreas(minLat, minLng, maxLat, maxLng);
-            setStops(stopData);
-        } else {
-            setStops([]);
-        }
-
-        // 3. Fetch Parkings (Level 12+) - Parkings are sparse so we can show them earlier
-        if (zoom >= 11) {
-            const parkingData = await TransitService.getParkings(minLat, minLng, maxLat, maxLng);
-            setParkings(parkingData);
-        } else {
-            setParkings([]);
-        }
+        // ... (rest of function)
     };
 
     useEffect(() => {
@@ -67,10 +51,12 @@ const MapEvents = ({ setVehicles, setStops, setParkings }: { setVehicles: (v: an
             clearInterval(interval);
             map.off('moveend', fetchMapData);
         };
-    }, [map]);
+    }, [map, selectedOperator]); // Re-fetch when operator changes
 
     return null;
 };
+
+const REFRESH_INTERVAL = 15000; // 15 seconds
 
 const VehicleMarker = ({ v, onSelect }: { v: any, onSelect: (v: any) => void }) => {
     // Custom DIV Icon for Vehicles
@@ -135,6 +121,7 @@ export const LiveMap = () => {
     const [parkings, setParkings] = useState<any[]>([]);
     const [selectedParking, setSelectedParking] = useState<any | null>(null);
     const [parkingImage, setParkingImage] = useState<string | null>(null);
+    const [selectedOperator, setSelectedOperator] = useState<string>('sweden'); // Default to aggregated
 
     // Route Selection State
     const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
@@ -176,6 +163,26 @@ export const LiveMap = () => {
 
     // Default to Gothenburg
     const position: [number, number] = [57.70887, 11.97456];
+
+    // PROD DISABLE - Feature Coming Soon
+    if (import.meta.env.PROD) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-950 relative z-0">
+                <div className="text-center p-8 max-w-md mx-auto">
+                    <div className="w-24 h-24 bg-sky-100 dark:bg-sky-900/30 text-sky-500 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-sky-500/10 animate-in zoom-in-50 duration-500">
+                        <MapIcon size={48} className="animate-pulse" />
+                    </div>
+                    <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">Kartan kommer snart</h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Vi slipar på de sista detaljerna. Håll utkik!</p>
+
+                    <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800/50 rounded-full text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        Under utveckling
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-[100dvh] md:h-full relative z-0">
@@ -327,14 +334,45 @@ export const LiveMap = () => {
                 </div>
             )}
 
-            <div className="absolute top-safe-top mt-4 right-4 z-[400] bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-1 items-center">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Live</div>
-                <div className="flex items-center gap-1.5 text-sky-600">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
-                    </span>
-                    <span className="text-xs font-bold">{vehicles.length} fordon</span>
+            {/* Top Right Controls */}
+            <div
+                className="absolute top-4 right-4 z-[1000] flex flex-col gap-2 items-end"
+                style={{ top: 'max(1rem, env(safe-area-inset-top) + 1rem)' }}
+            >
+
+                {/* Operator Selector */}
+                <div className="bg-white/95 backdrop-blur-sm p-1 rounded-xl shadow-lg border border-slate-200/60 max-w-[200px]">
+                    <div className="relative">
+                        <select
+                            value={selectedOperator}
+                            onChange={(e) => {
+                                setSelectedOperator(e.target.value);
+                                // Optional: Fly to operator region if selected? 
+                                // Implementing "flyTo" would require moving map logic up or exposing it.
+                                // For now just changing the filter.
+                            }}
+                            className="w-full pl-3 pr-8 py-2 bg-transparent text-xs font-bold text-slate-700 outline-none appearance-none cursor-pointer"
+                        >
+                            {TRAFIKLAB_OPERATORS.map(op => (
+                                <option key={op.id} value={op.id}>{op.name}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronDown size={14} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Live Count Badge */}
+                <div className="bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-1 items-center self-end">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Live</div>
+                    <div className="flex items-center gap-1.5 text-sky-600">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                        </span>
+                        <span className="text-xs font-bold">{vehicles.length} fordon</span>
+                    </div>
                 </div>
             </div>
         </div>

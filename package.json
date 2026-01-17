@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-version.js && tsc && vite build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,7 +15,9 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@google/genai": "latest",
+    "buffer": "^6.0.3",
     "firebase": "^10.8.0",
+    "gtfs-realtime-bindings": "^1.1.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.344.0",
     "pbf": "^3.2.1",
@@ -29,6 +33,7 @@
     "@types/react-leaflet": "^3.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.23",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.2.2",

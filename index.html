@@ -18,17 +18,15 @@
   <title>Resmus</title>
   <link rel="manifest" href="./manifest.json" />
 
-  <!-- Google Analytics (GA4) - Commented out to prevent errors with dummy ID -->
-  <!-- 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TGN3ZKHQBS"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
-    gtag('config', 'G-XXXXXXXXXX');
+    gtag('config', 'G-TGN3ZKHQBS');
   </script>
-  -->
 
 
   <style>
@@ -63,15 +61,11 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
   </style>
-  <link rel="manifest" href="/manifest.json" />
-
-  <link rel="stylesheet" href="/index.css">
 </head>
 
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-hidden select-none">
   <div id="root" class="h-screen w-screen flex flex-col"></div>
   <script type="module" src="./index.tsx"></script>
-  <script type="module" src="/index.tsx"></script>
 </body>
 
 </html>

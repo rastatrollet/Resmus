@@ -1,5 +1,6 @@
 
-import { API_KEYS, API_URLS } from './config';
+import { API_KEYS } from './config';
+import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 
 // Helper for CORS requests
 const fetchWithCors = async (url: string, options: RequestInit = {}) => {
@@ -7,9 +8,6 @@ const fetchWithCors = async (url: string, options: RequestInit = {}) => {
     const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
     return fetch(proxyUrl, options);
 };
-
-
-
 
 export interface VehiclePosition {
     id: string;
@@ -24,95 +22,112 @@ export interface VehiclePosition {
 }
 
 export const TrafiklabService = {
-    getLiveVehicles: async (operatorId: string): Promise<VehiclePosition[]> => {
+    getLiveVehicles: async (operatorId: string = 'sweden', bbox?: { minLat: number, minLng: number, maxLat: number, maxLng: number }): Promise<VehiclePosition[]> => {
         if (!API_KEYS.TRAFIKLAB_API_KEY) {
             console.warn("Missing TRAFIKLAB_API_KEY in config.ts");
             return [];
         }
 
-        // GTFS Regional Realtime URL with format=json for easier parsing in browser
-        // If operatorId is empty, we don't have a specific feed to fetch (GTFS Regional is per-operator)
-        if (!operatorId) return [];
+        // GTFS Regional Realtime - using PBF (Binary) format as standard
+        // Note: Removing format=JSON because regional feeds (like Kalmar) often only support PBF.
+        // Use local proxy in DEV to avoid 403s from public CORS proxies
+        let url = "";
 
-        const url = `https://opendata.samtrafiken.se/gtfs-rt/${operatorId}/VehiclePositions.pb?key=${API_KEYS.TRAFIKLAB_API_KEY}&format=JSON`;
+        // Correct path for "GTFS Sweden 3" vs Regional Feeds
+        const path = operatorId === 'sweden'
+            ? 'gtfs-rt-sweden/VehiclePositions.pb'
+            : `gtfs-rt/${operatorId}/VehiclePositions.pb`;
+
+        if (import.meta.env.DEV) {
+            url = `/trafiklab-proxy/${path}?key=${API_KEYS.TRAFIKLAB_API_KEY}`;
+        } else {
+            url = `https://opendata.samtrafiken.se/${path}?key=${API_KEYS.TRAFIKLAB_API_KEY}`;
+        }
 
         try {
-            const res = await fetchWithCors(url, { headers: { 'Accept': 'application/json' } });
+            console.log(`[Trafiklab] Fetching PBF from: ${url}`);
+
+            // In DEV, fetch directly (via Vite proxy). In PROD, use CORS proxy.
+            let res;
+            if (import.meta.env.DEV) {
+                // Pass headers to avoid 403 from API if strictly checking User-Agent/Referer
+                res = await fetch(url);
+            } else {
+                res = await fetchWithCors(url);
+            }
+
             if (!res.ok) {
-                console.error("GTFS-RT fetch failed:", res.status, res.statusText);
+                console.error(`[Trafiklab] Fetch failed: ${res.status} ${res.statusText}`);
                 return [];
             }
 
+            // Get as ArrayBuffer
+            const buffer = await res.arrayBuffer();
+            console.log(`[Trafiklab] Received buffer of size: ${buffer.byteLength}`);
+
+            if (buffer.byteLength === 0) {
+                console.warn("[Trafiklab] Received empty buffer");
+                return [];
+            }
+
+            // Decode PBF
             let data;
-            const text = await res.text();
             try {
-                data = JSON.parse(text);
-            } catch (jsonErr) {
-                console.error("Failed to parse JSON response. Raw text snippet:", text.substring(0, 100));
-                console.warn("If the snippet above looks like binary, format=JSON is not working.");
+                // Prepare buffer for binding. If using browser, result is ArrayBuffer which Uint8Array accepts.
+                const uint8 = new Uint8Array(buffer);
+                data = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(uint8);
+            } catch (decodeErr) {
+                console.error("[Trafiklab] Failed to decode GTFS PBF data:", decodeErr);
                 return [];
             }
 
+            const entities = data.entity || [];
+            console.log(`[Trafiklab] Decoded ${entities.length} entities`);
 
-
-
-
-            // GTFS-RT JSON can have various structures depending on the converter
-            const entities = data?.entity || data?.entities || data?.FeedEntity || [];
-
-            if (!entities || !Array.isArray(entities)) {
-                console.warn("No entities found in GTFS-RT feed. Data:", data);
-                return [];
-            }
+            if (!entities.length) return [];
 
             const vehicles: VehiclePosition[] = [];
 
             entities.forEach((entity: any) => {
-                // Handle different possible keys for vehicle position
-                const v = entity.vehicle || entity.VehiclePosition || entity.vehicle_position;
-                if (!v) return;
+                const v = entity.vehicle;
+                if (!v || !v.position) return;
 
-                const pos = v.position || v.Position;
-                if (!pos) return;
+                const pos = v.position;
 
-                const trip = v.trip || v.Trip;
-                const vehicle = v.vehicle || v.Vehicle;
+                // GTFS bindings usually return proper keys
+                const lat = pos.latitude;
+                const lng = pos.longitude;
 
+                if (typeof lat !== 'number' || typeof lng !== 'number') return;
 
-                // GTFS-RT JSON often has lowercase, snake_case, or PascalCase keys
-                const lat = pos.latitude || pos.lat || pos.Latitude || pos.Lat;
-                const lng = pos.longitude || pos.lng || pos.Longitude || pos.Lng;
-
-                if (lat === undefined || lng === undefined) return;
-
-                // Mapping route_id to line
-                let line = trip?.route_id || trip?.routeId || trip?.RouteId || vehicle?.label || vehicle?.Label || "?";
-
-                // Clean up line
-                if (typeof line === 'string' && line.length > 10) {
-                    const label = vehicle?.label || vehicle?.Label;
-                    if (label && typeof label === 'string' && label.length < 10) {
-                        line = label;
+                // BBox Filter
+                if (bbox) {
+                    if (lat < bbox.minLat || lat > bbox.maxLat || lng < bbox.minLng || lng > bbox.maxLng) {
+                        return;
                     }
                 }
 
+                // Line info
+                const line = v.trip?.routeId || v.vehicle?.label || "?";
+
                 vehicles.push({
-                    id: vehicle?.id || vehicle?.Id || entity.id || entity.Id || Math.random().toString(),
+                    id: v.vehicle?.id || entity.id,
                     line: String(line),
-                    direction: "Se rutt",
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lng),
-                    bearing: pos.bearing || pos.Bearing || 0,
-                    speed: pos.speed || pos.Speed,
-                    type: 'BUS',
+                    direction: "Se rutt", // GTFS-RT doesn't commonly include headsign in VehiclePositions
+                    lat: lat,
+                    lng: lng,
+                    bearing: pos.bearing || 0,
+                    speed: pos.speed,
+                    type: 'BUS', // Default
                     operator: operatorId
                 });
-
             });
 
+            console.log(`[Trafiklab] Returning ${vehicles.length} vehicles after filter`);
             return vehicles;
+
         } catch (e) {
-            console.error("Error fetching GTFS-RT positions:", e);
+            console.error("[Trafiklab] Error fetching GTFS-RT positions:", e);
             return [];
         }
     }

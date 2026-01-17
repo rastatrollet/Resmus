@@ -7,7 +7,7 @@ export default {
         "./hooks/**/*.{js,ts,jsx,tsx}",
         "./services/**/*.{js,ts,jsx,tsx}"
     ],
-    darkMode: 'media', // or 'class'
+    darkMode: 'class', // or 'media'
     theme: {
         extend: {
             colors: {

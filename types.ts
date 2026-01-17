@@ -37,6 +37,7 @@ export interface Departure {
   disruptionSeverity?: 'severe' | 'normal' | 'slight' | 'unknown';
   disruptionMessage?: string;
   type?: 'BUS' | 'TRAM' | 'TRAIN' | 'FERRY' | 'METRO' | 'UNK';
+  operator?: string;
 }
 
 export interface StopOnTrip {

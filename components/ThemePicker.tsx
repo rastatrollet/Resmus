@@ -101,10 +101,45 @@ export const ThemePicker = () => {
         return (localStorage.getItem('resmus_accent_theme') as ThemeKey) || 'sky';
     });
 
+    const [isDark, setIsDark] = React.useState(false);
+
     useEffect(() => {
         // Apply saved theme on mount
         applyAccentTheme(currentTheme);
+
+        // Check global theme setting (sync with SettingsView)
+        const checkTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const effectiveDark = savedTheme === 'dark' || (savedTheme === 'system' && systemDark); // Default to system-like behavior
+            // Note: SettingsView defaults to 'system' if null.
+
+            // Check actual DOM class (source of truth)
+            const domHasDark = document.documentElement.classList.contains('dark');
+            setIsDark(domHasDark);
+        };
+
+        checkTheme();
+
+        // Listen for storage events (if SettingsView changes theme)
+        window.addEventListener('storage', checkTheme);
+        return () => window.removeEventListener('storage', checkTheme);
     }, []);
+
+    const toggleDark = () => {
+        const newMode = !document.documentElement.classList.contains('dark'); // Toggle current state
+        setIsDark(newMode);
+
+        const themeVal = newMode ? 'dark' : 'light';
+        localStorage.setItem('theme', themeVal);
+
+        // Update DOM immediately
+        if (newMode) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+
+        // Notify other components
+        window.dispatchEvent(new Event('storage'));
+    };
 
     const handleSelect = (key: ThemeKey) => {
         setCurrentTheme(key);
@@ -113,25 +148,40 @@ export const ThemePicker = () => {
     };
 
     return (
-        <div className="grid grid-cols-5 gap-2">
-            {Object.entries(THEMES).map(([key, theme]) => (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Mörkt läge</span>
                 <button
-                    key={key}
-                    onClick={() => handleSelect(key as ThemeKey)}
-                    className={`relative group flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${currentTheme === key ? 'bg-slate-100 dark:bg-slate-800 ring-2 ring-offset-2 ring-primary-500' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    title={theme.name}
+                    onClick={toggleDark}
+                    className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`}
                 >
-                    <div
-                        className="w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: theme.colors[500] }}
-                    >
-                        {currentTheme === key && <Check size={16} className="text-white" strokeWidth={3} />}
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                        {theme.name}
-                    </span>
+                    <span
+                        className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform ${isDark ? 'translate-x-6' : 'translate-x-0'}`}
+                    />
                 </button>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+                {Object.entries(THEMES).map(([key, theme]) => (
+                    <button
+                        key={key}
+                        onClick={() => handleSelect(key as ThemeKey)}
+                        className={`relative group flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${currentTheme === key ? 'bg-slate-100 dark:bg-slate-800 ring-2 ring-offset-2 ring-primary-500' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        title={theme.name}
+                    >
+                        <div
+                            className="w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-transform group-hover:scale-110"
+                            style={{ backgroundColor: theme.colors[500] }}
+                        >
+                            {currentTheme === key && <Check size={16} className="text-white" strokeWidth={3} />}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                            {theme.name}
+                        </span>
+                    </button>
+                ))}
+            </div>
         </div>
     );
 };
+

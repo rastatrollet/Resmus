@@ -143,17 +143,17 @@ export const TrafficDisruptions: React.FC = () => {
                 console.error("VT Fetch failed:", e);
             }
 
+            console.log("Unified count before sort:", unified.length);
 
 
-            // Sort by severity first, then by update time
+
+            // Sort by update time (newest first)
+            // Removed severity sorting per user request
             unified.sort((a, b) => {
-                const severityOrder = { severe: 3, normal: 2, slight: 1, unknown: 0 };
-                const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
-                if (severityDiff !== 0) return severityDiff;
-
                 const timeA = a.updatedTime ? new Date(a.updatedTime).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0);
                 const timeB = b.updatedTime ? new Date(b.updatedTime).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0);
-                return timeB - timeA;
+                if (timeB !== timeA) return timeB - timeA;
+                return a.id.localeCompare(b.id);
             });
 
             // Notification Logic
@@ -200,7 +200,7 @@ export const TrafficDisruptions: React.FC = () => {
                     icon: 'bg-red-600 dark:bg-red-700 text-white',
                     shadow: 'shadow-red-100/30 dark:shadow-red-950/10',
                     headerBg: 'bg-red-100/70 dark:bg-red-950/20',
-                    animation: 'animate-pulse'
+                    animation: ''
                 };
             case 'normal':
                 return {
@@ -259,16 +259,12 @@ export const TrafficDisruptions: React.FC = () => {
 
 
 
-    const activeDisruptions = disruptions.filter(d => d.severity !== 'unknown');
+    // Use all disruptions, don't filter out unknown severity
+    const activeDisruptions = disruptions;
 
     // Apply filters
     const filteredDisruptions = activeDisruptions.filter(disruption => {
-        // Strict filter: hide disruptions that have ended 
         const now = new Date();
-        if (disruption.endTime && new Date(disruption.endTime) < now) {
-            return false;
-        }
-
         // Severity filter
         if (severityFilter !== 'all' && disruption.severity !== severityFilter) {
             return false;

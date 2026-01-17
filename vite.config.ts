@@ -12,6 +12,20 @@ export default defineConfig({
     watch: {
       usePolling: true,
       interval: 300
+    },
+    proxy: {
+      '/resrobot-api': {
+        target: 'https://api.resrobot.se/v2.1',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/resrobot-api/, ''),
+        secure: false
+      },
+      '/trafiklab-proxy': {
+        target: 'https://opendata.samtrafiken.se',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/trafiklab-proxy/, ''),
+        secure: false
+      }
     }
   },
   build: {
