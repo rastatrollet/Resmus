@@ -4,14 +4,14 @@
 # Resmus 2026 🚌
 ### *Framtidens reskamrat för Västtrafik & ResRobot*
 
-[![Deploy to GitHub Pages](https://github.com/rastatrollet/Resmus/actions/workflows/deploy.yml/badge.svg)](https://github.com/rastatrollet/Resmus/actions/workflows/deploy.yml)
-[![Version](https://img.shields.io/badge/Version-2026.2.0-blue.svg)](https://github.com/rastatrollet/Resmus)
+[![Deploy to GitHub Pages](https://github.com/rasmus2003-dev/Resmus/actions/workflows/deploy.yml/badge.svg)](https://github.com/rasmus2003-dev/Resmus/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/badge/Version-2026.2.0-blue.svg)](https://github.com/rasmus2003-dev/Resmus)
 ![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5.2-646CFF?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css&logoColor=white)
 
-[**🚀 Öppna Appen (Live)**](https://rastatrollet.github.io/Resmus/)
+[**🚀 Öppna Appen (Live)**](https://rasmus2003-dev.github.io/Resmus/)
 
 <br />
 
@@ -60,7 +60,7 @@ Vill du köra projektet lokalt?
 
 1.  **Klona repot:**
     ```bash
-    git clone https://github.com/rastatrollet/Resmus.git
+    git clone https://github.com/rasmus2003-dev/Resmus.git
     cd Resmus
     ```
 
@@ -80,7 +80,7 @@ Vill du köra projektet lokalt?
 
 ## 🤝 Bidra & Kontakt
 
-Detta är ett öppen källkods-projekt. Har du idéer eller hittar buggar? Skapa gärna en [Issue](https://github.com/rastatrollet/Resmus/issues) eller en Pull Request.
+Detta är ett öppen källkods-projekt. Har du idéer eller hittar buggar? Skapa gärna en [Issue](https://github.com/rasmus2003-dev/Resmus/issues) eller en Pull Request.
 
 **Utvecklare:** Rasmus Lundin
 **Licens:** MIT
