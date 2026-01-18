@@ -6,14 +6,104 @@ import { faSearch, faMapPin, faArrowUp, faArrowDown, faChevronUp, faExclamationC
 import { DepartureSkeleton, ThemedSpinner } from './Loaders';
 
 import { WeatherDisplay } from './WeatherDisplay';
-import { DepartureRouteMap } from './DepartureRouteMap';
 import { useAlarms } from '../hooks/useAlarms';
-import { TripPlanner } from './TripPlanner';
+
+const DepartureRouteMap = React.lazy(() => import('./DepartureRouteMap').then(module => ({ default: module.DepartureRouteMap })));
+const TripPlanner = React.lazy(() => import('./TripPlanner').then(module => ({ default: module.TripPlanner })));
 
 interface DeparturesBoardProps {
   initialStation?: Station;
   mode?: 'departures' | 'arrivals';
 }
+
+const DepartureRow = React.memo(({
+  dep,
+  isDense,
+  isExpanded,
+  toggleExpand,
+  timeDisplayMode,
+  stationName,
+  viewMode
+}: {
+  dep: Departure,
+  isDense: boolean,
+  isExpanded: boolean,
+  toggleExpand: (dep: Departure) => void,
+  timeDisplayMode: 'minutes' | 'clock',
+  stationName: string,
+  viewMode: 'departures' | 'arrivals'
+}) => {
+  const isCancelled = dep.status === 'CANCELLED';
+  const hasRealtime = !!dep.realtime;
+  const isDeviation = hasRealtime && dep.realtime !== dep.time;
+
+  let displayDirection = dep.direction;
+  if ((displayDirection === 'Okänd' || displayDirection === '') && stationName) {
+    displayDirection = viewMode === 'arrivals' ? "Ankommande" : stationName;
+  }
+
+  const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
+  // Don't render past events in the list (handled by parent filter usually, but safe guard)
+  // if (diff < -0.5) return null; 
+
+  const minsRemaining = Math.ceil(diff);
+  const originalTime = dep.time;
+  const newTime = dep.realtime && dep.realtime !== dep.time ? dep.realtime : null;
+
+  return (
+    <div className="group/row">
+      <div
+        onClick={() => toggleExpand(dep)}
+        className={`relative ${isDense ? 'px-2 py-1' : 'px-3 py-2.5'} hover:bg-sky-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group border-b border-slate-100 dark:border-slate-800/50 ${isCancelled ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}
+      >
+        <div className="flex items-center gap-3">
+          {/* Line Badge - Compact */}
+          <div className={`${isDense ? 'w-8' : 'w-10'} flex-shrink-0 flex justify-center`}>
+            <div
+              className={`${isDense ? 'h-5 px-1 min-w-[1.5rem] text-[10px]' : 'h-6 px-1.5 min-w-[2rem] text-xs'} rounded flex items-center justify-center font-bold shadow-sm transition-transform group-hover:scale-105 ${isCancelled ? 'opacity-75' : ''}`}
+              style={{
+                backgroundColor: dep.bgColor || '#475569',
+                color: dep.fgColor || '#ffffff'
+              }}
+            >
+              {dep.line}
+            </div>
+          </div>
+
+          {/* Destination */}
+          <div className="flex-1 min-w-0 pr-2">
+            <div className="flex items-center gap-1.5">
+              <span className={`${isDense ? 'text-xs' : 'text-sm'} font-bold truncate ${isCancelled ? 'text-red-700 dark:text-red-400 line-through decoration-red-500 decoration-2' : 'text-slate-900 dark:text-slate-100'}`}>
+                {displayDirection}
+              </span>
+            </div>
+          </div>
+
+          {/* Time & Track */}
+          <div className="flex items-center gap-2 text-right justify-end ml-auto">
+            <div className="w-12 flex flex-col items-end">
+              <div className={`font-bold leading-none ${isDense ? 'text-xs' : 'text-sm'} ${isDeviation ? 'text-slate-400 dark:text-slate-500' + (isDense ? ' text-[10px]' : ' text-xs') : 'text-slate-900 dark:text-slate-100'}`}>
+                {timeDisplayMode === 'minutes' ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : (isDeviation ? <span className="line-through">{originalTime}</span> : originalTime)}
+              </div>
+            </div>
+
+            <div className={`w-12 font-bold ${isDense ? 'text-xs' : 'text-sm'} flex items-center justify-end ${isCancelled ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              {isCancelled ? (
+                <span className="text-[9px] uppercase font-black tracking-tight">Inställd</span>
+              ) : (
+                isDeviation && timeDisplayMode !== 'minutes' ? newTime : ''
+              )}
+            </div>
+
+            <div className={`w-10 font-bold ${isDense ? 'text-xs' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+              {dep.track}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const getMs = (t: string | undefined, refDate: Date = new Date()) => {
   if (!t) return null;
@@ -722,7 +812,9 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
       {rootView === 'planner' ? (
         <div className="flex-1 overflow-hidden relative">
-          <TripPlanner />
+          <React.Suspense fallback={<div className="flex items-center justify-center h-full"><ThemedSpinner /></div>}>
+            <TripPlanner />
+          </React.Suspense>
         </div>
       ) : (
         <>
@@ -1095,92 +1187,18 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                 ) : sortedDepartures.length > 0 ? (
                   <div>
                     {sortedDepartures.map((dep, idx) => {
-                      const isCancelled = dep.status === 'CANCELLED';
-                      const hasRealtime = !!dep.realtime;
-                      const isDeviation = hasRealtime && dep.realtime !== dep.time;
-
-                      // Check for Disruption (Any severity, as long as it's not cancelled)
-                      // This ensures the blue 'i' icon appears for delays, moves, or general info.
-                      const hasDisruptionInfo = dep.hasDisruption && !isCancelled;
-
-                      let displayDirection = dep.direction;
-                      if ((displayDirection === 'Okänd' || displayDirection === '') && station) {
-                        displayDirection = viewMode === 'arrivals' ? "Ankommande" : station.name;
-                      }
-                      const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
-
-                      const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
-                      if (diff < -0.5) return null;
-
-                      const minsRemaining = Math.ceil(diff);
-
-                      // Legacy getDisplayTime removed. Logic moved to JSX.
-                      const originalTime = dep.time;
-                      const newTime = dep.realtime && dep.realtime !== dep.time ? dep.realtime : null;
-
-                      // If close departure, HIDE scheduled time, show ONLY realtime in "Ny Tid" col
-                      // If NOT close, show scheduled in "Tid", and realtime in "Ny Tid" ONLY if deviation
-
                       const isExpanded = expandedDepartureId === dep.id;
-                      const expandedDetails = isExpanded ? journeyDetails : [];
-                      const isExpandedLoading = isExpanded ? loadingDetails : false;
-
-                      // Compact Row
                       return (
-                        <div key={`${dep.id}-${idx}`} className="group/row">
-                          <div
-                            onClick={() => toggleDepartureExpand(dep)}
-                            className={`relative ${isDense ? 'px-2 py-1' : 'px-3 py-2.5'} hover:bg-sky-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group border-b border-slate-100 dark:border-slate-800/50 ${isCancelled ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              {/* Line Badge - Compact */}
-                              <div className={`${isDense ? 'w-8' : 'w-10'} flex-shrink-0 flex justify-center`}>
-                                <div
-                                  className={`${isDense ? 'h-5 px-1 min-w-[1.5rem] text-[10px]' : 'h-6 px-1.5 min-w-[2rem] text-xs'} rounded flex items-center justify-center font-bold shadow-sm transition-transform group-hover:scale-105 ${isCancelled ? 'opacity-75' : ''}`}
-                                  style={{
-                                    backgroundColor: dep.bgColor || '#475569',
-                                    color: dep.fgColor || '#ffffff'
-                                  }}
-                                >
-                                  {dep.line}
-                                </div>
-                              </div>
-
-                              {/* Destination & Disruption */}
-                              <div className="flex-1 min-w-0 pr-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`${isDense ? 'text-xs' : 'text-sm'} font-bold truncate ${isCancelled ? 'text-red-700 dark:text-red-400 line-through decoration-red-500 decoration-2' : 'text-slate-900 dark:text-slate-100'}`}>
-                                    {displayDirection}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Time & Track Columns */}
-                              <div className="flex items-center gap-2 text-right justify-end ml-auto">
-                                {/* TID (Scheduled or Mins) */}
-                                <div className="w-12 flex flex-col items-end">
-                                  <div className={`font-bold leading-none ${isDense ? 'text-xs' : 'text-sm'} ${isDeviation ? 'text-slate-400 dark:text-slate-500' + (isDense ? ' text-[10px]' : ' text-xs') : 'text-slate-900 dark:text-slate-100'}`}>
-                                    {timeDisplayMode === 'minutes' ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : (isDeviation ? <span className="line-through">{originalTime}</span> : originalTime)}
-                                  </div>
-                                </div>
-
-                                {/* NY TID (Realtime if deviation) */}
-                                <div className={`w-12 font-bold ${isDense ? 'text-xs' : 'text-sm'} flex items-center justify-end ${isCancelled ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                                  {isCancelled ? (
-                                    <span className="text-[9px] uppercase font-black tracking-tight">Inställd</span>
-                                  ) : (
-                                    isDeviation && timeDisplayMode !== 'minutes' ? newTime : ''
-                                  )}
-                                </div>
-
-                                {/* LÄGE (Track) */}
-                                <div className={`w-10 font-bold ${isDense ? 'text-xs' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
-                                  {dep.track}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <DepartureRow
+                          key={`${dep.id}-${idx}`}
+                          dep={dep}
+                          isDense={isDense}
+                          isExpanded={isExpanded}
+                          toggleExpand={toggleDepartureExpand}
+                          timeDisplayMode={timeDisplayMode}
+                          stationName={station?.name || ''}
+                          viewMode={viewMode}
+                        />
                       );
                     })}
                     <div className="py-6"></div>
@@ -1263,16 +1281,14 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                         </div>
                         {/* Next Stop Logic */}
                         {(() => {
-                          // Check if trip hasn't started
-                          const firstStop = journeyDetails[0];
                           const now = Date.now();
-
-                          // Helper to get time
                           const getT = (s: any) => getMs(s?.realtimeDeparture || s?.departureTime || s?.time);
+                          const firstStop = journeyDetails[0];
 
+                          // 1. Check Not Started
                           if (firstStop) {
                             const startT = getT(firstStop);
-                            if (startT && startT > now + 60000) { // 1 min buffer
+                            if (startT && startT > now + 60000) {
                               const diffMins = Math.ceil((startT - now) / 60000);
                               return (
                                 <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mt-1">
@@ -1283,8 +1299,38 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                             }
                           }
 
+                          // 2. Status Info (Late/Early) - Only if started
+                          let statusNode = null;
+                          if (dep.realtime && dep.time) {
+                            const t1 = getMs(dep.time);
+                            const t2 = getMs(dep.realtime);
+                            if (t1 && t2) {
+                              let diff = (t2 - t1) / 60000;
+                              diff = Math.round(diff);
+
+                              let text = "i tid";
+                              let colorClass = "text-green-600 dark:text-green-400";
+
+                              if (diff > 0) {
+                                text = `${diff} min sen`;
+                                colorClass = "text-amber-600 dark:text-amber-400";
+                              } else if (diff < 0) {
+                                text = `${Math.abs(diff)} min tidig`;
+                              }
+
+                              statusNode = (
+                                <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1 ${colorClass}`}>
+                                  <FontAwesomeIcon icon={faInfoCircle} />
+                                  Fordonet är {text}
+                                </div>
+                              );
+                            }
+                          }
+
+                          // 3. Next Stop Info
+                          let nextStopNode = null;
                           if (nextStop && nextStop.name !== dep.direction) {
-                            return (
+                            nextStopNode = (
                               <div className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5 mt-1">
                                 <span className="text-base leading-none">•</span>
                                 NÄSTA: {nextStop.name}
@@ -1294,9 +1340,15 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                                   </span>
                                 )}
                               </div>
-                            )
+                            );
                           }
-                          return null;
+
+                          return (
+                            <div className="flex flex-col">
+                              {statusNode}
+                              {nextStopNode}
+                            </div>
+                          );
                         })()}
                       </div>
                     </div>
@@ -1400,10 +1452,12 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                 <div className="flex-1 overflow-y-auto p-4 bg-white dark:bg-slate-900 min-h-[300px]">
                   {showRouteMap && (
                     <div className="mb-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 relative shrink-0">
-                      <DepartureRouteMap
-                        stops={journeyDetails}
-                        color={dep.bgColor}
-                      />
+                      <React.Suspense fallback={<div className="w-full h-full flex items-center justify-center"><ThemedSpinner /></div>}>
+                        <DepartureRouteMap
+                          stops={journeyDetails}
+                          color={dep.bgColor}
+                        />
+                      </React.Suspense>
                     </div>
                   )}
 

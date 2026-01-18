@@ -104,7 +104,8 @@ export const ResrobotService = {
                 // Safest to just hide it completely as requested.
 
                 // Journey Ref
-                const journeyRef = item.JourneyDetailRef?.ref;
+                let journeyRef = item.JourneyDetailRef?.ref;
+                if (journeyRef) journeyRef = "resrobot:" + journeyRef;
 
                 return {
                     id: `${item.name}-${item.date}-${item.time}`,
@@ -139,6 +140,18 @@ export const ResrobotService = {
         if (!ref) return [];
         try {
             let url = ref;
+
+            // If ref is not a full URL (doesn't start with http), construct it
+            if (!url.startsWith('http')) {
+                // But wait, the API ref is usually a URL. If it's just an encoded URI component or ID?
+                // Usually it is a full URL. If not, we might need to prepend base.
+                // However, the test output "Proxy fetch failed" implies it IS a URL (since proxy tried to fetch it).
+                // Let's assume it is a URL, but safeguard just in case.
+                if (url.includes('/journeyDetail')) {
+                    url = API_URLS.RESROBOT_API + url; // Unlikely case
+                }
+            }
+
             // Ensure accessId is present
             if (!url.includes('accessId=')) {
                 url += (url.includes('?') ? '&' : '?') + `accessId=${API_KEYS.RESROBOT_API_KEY}`;

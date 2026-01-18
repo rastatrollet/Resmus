@@ -768,8 +768,9 @@ export const TransitService = {
         }
 
         // ResRobot Handler
-        if (journeyRef.includes('accessId') || journeyRef.includes('resrobot')) {
-            return ResrobotService.getJourneyDetails(journeyRef);
+        if (journeyRef.startsWith('resrobot:') || journeyRef.includes('accessId') || journeyRef.includes('resrobot')) {
+            const ref = journeyRef.startsWith('resrobot:') ? journeyRef.substring(9) : journeyRef;
+            return ResrobotService.getJourneyDetails(ref);
         }
 
         // Västtrafik Handler
