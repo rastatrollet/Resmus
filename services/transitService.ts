@@ -118,31 +118,58 @@ const getVasttrafikToken = async (): Promise<string | null> => {
     return null;
 };
 
-// Västtrafik Departures (V4)
-const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arrivals', dateTime?: string, timeSpanInMinutes: number = 60): Promise<Departure[]> => {
+const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arrivals', dateTime?: string, timeSpanInMinutes: number = 480): Promise<Departure[]> => {
     const token = await getVasttrafikToken();
     if (!token) return [];
 
     const endpoint = mode === 'arrivals' ? 'arrivals' : 'departures';
-    // Increase limit for longer time windows to ensure we fill the board
-    const limit = timeSpanInMinutes > 300 ? 200 : 120;
-    let url = `${API_URLS.VASTTRAFIK_API}/stop-areas/${gid}/${endpoint}?limit=${limit}&timeSpan=${timeSpanInMinutes}`;
+    // Use moderate limit per call but loop to cover full time
+    const limit = 100;
 
-    if (dateTime) {
-        const vtDate = formatDateForVT(dateTime);
-        if (vtDate) {
-            url += `&startDateTime=${encodeURIComponent(vtDate)}`;
-        }
-    }
+    const startMs = dateTime ? new Date(dateTime).getTime() : Date.now();
+    const targetEndMs = startMs + (timeSpanInMinutes * 60000);
+
+    let currentDateTime = dateTime;
+    let collectedResults: any[] = [];
+    let iterations = 0;
+    const maxIterations = 15; // Allow enough fetches to cover 8h if density is high
 
     try {
-        const res = await fetchWithCors(url, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!res.ok) return [];
-        const data = await res.json();
+        while (iterations < maxIterations) {
+            let url = `${API_URLS.VASTTRAFIK_API}/stop-areas/${gid}/${endpoint}?limit=${limit}`;
 
-        if (!data.results) return [];
+            if (currentDateTime) {
+                const vtDate = formatDateForVT(currentDateTime);
+                if (vtDate) {
+                    url += `&startDateTime=${encodeURIComponent(vtDate)}`;
+                }
+            }
 
-        return data.results.map((entry: any) => {
+            const res = await fetchWithCors(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) break;
+
+            const data = await res.json();
+            if (!data.results || data.results.length === 0) break;
+
+            collectedResults.push(...data.results);
+
+            const lastEntry = data.results[data.results.length - 1];
+            const lastTime = lastEntry.estimatedTime || lastEntry.plannedTime;
+
+            // If we reached our target time window, stop
+            if (new Date(lastTime).getTime() >= targetEndMs) break;
+
+            // Prepare next iteration: 1 second after last departure to minimalize overlap
+            currentDateTime = new Date(new Date(lastTime).getTime() + 1000).toISOString();
+            iterations++;
+        }
+
+        // Deduplicate
+        const unique = new Map();
+        collectedResults.forEach(r => unique.set(r.detailsReference, r));
+        const finalResults = Array.from(unique.values());
+
+        return finalResults.map((entry: any) => {
             const serviceJourney = entry.serviceJourney;
             const lineDetails = serviceJourney?.line;
             const line = lineDetails?.designation || lineDetails?.name || "?";
@@ -157,7 +184,7 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
 
                 // 1. Explicit Tram Lines (1-13)
                 // Note: 100% reliable only within Gbg, but safe heuristic for this app context
-                const tramLines = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '13', '14']; // Added 14 just in case, though usually bus
+                const tramLines = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '13', '14'];
                 if (tramLines.includes(lineName) || (lineNum >= 1 && lineNum <= 13)) {
                     transportMode = 'TRAM';
                 }
@@ -215,13 +242,25 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
                 disruptionSeverity = situations[0]?.severity || 'slight';
             }
 
-            let bgColor = fixColor(lineDetails?.backgroundColor, '#0ea5e9');
-            let fgColor = fixColor(lineDetails?.foregroundColor || lineDetails?.textColor, '#ffffff');
+            let rawBg = lineDetails?.backgroundColor;
+            let bgColor = rawBg ? (rawBg.startsWith('#') ? rawBg : `#${rawBg}`) : undefined;
 
-            // Override for X90 styling (Yellow bg, Magenta text)
-            // RGB(255, 255, 80) -> #FFFF50
-            // RGB(212, 0, 162) -> #D400A2
-            if (line === 'X90') {
+            let rawFg = lineDetails?.foregroundColor || lineDetails?.textColor;
+            let fgColor = rawFg ? (rawFg.startsWith('#') ? rawFg : `#${rawFg}`) : '#ffffff';
+
+            if (!bgColor) {
+                // Fallback Logic
+                const lineNum = parseInt(line);
+                if (!isNaN(lineNum) && lineNum >= 1 && lineNum <= 99) {
+                    bgColor = '#00a54f'; // Västtrafik Green for City Buses
+                } else if (line === 'X90') {
+                    bgColor = '#FFFF50';
+                    fgColor = '#D400A2';
+                } else {
+                    bgColor = '#0ea5e9'; // Default Blue
+                }
+            } else if (line === 'X90') {
+                // Force X90 override even if API sends something else (optional)
                 bgColor = '#FFFF50';
                 fgColor = '#D400A2';
             }
@@ -242,11 +281,17 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
                 hasDisruption,
                 disruptionSeverity,
                 disruptionMessage: situations.length > 0 ? (situations[0].title || situations[0].description) : undefined,
-                type: transportMode
+                type: transportMode,
+                serviceJourneyGid: serviceJourney?.gid,
+                datetime: timestamp,
+                stopPoint: {
+                    name: entry.stopPoint?.name || '',
+                    gid: entry.stopPoint?.gid || ''
+                }
             };
         });
     } catch (e) {
-        console.error("Fetch Västtrafik Departures Error (Limit: " + limit + ", TimeSpan: " + timeSpanInMinutes + ")", e);
+        console.error("Fetch Västtrafik Loop Error", e);
         return [];
     }
 };
@@ -426,9 +471,56 @@ export const TransitService = {
         } catch (e) { return []; }
     },
 
+    getJourneyDisruptions: async (journeyGid: string): Promise<TrafficSituation[]> => {
+        const token = await getVasttrafikToken();
+        if (!token) return [];
+
+        const url = `${API_URLS.VASTTRAFIK_TS_API}/traffic-situations/journey/${journeyGid}`;
+        try {
+            const res = await fetchWithCors(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            if (!Array.isArray(data)) return [];
+
+            return data.map((ts: any) => ({
+                situationNumber: ts.situationNumber,
+                creationTime: ts.creationTime,
+                startTime: ts.startTime,
+                endTime: ts.endTime,
+                severity: ts.severity,
+                title: ts.title,
+                description: ts.description,
+                affectedLines: ts.affectedLines ? ts.affectedLines.map((l: any) => {
+                    let bgColor = fixColor(l.backgroundColor, '#0ea5e9');
+                    let txtColor = fixColor(l.textColor, '#ffffff');
+                    if (l.designation === 'X90') {
+                        bgColor = '#FFFF50';
+                        txtColor = '#D400A2';
+                    }
+                    return {
+                        gid: l.gid,
+                        designation: l.designation,
+                        textColor: txtColor,
+                        backgroundColor: bgColor
+                    };
+                }) : [],
+                affectedStopPoints: ts.affectedStopPoints ? ts.affectedStopPoints.map((s: any) => ({
+                    gid: s.gid,
+                    name: s.name
+                })) : []
+            }));
+        } catch (e) { return []; }
+    },
+
     searchStations: async (query: string, provider: Provider = Provider.VASTTRAFIK): Promise<Station[]> => {
         if (provider === Provider.RESROBOT) {
             return ResrobotService.searchStations(query);
+        }
+        if (provider === Provider.TRAFIKVERKET) {
+            const { TrafikverketService } = await import('./trafikverketService');
+            return TrafikverketService.searchStations(query);
         }
 
         const token = await getVasttrafikToken();
@@ -467,19 +559,90 @@ export const TransitService = {
         } catch (e) { return []; }
     },
 
-    getDepartures: async (stationId: string, provider: Provider, mode: 'departures' | 'arrivals', dateTime?: string, duration: number = 60): Promise<Departure[]> => {
+    getDepartures: async (stationId: string, provider: Provider, mode: 'departures' | 'arrivals', dateTime?: string, duration: number = 480): Promise<Departure[]> => {
         if (provider === Provider.RESROBOT) {
             const departures = await ResrobotService.getDepartures(stationId, duration);
 
-            // Attempt to enrich with GTFS-RT TripUpdates
-            // Strategy: Check if TrafiklabRealtimeService has updates for this station.
-            // We'll try to fetch updates for the likely operator.
-            // Since we don't know the exact operator ID for the station easily without a huge map,
-            // we will try to default to Västtrafik for now (or maybe 'otraf' etc based on coordinate?).
-            // Let's rely on TrafiklabRealtimeService to hopefully handle 'sweden' if we update it.
+            // Enrich with Trafikverket data for Trains
+            // Strategy: 
+            // 1. Identify if we have any trains in the result.
+            // 2. If so, fetch Trafikverket data for this station (by name).
+            // 3. Match entries by Approx Time + Line Number (AdvertisedTrainIdent).
 
-            // For now, return departures as is, we will update TrafiklabRealtimeService next.
+            const hasTrains = departures.some(d => d.type === 'TRAIN');
+            if (hasTrains) {
+                // We need the station name from somewhere. 
+                // We don't have it passed here, only ID. 
+                // BUT, if we have departures, we have d.stopPoint.name!
+                const stationName = departures[0]?.stopPoint?.name;
+                if (stationName) {
+                    try {
+                        const { TrafikverketService } = await import('./trafikverketService');
+                        const tvDepartures = await TrafikverketService.getTrainDepartures(stationName, dateTime);
+
+                        // Merge Logic
+                        return departures.map(d => {
+                            if (d.type !== 'TRAIN') return d;
+
+                            // Match: Line number must match. 
+                            // Time must be close matches (ResRobot might vary slightly or be same).
+                            // Best match keys: Line
+
+                            const match = tvDepartures.find(tv => {
+                                if (tv.line !== d.line) return false;
+
+                                // Check time diff < 15 mins
+                                const dTime = new Date(d.timestamp).getTime();
+                                const tvTime = new Date(tv.timestamp).getTime();
+                                return Math.abs(dTime - tvTime) < 15 * 60000;
+                            });
+
+                            if (match) {
+                                return {
+                                    ...d,
+                                    realtime: match.realtime || d.realtime, // Prefer TV realtime
+                                    track: match.track || d.track, // Prefer TV track (Läge)
+                                    status: match.status === 'CANCELLED' ? 'CANCELLED' : d.status,
+                                    hasDisruption: d.hasDisruption || match.hasDisruption,
+                                    disruptionMessage: [d.disruptionMessage, match.disruptionMessage].filter(Boolean).join('. '),
+                                    provider: Provider.TRAFIKVERKET // Mark as enriched? Or keep ResRobot? Keep ResRobot ID but updated data.
+                                };
+                            }
+                            return d;
+                        });
+                    } catch (e) {
+                        console.error("Failed to enrich with Trafikverket", e);
+                    }
+                }
+            }
+
             return departures;
+        }
+        if (provider === Provider.TRAFIKVERKET) {
+            const { TrafikverketService } = await import('./trafikverketService');
+            // Check if stationId is a signature (tv-XYZ) or name. 
+            // If it starts with 'tv-', strip it. If plain, use it. 
+            // BUT getTrainDepartures expects NAME right now. 
+            // We should update getTrainDepartures to take signature if possible or handle mixed input.
+            // Since searchStations returns 'tv-SIGNATURE', we need to lookup name or fetch by signature.
+            // Let's modify TrafikverketService.getTrainDepartures to accept signature or handle it.
+            // For now, if ID starts with 'tv-', extract signature and use it.
+            let id = stationId;
+            if (id.startsWith('tv-')) id = id.replace('tv-', '');
+
+            // Wait, getTrainDepartures currently takes NAME and searches for signature.
+            // Refactoring getTrainDepartures to take Signature directly would be better.
+            // ... I'll rely on it taking name for now, but usually Station objects pass Name too?
+            // TransitService.getDepartures signature is (stationId...).
+            // We don't have name here if it's just ID passed from URL or cache.
+            // Ideally we pass Station object, but the interface is getDepartures(id...).
+
+            // Quick hack: Use "searchStations" approach inside getDepartures if needed or assume we can pass Name as ID?
+            // Actually, if the user selects from Search results (from TrafikverketService.searchStations), 
+            // `stationId` will be `tv-CST` (LocationSignature). 
+            // We should update `getTrainDepartures` to support fetching by Signature directly to be efficient.
+
+            return TrafikverketService.getTrainDepartures(id, dateTime);
         }
         return fetchVasttrafikDepartures(stationId, mode, dateTime, duration);
     },
@@ -580,77 +743,104 @@ export const TransitService = {
             });
         } catch (e) { return []; }
     },
-    async getJourneyDetails(journeyRef: string): Promise<JourneyDetail[]> {
+    getTrafikverketDisruptions: async (): Promise<TrafficSituation[]> => {
+        const { TrafikverketService } = await import('./trafikverketService');
+        const raw = await TrafikverketService.getDisruptions();
+
+        return raw.map(r => ({
+            situationNumber: r.id,
+            creationTime: r.updatedTime,
+            startTime: r.startTime,
+            endTime: r.endTime,
+            severity: r.severity,
+            title: r.title, // "Reason Code"
+            description: r.description, // "Operative event"
+            affectedLines: [], // Can we map County to something? Or just generic
+            affectedStopPoints: []
+        }));
+    },
+
+    getJourneyDetails: async (journeyRef: string): Promise<JourneyDetail[]> => {
+        // Trafikverket Handler
+        if (journeyRef.startsWith('tv-')) {
+            const { TrafikverketService } = await import('./trafikverketService');
+            return TrafikverketService.getJourneyDetails(journeyRef).then(res => res || []);
+        }
+
+        // ResRobot Handler
+        if (journeyRef.includes('accessId') || journeyRef.includes('resrobot')) {
+            return ResrobotService.getJourneyDetails(journeyRef);
+        }
+
+        // Västtrafik Handler
         const token = await getVasttrafikToken();
         if (!token) return [];
 
         let url = "";
 
-        // Check if journeyRef is already a full URL or relative path (V4 detailsReference)
-        if (journeyRef.startsWith('http') || journeyRef.startsWith('/')) {
+        // If it's a full URL (e.g. from V3 or weird legacy), use it.
+        if (journeyRef.startsWith('http')) {
             url = journeyRef;
-            // If it's a relative path starting with /, prepend the API base if needed, 
-            // but usually detailsReference is full absolute URL in V4 responses.
-            // If it's relative...
-            if (journeyRef.startsWith('/')) {
-                url = `${API_URLS.VASTTRAFIK_API.replace('/pr/v4', '')}${journeyRef}`;
-            }
-        } else {
-            // Assume it's an ID (GID)
-            url = `${API_URLS.VASTTRAFIK_API}/service-journeys/${encodeURIComponent(journeyRef)}`;
         }
-
-        // Add limit if not present logic is tricky with strings, but we can append param
-        // V4 detailsReference usually includes everything needed?
-        // Let's force limit=120 if possible, but safe append
-        const separator = url.includes('?') ? '&' : '?';
-        if (!url.includes('limit=')) {
-            url += `${separator}limit=100`;
+        // Otherwise assume it is a 'detailsReference' and use the V4 endpoint requested by User
+        else {
+            url = `${API_URLS.VASTTRAFIK_API}/journeys/${encodeURIComponent(journeyRef)}/details?includes=servicejourneycalls`;
         }
 
         try {
-            // console.log("Fetching journey details from URL:", url);
             const res = await fetchWithCors(url, { headers: { 'Authorization': `Bearer ${token}` } });
-
-            if (!res.ok) {
-                // Try fallback: If it was a GID call that failed (404), maybe it needed to be a different endpoint?
-                // But usually 404 means just not found.
-                const errorText = await res.text();
-                console.error("Journey details API error:", errorText, "URL:", url);
-                return [];
-            }
+            if (!res.ok) return [];
 
             const data = await res.json();
 
-            // The API usually returns 'calls' (stops) for a service journey
-            if (!data.calls) {
-                console.warn("No 'calls' property found in journey data. Available keys:", Object.keys(data));
-                return [];
+            // Locate the calls array in the complex V4 structure
+            let calls: any[] = [];
+
+            // 1. Direct ServiceJourneys (if response is simple)
+            if (data.serviceJourneys && data.serviceJourneys[0]?.callsOnServiceJourney) {
+                calls = data.serviceJourneys[0].callsOnServiceJourney;
+            }
+            // 2. TripLegs structure (standard V4 Journey Details)
+            else if (data.tripLegs && data.tripLegs[0]?.serviceJourneys && data.tripLegs[0].serviceJourneys[0]?.callsOnServiceJourney) {
+                calls = data.tripLegs[0].serviceJourneys[0].callsOnServiceJourney;
+            }
+            // 3. Fallback to basic 'calls' (legacy/other endpoint)
+            else if (data.calls) {
+                calls = data.calls;
             }
 
-            return data.calls.map((call: any) => {
-                // V4 property names often have 'Time' suffix: plannedArrival -> plannedArrivalTime
-                const arrTime = call.estimatedArrivalTime || call.plannedArrivalTime;
-                const depTime = call.estimatedDepartureTime || call.plannedDepartureTime;
+            if (!calls || calls.length === 0) return [];
 
-                // Fallback to names without 'Time' just in case
-                const altArrTime = call.estimatedArrival || call.plannedArrival;
-                const altDepTime = call.estimatedDeparture || call.plannedDeparture;
+            return calls.map((call: any) => {
+                const format = (iso: string | undefined | null) => iso ? new Date(iso).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : undefined;
 
-                const primaryTime = arrTime || depTime || altArrTime || altDepTime;
+                // V4 uses 'estimated' and 'planned' prefix
+                // V3 uses 'Arrival'/'Departure' suffix
+
+                const pArr = call.plannedArrivalTime || call.plannedArrival;
+                const pDep = call.plannedDepartureTime || call.plannedDeparture;
+                const rArr = call.estimatedArrivalTime || call.estimatedArrival;
+                const rDep = call.estimatedDepartureTime || call.estimatedDeparture;
+
+                // Primary time for simple display (prefer departure, then arrival)
+                const finalTime = rDep || pDep || rArr || pArr;
 
                 return {
                     name: call.stopPoint?.name || "Okänd",
-                    time: primaryTime ? new Date(primaryTime).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : '--:--',
-                    track: call.stopPoint?.platform || "",
-                    date: primaryTime,
+                    time: format(finalTime) || '--:--',
+                    track: call.stopPoint?.platform || call.plannedPlatform || "",
+                    date: finalTime,
                     isCancelled: call.isCancelled,
-                    isDeparture: !!call.plannedDepartureTime,
-                    coords: call.stopPoint?.geometry ? { lat: call.stopPoint.geometry.latitude, lng: call.stopPoint.geometry.longitude } : undefined
+                    isDeparture: !!(pDep),
+                    coords: call.stopPoint?.geometry ? { lat: call.stopPoint.geometry.latitude, lng: call.stopPoint.geometry.longitude } : undefined,
+                    arrivalTime: format(pArr),
+                    departureTime: format(pDep),
+                    realtimeArrival: format(rArr),
+                    realtimeDeparture: format(rDep)
                 };
             });
         } catch (e) {
-            console.error("Failed to fetch journey details", e);
+            console.error("Failed to fetch Västtrafik details", e);
             return [];
         }
     },

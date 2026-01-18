@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Departure, Provider, Station, StopOnTrip, JourneyDetail } from '../types';
+import { Departure, Station, Provider, JourneyDetail, TrafficSituation } from '../types';
 import { TransitService } from '../services/transitService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faMapPin, faArrowUp, faArrowDown, faChevronUp, faExclamationCircle, faExclamationTriangle, faArrowsAltV, faCalendarAlt, faTimes, faBus, faLocationArrow, faTram, faShip, faBan, faStar, faTrash, faWalking, faTaxi, faFilter, faChevronLeft, faChevronRight, faInfoCircle, faClock, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faMapPin, faArrowUp, faArrowDown, faChevronUp, faExclamationCircle, faExclamationTriangle, faArrowsAltV, faCalendarAlt, faTimes, faBus, faLocationArrow, faTram, faShip, faBan, faStar, faTrash, faWalking, faTaxi, faFilter, faChevronLeft, faChevronRight, faInfoCircle, faClock, faGlobe, faMap, faTrain, faSubway, faMapMarkerAlt, faLocationDot, faSearchPlus, faSearchMinus } from '@fortawesome/free-solid-svg-icons';
 import { DepartureSkeleton, ThemedSpinner } from './Loaders';
 
 import { WeatherDisplay } from './WeatherDisplay';
@@ -13,6 +13,19 @@ import { TripPlanner } from './TripPlanner';
 interface DeparturesBoardProps {
   initialStation?: Station;
   mode?: 'departures' | 'arrivals';
+}
+
+const getMs = (t: string | undefined, refDate: Date = new Date()) => {
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  const d = new Date(refDate);
+  d.setHours(h, m, 0, 0);
+  const now = Date.now();
+  // Handle wraparound roughly
+  const diff = d.getTime() - now;
+  if (diff > 43200000) d.setDate(d.getDate() - 1);
+  else if (diff < -43200000) d.setDate(d.getDate() + 1);
+  return d.getTime();
 }
 
 // Custom Information Icon (Inline SVG for reliability)
@@ -29,11 +42,133 @@ const DisruptionInfoIcon = () => (
   </svg>
 );
 
+const JourneyTimeline = ({ stops, type, currentStationName }: { stops: JourneyDetail[], type?: string, currentStationName?: string }) => {
+  const [activeState, setActiveState] = useState({ segment: -1, progress: 0 });
+
+  useEffect(() => {
+    const update = () => {
+      const now = Date.now();
+      let segment = -1;
+      let progress = 0;
+
+      const getMsLocal = (t: string | undefined) => getMs(t);
+
+      for (let i = 0; i < stops.length - 1; i++) {
+        const curr = stops[i];
+        const next = stops[i + 1];
+        const t1 = getMsLocal(curr.realtimeDeparture || curr.departureTime || curr.time);
+        const t2 = getMsLocal(next.realtimeArrival || next.arrivalTime || next.time);
+
+        if (t1 && t2 && now >= t1 && now <= t2) {
+          segment = i;
+          progress = (now - t1) / (t2 - t1);
+          break;
+        }
+      }
+      setActiveState({ segment, progress });
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [stops]);
+
+  // Handle locale safely for Swedish time format consistent with UI
+  const formatTimeStr = (t: string | undefined) => t ? t.replace('.', ':').substring(0, 5) : '';
+
+  return (
+    <div className="relative pl-0 pt-1 pb-1">
+      {/* Background Line - Compact alignment: 40px time + 12px gap + 10px center = 62px */}
+      <div className="absolute left-[62px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
+
+      {stops.map((stop, idx) => {
+        const isCancelled = stop.isCancelled;
+        const isActive = stop.name === currentStationName;
+
+        // Times
+        const depTime = formatTimeStr(stop.departureTime || stop.time);
+        const depReal = formatTimeStr(stop.realtimeDeparture);
+        const arrTime = formatTimeStr(stop.arrivalTime || stop.time);
+        const arrReal = formatTimeStr(stop.realtimeArrival);
+
+        let showDouble = false;
+        if (idx > 0 && idx < stops.length - 1) {
+          if (arrTime !== depTime || arrReal !== depReal) showDouble = true;
+        }
+
+        const renderTimeBlock = (sched: string, real?: string) => {
+          const isLate = real && real !== sched;
+          return (
+            <div className="flex flex-col items-end leading-tight">
+              {isLate && <span className="text-[9px] text-slate-400 line-through decoration-slate-400 decoration-1">{sched}</span>}
+              <span className={`font-bold text-xs ${isLate ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/40 px-1 rounded -my-0.5' : (isCancelled ? 'text-red-500' : 'text-slate-700 dark:text-slate-300')}`}>
+                {real || sched}
+              </span>
+            </div>
+          )
+        }
+
+        return (
+          <div key={idx} className={`relative flex gap-3 min-h-[2.25rem] ${activeState.segment > idx ? 'opacity-40' : ''}`}>
+            {/* Left: Time - Compact Width 40px */}
+            <div className="w-[40px] text-right flex flex-col items-end justify-center shrink-0">
+              {showDouble ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 w-5 text-right">AVG</span>
+                    {renderTimeBlock(depTime, depReal)}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 w-5 text-right">ANK</span>
+                    {renderTimeBlock(arrTime, arrReal)}
+                  </div>
+                </>
+              ) : (
+                renderTimeBlock(idx === 0 ? depTime : arrTime, idx === 0 ? depReal : arrReal)
+              )}
+            </div>
+
+            {/* Center: Dot & Vehicle */}
+            <div className="relative flex flex-col items-center w-5 shrink-0 z-10 pt-1">
+              <div className={`w-3 h-3 rounded-full border-[2px] box-content bg-white dark:bg-slate-900 transition-all ${isActive ? 'border-sky-500 scale-125 shadow-[0_0_8px_rgba(14,165,233,0.5)]' :
+                (activeState.segment > idx ? 'border-slate-300 dark:border-slate-700' : 'border-slate-400 dark:border-slate-500')
+                }`}></div>
+
+              {/* Vehicle Icon */}
+              {activeState.segment === idx && (
+                <div className="absolute top-2 w-0.5" style={{ height: 'calc(100% + 1rem)', zIndex: 20 }}>
+                  <div className="absolute left-1/2 -translate-x-1/2 w-5 h-5 bg-sky-500 border-2 border-white text-white rounded-full flex items-center justify-center shadow-md text-[9px] transition-all duration-1000 ease-linear"
+                    style={{ top: `${activeState.progress * 100}%` }}>
+                    <FontAwesomeIcon icon={type === 'TRAM' ? faTram : faBus} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Info */}
+            <div className="flex-1 pt-0.5 pb-2 border-b border-slate-100 dark:border-slate-800/40 flex items-center flex-wrap">
+              <div className={`font-medium text-sm mr-2 ${isActive ? 'text-sky-600' : 'text-slate-800 dark:text-slate-200'} ${isCancelled ? 'line-through decoration-red-500 text-red-700' : ''}`}>
+                {stop.name}
+              </div>
+              {isCancelled && <span className="text-red-500 text-[10px] font-bold uppercase tracking-wide mr-2">Inställd</span>}
+              {stop.track && !isCancelled && (
+                <span className="ml-auto text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700" title={`Läge ${stop.track}`}>
+                  {stop.track}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div >
+  )
+};
+
 import { useToast } from './ToastProvider';
 
 export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation, mode = 'departures' }) => {
-  const { addAlarm, alarms } = useAlarms();
   const toast = useToast();
+  const { addAlarm, alarms } = useAlarms();
   // View Mode State (Station vs Trip Planner)
   const [rootView, setRootView] = useState<'station' | 'planner'>('station');
 
@@ -41,8 +176,10 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   const [query, setQuery] = useState('');
   const [station, setStation] = useState<Station | null>(initialStation || null);
   const [provider, setProvider] = useState<Provider>(() => {
-    return (localStorage.getItem('resmus_default_provider') as Provider) || Provider.VASTTRAFIK;
+    return (localStorage.getItem('resmus_storage_provider') as Provider) || Provider.VASTTRAFIK;
   });
+
+  // Effect moved below state declarations
   const [departures, setDepartures] = useState<Departure[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,13 +189,91 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   const [viewMode, setViewMode] = useState<'departures' | 'arrivals'>(mode);
   const [sortMode, setSortMode] = useState<'time' | 'line'>('time');
   const [timeDisplayMode, setTimeDisplayMode] = useState<'minutes' | 'clock'>('clock');
+  const [isDense, setIsDense] = useState(false);
 
 
   const [customTime, setCustomTime] = useState<string>(''); // YYYY-MM-DDTHH:MM
-  const [timeWindow, setTimeWindow] = useState(480); // Default 8 hours
+  const [timeWindow, setTimeWindow] = useState(() => parseInt(localStorage.getItem('resmus_time_span') || '240', 10)); // Default 4 hours
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // --- MOVED STATE UP TO FIX REFERENCE ERROR ---
+  // Check for station-based disruptions and withdrawals
+  const [stationDisruptions, setStationDisruptions] = useState<any[]>([]);
+  const [withdrawnLines, setWithdrawnLines] = useState<Set<string>>(new Set());
+
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [transportFilter, setTransportFilter] = useState<string>('all');
+  const [trackFilter, setTrackFilter] = useState<string>('all');
+  const [showDisruptionDetails, setShowDisruptionDetails] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+
+  // Expanded Departure State
+  const [expandedDepartureId, setExpandedDepartureId] = useState<string | null>(null);
+  const [journeyDetails, setJourneyDetails] = useState<JourneyDetail[]>([]);
+  const [specificDisruptions, setSpecificDisruptions] = useState<TrafficSituation[] | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [showRouteMap, setShowRouteMap] = useState(false);
+  const [nextStop, setNextStop] = useState<JourneyDetail | null>(null);
+  const [detailsUpdatedAt, setDetailsUpdatedAt] = useState<Date | null>(null);
+
+  // Track mount status for provider change logic
+  const isMountedRef = React.useRef(false);
+
+  // Clear station when provider changes (to prevent data mismatch)
+  useEffect(() => {
+    if (isMountedRef.current) {
+      setStation(null);
+      setDepartures([]);
+      setSearchResults([]);
+      setQuery('');
+    } else {
+      isMountedRef.current = true;
+    }
+  }, [provider]);
+
+  // Listen for external updates (Settings)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newProvider = (localStorage.getItem('resmus_storage_provider') as Provider) || Provider.VASTTRAFIK;
+      setProvider(newProvider);
+
+      const newTimeWindow = parseInt(localStorage.getItem('resmus_time_span') || '60', 10);
+      setTimeWindow(newTimeWindow);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Update "Next Stop" based on time
+  useEffect(() => {
+    if (!journeyDetails.length) {
+      setNextStop(null);
+      return;
+    }
+    const updateNextStop = () => {
+      const now = Date.now();
+      // Find the first stop that we haven't departed from yet (or just arrived at)
+      // Simple logic: Find first stop with departureTime > now. 
+      // If we are between stops, the next one is the target.
+      const next = journeyDetails.find(s => {
+        const t = getMs(s.realtimeDeparture || s.departureTime || s.time);
+        return t && t > now;
+      });
+      if (next) setNextStop(next);
+      else if (journeyDetails.length > 0) {
+        // If all passed, show last? or "End"
+        setNextStop({ name: "Slutdestination" } as any);
+      }
+    };
+    updateNextStop();
+    const interval = setInterval(updateNextStop, 10000);
+    return () => clearInterval(interval);
+  }, [journeyDetails]);
+  // ---------------------------------------------
 
   // Favorites State
   const [favorites, setFavorites] = useState<Station[]>([]);
@@ -115,68 +330,96 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
     return () => clearTimeout(timer);
   }, [query, provider]);
 
-  const fetchData = async (silent = false) => {
-    if (station) {
-      if (!silent) setLoading(true);
+  // Fetch data function
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId: NodeJS.Timeout;
+
+    const fetchData = async () => {
+      if (!station) return;
+
+      setLoading(true);
+      setError(null);
+      // Don't clear departures immediately to prevent flash if refreshing
+      // setDepartures([]); 
+
+      const now = new Date();
+      let dateTimeStr = customTime || undefined;
+
+      console.log(`Fetching departures for ${station.name} (${station.id})...`);
 
       try {
-        // Ensure time string is complete if exists
-        const timeParam = customTime ? customTime : undefined;
+        // Parallel fetch: Departures + Global Disruptions (if Västtrafik)
+        const [data, fetchedDisruptions] = await Promise.all([
+          TransitService.getDepartures(
+            station.id,
+            station.provider,
+            viewMode,
+            dateTimeStr,
+            timeWindow
+          ),
+          station.provider === Provider.VASTTRAFIK ? TransitService.getVasttrafikDisruptions() : Promise.resolve([])
+        ]);
 
-        let data = await TransitService.getDepartures(station.id, station.provider, viewMode, timeParam, timeWindow);
+        if (!isMounted) return;
 
-        // FILLER LOGIC: If we have few departures, fetch more from the future
-        if (data.length > 0 && data.length < 10 && !customTime) {
-          // console.log(`Only ${data.length} departures found, fetching more...`);
-          const lastDep = data[data.length - 1];
-          if (lastDep.timestamp) {
-            // Fetch starting from 1 minute after the last departure
-            const nextTime = new Date(new Date(lastDep.timestamp).getTime() + 60000).toISOString();
-            const additionalData = await TransitService.getDepartures(station.id, station.provider, viewMode, nextTime, timeWindow);
+        console.log(`Fetched ${data.length} departures and ${fetchedDisruptions.length} disruptions`);
 
-            // Filter out duplicates (though Västtrafik GIDs should be unique)
-            const seenIds = new Set(data.map(d => d.id));
-            const uniqueAdditional = additionalData.filter(d => !seenIds.has(d.id));
+        // Enhance departures with disruption info
+        const enhancedDepartures = data.map(dep => {
+          // If already has disruption from API, keep it
+          if (dep.hasDisruption) return dep;
 
-            data = [...data, ...uniqueAdditional];
-            // console.log(`Added ${uniqueAdditional.length} more departures.`);
+          // Match usage of global disruptions
+          const matchingSituation = fetchedDisruptions.find(sit => {
+            // Check if active time
+            const startTime = new Date(sit.startTime).getTime();
+            const endTime = sit.endTime ? new Date(sit.endTime).getTime() : Infinity;
+            const nowTime = now.getTime();
+            if (nowTime < startTime || nowTime > endTime) return false;
+
+            // Check Line Name match (e.g. "3955", "Blå Tåget", "17")
+            const affectedLine = sit.affectedLines?.some(l =>
+              l.designation === dep.line || dep.line.includes(l.designation)
+            );
+
+            // Check Stop match
+            const affectedStop = sit.affectedStopPoints?.some(s => s.gid === station.id);
+
+            return affectedLine || affectedStop;
+          });
+
+          if (matchingSituation) {
+            return {
+              ...dep,
+              hasDisruption: true,
+              disruptionSeverity: matchingSituation.severity || 'normal',
+              disruptionMessage: matchingSituation.title || matchingSituation.description
+            };
           }
-        }
+          return dep;
+        });
 
-        // If still less than 2 departures and no custom time, try next day
-        if (data.length < 2 && !customTime) {
-          // console.log(`Only ${data.length} departures found, trying next day...`);
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          tomorrow.setHours(6, 0, 0, 0); // Start from 6 AM next day
+        // Loop logic: If too few departures, try next day? (Simplified for stability)
+        // For now, just set what we have.
+        setDepartures(enhancedDepartures);
 
-          const nextDayTime = tomorrow.toISOString();
-          const nextDayData = await TransitService.getDepartures(station.id, station.provider, viewMode, nextDayTime);
-
-          // Filter out duplicates
-          const seenIds = new Set(data.map(d => d.id));
-          const uniqueNextDay = nextDayData.filter(d => !seenIds.has(d.id));
-
-          data = [...data, ...uniqueNextDay.slice(0, 10)]; // Add up to 10 from next day
-          // console.log(`Added ${uniqueNextDay.length} departures from next day.`);
-        }
-
-        setDepartures(data);
       } catch (err) {
-        setDepartures([]);
-        setError("Kunde inte hämta avgångar. Kontrollera din internetanslutning och försök igen.");
-        // Silent error log
+        console.error("Fetch error:", err);
+        if (isMounted) setError("Kunde inte hämta avgångar.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
-    }
-  };
+    };
 
-  useEffect(() => {
-    fetchData(false);
-    const intervalId = setInterval(() => { fetchData(true); }, 60000);
-    return () => clearInterval(intervalId);
-  }, [station, viewMode, customTime]);
+    fetchData();
+    intervalId = setInterval(fetchData, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [station, viewMode, customTime, timeWindow]);
 
   const handleUseLocation = () => {
     if (!navigator.geolocation) {
@@ -201,6 +444,16 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   // If custom time is set, we trust API to return correct window
   const filteredDepartures = departures.filter(dep => {
     if (!dep.timestamp) return false;
+
+    // Type Filter
+    if (transportFilter !== 'all') {
+      // Map Västtrafik types roughly
+      const type = (dep.type || '').toUpperCase();
+      if (transportFilter === 'BUS' && !type.includes('BUS')) return false;
+      if (transportFilter === 'TRAM' && !type.includes('TRAM') && !type.includes('SPÅRVAGN')) return false;
+      if (transportFilter === 'TRAIN' && !type.includes('TRAIN') && !type.includes('TÅG')) return false;
+      if (transportFilter === 'FERRY' && !type.includes('FERRY') && !type.includes('BÅT')) return false;
+    }
 
     // If no custom time, filter out old departures (>10 min ago)
     if (!customTime) {
@@ -326,21 +579,6 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
     return '#475569';
   };
 
-  // Check for station-based disruptions and withdrawals
-  const [stationDisruptions, setStationDisruptions] = useState<any[]>([]);
-  const [withdrawnLines, setWithdrawnLines] = useState<Set<string>>(new Set());
-
-  // Filter state
-  const [showFilters, setShowFilters] = useState(false);
-  const [transportFilter, setTransportFilter] = useState<string>('all');
-  const [trackFilter, setTrackFilter] = useState<string>('all');
-  const [showDisruptionDetails, setShowDisruptionDetails] = useState(false);
-
-  // Expanded Departure State
-  const [expandedDepartureId, setExpandedDepartureId] = useState<string | null>(null);
-  const [journeyDetails, setJourneyDetails] = useState<JourneyDetail[]>([]);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-
   const toggleDepartureExpand = async (dep: Departure) => {
     // If clicking the same row, collapse it
     if (expandedDepartureId === dep.id) {
@@ -352,6 +590,8 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
     setExpandedDepartureId(dep.id);
     setLoadingDetails(true);
     setJourneyDetails([]);
+    setSpecificDisruptions(null);
+    setDetailsUpdatedAt(null);
 
     // Increment "Trips" counter for Statistics
     try {
@@ -366,6 +606,14 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
       if (dep.journeyRef) {
         const details = await TransitService.getJourneyDetails(dep.journeyRef);
         setJourneyDetails(details);
+        setDetailsUpdatedAt(new Date());
+      }
+      if (dep.serviceJourneyGid) {
+        TransitService.getJourneyDisruptions(dep.serviceJourneyGid).then(disruptions => {
+          if (expandedDepartureId === dep.id) {
+            setSpecificDisruptions(disruptions);
+          }
+        });
       }
     } catch (e) {
       console.error("Failed to fetch details", e);
@@ -374,8 +622,26 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
     }
   };
 
+  // Auto-update journey details every 30 seconds
+  useEffect(() => {
+    if (!expandedDepartureId) return;
 
+    const interval = setInterval(async () => {
+      const dep = departures.find(d => d.id === expandedDepartureId);
+      if (dep?.journeyRef) {
+        try {
+          const details = await TransitService.getJourneyDetails(dep.journeyRef);
+          // Only update if we still have the same departure expanded
+          setJourneyDetails(current => {
+            return details;
+          });
+          setDetailsUpdatedAt(new Date());
+        } catch (e) { console.error("Auto-refresh details failed", e); }
+      }
+    }, 30000);
 
+    return () => clearInterval(interval);
+  }, [expandedDepartureId, departures]);
   useEffect(() => {
     const fetchDisruptions = async () => {
       if (!station) {
@@ -484,11 +750,33 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                     {/* Provider Toggle (Small) */}
                     {!isSearching && !query && (
                       <button
-                        onClick={() => { setProvider(provider === Provider.VASTTRAFIK ? Provider.RESROBOT : Provider.VASTTRAFIK); setStation(null); setDepartures([]); }}
-                        className={`p-1.5 rounded-full transition-colors ${provider === Provider.RESROBOT ? 'text-sky-600 bg-sky-50' : 'text-slate-300 hover:text-sky-500'}`}
-                        title={provider === Provider.VASTTRAFIK ? "Byt till Resrobot (Hela Sverige)" : "Byt till Västtrafik"}
+                        onClick={() => {
+                          let next: Provider;
+                          if (provider === Provider.VASTTRAFIK) next = Provider.TRAFIKVERKET;
+                          else if (provider === Provider.TRAFIKVERKET) next = Provider.RESROBOT;
+                          else next = Provider.VASTTRAFIK;
+
+                          setProvider(next);
+                          localStorage.setItem('resmus_storage_provider', next);
+                          // Clean up previous results
+                          setStation(null);
+                          setDepartures([]);
+                        }}
+                        className={`p-1.5 rounded-full transition-colors flex items-center justify-center w-7 h-7
+                            ${provider === Provider.RESROBOT ? 'text-sky-600 bg-sky-50' :
+                            provider === Provider.TRAFIKVERKET ? 'text-red-600 bg-red-50' :
+                              'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}
+                        title={
+                          provider === Provider.VASTTRAFIK ? "Källa: Västtrafik (Klicka för att byta)" :
+                            provider === Provider.TRAFIKVERKET ? "Källa: Trafikverket (Tåg)" :
+                              "Källa: Resrobot (Hela Sverige)"
+                        }
                       >
-                        <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                        {provider === Provider.TRAFIKVERKET ? (
+                          <span className="font-bold text-[10px] tracking-tighter">TV</span>
+                        ) : (
+                          <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                        )}
                       </button>
                     )}
 
@@ -496,8 +784,16 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                   </div>
 
                   {/* Search Results Dropdown */}
-                  {(searchResults.length > 0 || (showSuggestions && !query && !station)) && (
+                  {((searchResults.length > 0) || (query && searchResults.length === 0 && !isSearching) || (showSuggestions && !query && !station)) && (
                     <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[50vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 pb-2">
+
+                      {/* No Results Message */}
+                      {query && searchResults.length === 0 && !isSearching && (
+                        <div className="px-4 py-3 text-slate-500 dark:text-slate-400 text-sm text-center italic">
+                          Inga hållplatser hittades via {provider === Provider.VASTTRAFIK ? 'Västtrafik' : provider === Provider.TRAFIKVERKET ? 'Trafikverket' : 'Resrobot'}.
+                          <br /><span className="text-xs opacity-70">Prova att byta sökkälla med knappen till höger.</span>
+                        </div>
+                      )}
                       {/* Location Option - Show when query is empty */}
                       {(!query && showSuggestions && !station) && (
                         <button onMouseDown={handleUseLocation} className="w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 text-sky-600 dark:text-sky-400">
@@ -528,165 +824,230 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
 
           {/* STATION HEADER - VISIBLE ONLY WHEN STATION IS SELECTED - MOVED BELOW BLUE HEADER */}
-          {station && (
-            <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex flex-col px-4 pt-4 animate-in slide-in-from-top-4 fade-in duration-500">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0 mr-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
-                      <FontAwesomeIcon icon={faMapPin} className="text-sky-500 flex-shrink-0 text-xl opacity-20" />
-                      {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
+          {
+            station && (
+              <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex flex-col px-4 pt-4 animate-in slide-in-from-top-4 fade-in duration-500">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 min-w-0 mr-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
+
+
+
+
+                        <div className="bg-sky-100 dark:bg-sky-900/30 p-1.5 rounded-full">
+                          <FontAwesomeIcon icon={faLocationDot} className="text-sky-500 text-sm" />
+                        </div>
+                        {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
+                      </div>
+
+                      {/* Show withdrawn lines */}
+                      {withdrawnLines.size > 0 && (
+                        <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
+                          <FontAwesomeIcon icon={faExclamationCircle} className="text-sm" />
+                          <span className="text-xs font-bold uppercase tracking-wide">
+                            Linje {Array.from(withdrawnLines).join(', ')} indragen
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Station Disruptions - "Mini snygg ruta" */}
+                      {stationDisruptions.length > 0 && (
+                        <div className="mt-2 text-left">
+                          {/* Always use the collapsible "Mini" style, but red if severe */}
+                          <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
+                            onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
+
+                            {/* Decorative Background Element */}
+                            <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
+
+                            <div className="flex-1 min-w-0 pl-1">
+                              <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
+                                {(() => {
+                                  const d = stationDisruptions[0];
+                                  const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
+                                  const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
+
+                                  let scope = "";
+                                  if (lines && stops) scope = `${lines}, ${stops}`;
+                                  else if (lines) scope = lines;
+                                  else if (stops) scope = stops;
+                                  else scope = "Hållplatsen";
+
+                                  let status = d.title;
+                                  if (status.toLowerCase().includes('indragen')) status = "är indragen";
+
+                                  return `Trafikläge: ${scope} ${status}. ${d.description}`;
+                                })()}
+                              </p>
+
+                              {stationDisruptions.length > 1 && (
+                                <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
+                                  <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
+                                    +{stationDisruptions.length - 1} meddelande(n) till
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
+                              <FontAwesomeIcon icon={faChevronUp} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
+                            </div>
+                          </div>
+
+                          {/* Expanded Details - Only show remaining messages if needed */}
+                          {showDisruptionDetails && stationDisruptions.length > 0 && (
+                            <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
+                              {stationDisruptions.map((d, index) => (
+                                <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
+                                  <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
+                                  <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
+                                    {d.description}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Show withdrawn lines */}
-                    {withdrawnLines.size > 0 && (
-                      <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
-                        <FontAwesomeIcon icon={faExclamationCircle} className="text-sm" />
-                        <span className="text-xs font-bold uppercase tracking-wide">
-                          Linje {Array.from(withdrawnLines).join(', ')} indragen
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Station Disruptions - "Mini snygg ruta" */}
-                    {stationDisruptions.length > 0 && (
-                      <div className="mt-2 text-left">
-                        {/* Always use the collapsible "Mini" style, but red if severe */}
-                        <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
-                          onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
-
-                          {/* Decorative Background Element */}
-                          <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
-
-                          <div className="flex-1 min-w-0 pl-1">
-                            <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
-                              {(() => {
-                                const d = stationDisruptions[0];
-                                const lines = d.affectedLines?.map((l: any) => `Linje ${l.designation}`).join(', ');
-                                const stops = d.affectedStopPoints?.some((s: any) => s.gid === station.id) ? station.name : "";
-
-                                let scope = "";
-                                if (lines && stops) scope = `${lines}, ${stops}`;
-                                else if (lines) scope = lines;
-                                else if (stops) scope = stops;
-                                else scope = "Hållplatsen";
-
-                                let status = d.title;
-                                if (status.toLowerCase().includes('indragen')) status = "är indragen";
-
-                                return `Trafikläge: ${scope} ${status}. ${d.description}`;
-                              })()}
-                            </p>
-
-                            {stationDisruptions.length > 1 && (
-                              <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
-                                <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
-                                  +{stationDisruptions.length - 1} meddelande(n) till
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="self-center transform transition-transform duration-300" style={{ transform: showDisruptionDetails ? 'rotate(180deg)' : 'none' }}>
-                            <FontAwesomeIcon icon={faChevronUp} className={stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-400 dark:text-red-600" : "text-amber-400 dark:text-amber-600"} />
-                          </div>
-                        </div>
-
-                        {/* Expanded Details - Only show remaining messages if needed */}
-                        {showDisruptionDetails && stationDisruptions.length > 0 && (
-                          <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
-                            {stationDisruptions.map((d, index) => (
-                              <div key={index} className={`${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'bg-red-50/50 dark:bg-red-900/10 border-red-400' : 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-400'} border-l-2 p-2.5 rounded-r-lg`}>
-                                <h4 className={`text-xs font-bold ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'} mb-1 leading-tight`}>{d.title}</h4>
-                                <p className={`text-[10px] ${d.severity === 'severe' || d.title.toLowerCase().includes('indragen') ? 'text-red-800/80 dark:text-red-300' : 'text-amber-800/80 dark:text-amber-300'} leading-relaxed max-w-prose`}>
-                                  {d.description}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => toggleFavorite(station)}
+                        className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <FontAwesomeIcon icon={faStar} className="text-lg" />
+                      </button>
+                      <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+                        <FontAwesomeIcon icon={faTimes} className="text-lg" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => toggleFavorite(station)}
-                      className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
-                    >
-                      <FontAwesomeIcon icon={faStar} className="text-lg" />
-                    </button>
-                    <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                      <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                    </button>
-                  </div>
                 </div>
-
               </div>
-            </div>
-          )}
+            )
+          }
 
           {/* Blue Header Bar (With Integrated Controls) */}
-          {station && (
-            <div className="bg-sky-400 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
+          {
+            station && (
+              <div className="bg-sky-400 text-white text-xs font-black uppercase tracking-wider py-1.5 px-4 relative flex items-center shadow-md z-10">
 
-              {/* Grid Layout for Column Headers - Absolute to match content below */}
-              <div className="grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 w-full items-center">
-                <div onClick={toggleSort} className="cursor-pointer flex items-center gap-1 hover:text-sky-200">
-                  Linje <FontAwesomeIcon icon={faArrowsAltV} className="text-[10px]" />
+                {/* Grid Layout for Column Headers - Absolute to match content below */}
+                {/* Header Columns - Matching Row Layout */}
+                <div className="flex w-full items-center justify-between">
+
+                  {/* Left: Line & Destination */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-11 flex-shrink-0 flex justify-center items-center relative cursor-pointer hover:text-sky-200 transition-colors" onClick={toggleSort}>
+                      <span>Linje</span>
+                    </div>
+                    <div className="flex-1 font-bold pl-1">Destination</div>
+                  </div>
+
+                  {/* Right: Time & Track */}
+                  <div className="flex items-center gap-2 pl-2 text-right">
+                    <div className="min-w-[3.5rem]">Tid</div>
+                    <div className="w-14 text-center text-[10px] font-bold tracking-tight">NY TID</div>
+                    <div className="w-8 md:w-9 text-center">Läge</div>
+                  </div>
                 </div>
-                <div>Destination</div>
-                <div className="text-right">Tid</div>
-                <div className="text-right">Ny</div>
-                <div className="text-right">Läge</div>
-              </div>
 
-              {/* Centered View Controls (Floating) */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-sky-600/90 rounded-full px-1.5 py-0.5 shadow-sm backdrop-blur-sm border border-sky-400/50">
-                {/* Avg/Ank Toggles (Icons Only) */}
-                <button
-                  onClick={() => setViewMode('departures')}
-                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`}
-                  title="Avgångar"
-                >
-                  <FontAwesomeIcon icon={faArrowUp} className="text-xs rotate-45" />
-                </button>
-                <button
-                  onClick={() => setViewMode('arrivals')}
-                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`}
-                  title="Ankomster"
-                >
-                  <FontAwesomeIcon icon={faArrowDown} className="text-xs rotate-45" />
-                </button>
-
-                <div className="w-[1px] h-3 bg-sky-400 mx-0.5 opacity-50"></div>
-
-                {/* Time Picker (Compact Icon) - Inputs hidden inside. '6h/24h' shortcuts removed per request. */}
-                <div className="relative flex items-center justify-center w-6 h-6">
-                  {/* If custom time set, show active indicator */}
-                  <button className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${customTime ? 'bg-amber-400 text-amber-900 border border-amber-500' : 'text-sky-200 hover:text-white hover:bg-sky-500'}`} title={customTime ? `Vald tid: ${new Date(customTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Välj tid"}>
-                    <FontAwesomeIcon icon={faCalendarAlt} className="text-xs" />
+                {/* Centered View Controls (Floating) - Modernized */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-sky-600/95 rounded-full px-2 py-0.5 shadow-lg backdrop-blur-sm border border-sky-400/30 ring-1 ring-black/5 z-20">
+                  {/* Avg/Ank Toggles */}
+                  <button
+                    onClick={() => setViewMode('departures')}
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                    title="Avgångar"
+                  >
+                    <FontAwesomeIcon icon={faArrowUp} className={`text-sm ${viewMode === 'departures' ? 'rotate-45' : ''} transition-transform`} />
                   </button>
-                  <input
-                    type="datetime-local"
-                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                    onChange={(e) => setCustomTime(e.target.value)}
-                  />
+                  <button
+                    onClick={() => setViewMode('arrivals')}
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                    title="Ankomster"
+                  >
+                    <FontAwesomeIcon icon={faArrowDown} className={`text-sm ${viewMode === 'arrivals' ? 'rotate-45' : ''} transition-transform`} />
+                  </button>
+
+                  <div className="w-[1px] h-3 bg-sky-400/40 mx-0.5"></div>
+
+                  {/* Time Picker */}
+                  <div className="relative flex items-center justify-center w-9 h-9 group">
+                    <button className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${customTime ? 'bg-amber-400 text-amber-900 border border-amber-500 scale-105' : 'text-sky-200 group-hover:text-white group-hover:bg-sky-500/50'}`} title={customTime ? `Vald tid: ${new Date(customTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Välj tid"}>
+                      <FontAwesomeIcon icon={faCalendarAlt} className="text-xs" />
+                    </button>
+                    <input
+                      type="datetime-local"
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                      onChange={(e) => setCustomTime(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Min/Tid Toggle */}
+                  <button
+                    onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${timeDisplayMode === 'minutes' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                    title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
+                  >
+                    {timeDisplayMode === 'minutes' ? <span className="text-[9px] font-bold">MIN</span> : <FontAwesomeIcon icon={faClock} className="text-xs" />}
+                  </button>
+
+                  <div className="w-[1px] h-4 bg-sky-400/40 mx-1"></div>
+
+                  {/* Zoom Toggle */}
+                  <button
+                    onClick={() => setIsDense(!isDense)}
+                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${isDense ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                    title={isDense ? "Zooma in" : "Zooma ut"}
+                  >
+                    <FontAwesomeIcon icon={isDense ? faSearchPlus : faSearchMinus} className="text-xs" />
+                  </button>
+
+                  <div className="w-[1px] h-3 bg-sky-400/40 mx-0.5"></div>
+
+                  {/* Filter Toggle */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowFilterMenu(!showFilterMenu)}
+                      className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${transportFilter !== 'all' ? 'bg-amber-400 text-amber-900 border border-amber-500 scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
+                      title="Filtrera trafikslag"
+                    >
+                      <FontAwesomeIcon icon={faFilter} className="text-xs" />
+                    </button>
+
+                    {showFilterMenu && (
+                      <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 w-40 animate-in fade-in zoom-in-95">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">Visa</h4>
+                        {[
+                          { id: 'all', label: 'Alla', icon: null },
+                          { id: 'BUS', label: 'Buss', icon: faBus },
+                          { id: 'TRAM', label: 'Spårvagn', icon: faTram },
+                          { id: 'TRAIN', label: 'Tåg', icon: faTrain },
+                          { id: 'FERRY', label: 'Färja', icon: faShip }
+                        ].map(opt => (
+                          <button
+                            key={opt.id}
+                            onClick={() => { setTransportFilter(opt.id); setShowFilterMenu(false); }}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 ${transportFilter === opt.id ? 'bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                          >
+                            {opt.icon && <FontAwesomeIcon icon={opt.icon} className="w-4 text-center" />}
+                            <span className={!opt.icon ? 'pl-6' : ''}>{opt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
 
-                {/* Min/Tid Toggle */}
-                <button
-                  onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
-                  className={`w-6 h-6 flex items-center justify-center rounded-full transition-all ${timeDisplayMode === 'clock' ? 'text-sky-200 hover:text-white' : 'bg-white text-sky-600 shadow-sm'}`}
-                  title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
-                >
-                  <FontAwesomeIcon icon={faClock} className="text-xs" />
-                </button>
               </div>
-
-            </div>
-          )}
+            )
+          }
 
           {/* List Content */}
           <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950 pb-20">
@@ -748,223 +1109,79 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                       }
                       const showOriginPrefix = viewMode === 'arrivals' && !displayDirection.startsWith('Från') && displayDirection !== 'Ankommande';
 
-                      const getDisplayTime = (timeStr: string, ts?: string) => {
-                        if (!ts) return timeStr;
-                        const diff = (new Date(ts).getTime() - Date.now()) / 60000;
-                        if (diff <= 3) {
-                          const m = Math.floor(diff);
-                          if (m <= 0) return "Nu"; // Changed to handle -0 and negative nicely
-                          return `${m} min`;
-                        }
-                        return timeStr;
-                      };
-
-                      // Filter out departures that have already happened (> 1 min ago)
-                      // We do this check here to filter "live" without refetching
-                      // TODO: Better might be to filter `sortedDepartures` but useEffect runs every 15s.
-                      // Filter out departures that have already happened (> 0.5 min ago)
                       const diff = dep.timestamp ? (new Date(dep.timestamp).getTime() - Date.now()) / 60000 : 0;
                       if (diff < -0.5) return null;
 
-                      // Smart Time Logic
                       const minsRemaining = Math.ceil(diff);
-                      const isCloseDeparture = minsRemaining <= 5 && minsRemaining >= -1;
-                      // Show minutes if mode is 'minutes' OR if it's a close departure with realtime data (Smart Time default)
-                      const displayRealtimeInMinutes = timeDisplayMode === 'minutes' || (isCloseDeparture && hasRealtime);
+
+                      // Legacy getDisplayTime removed. Logic moved to JSX.
+                      const originalTime = dep.time;
+                      const newTime = dep.realtime && dep.realtime !== dep.time ? dep.realtime : null;
 
                       // If close departure, HIDE scheduled time, show ONLY realtime in "Ny Tid" col
                       // If NOT close, show scheduled in "Tid", and realtime in "Ny Tid" ONLY if deviation
 
+                      const isExpanded = expandedDepartureId === dep.id;
+                      const expandedDetails = isExpanded ? journeyDetails : [];
+                      const isExpandedLoading = isExpanded ? loadingDetails : false;
+
+                      // Compact Row
                       return (
-                        <div
-                          key={`${dep.id}-${idx}`}
-                          className={`relative group/row ${isCancelled ? '' : ''}`}
-                        >
+                        <div key={`${dep.id}-${idx}`} className="group/row">
                           <div
                             onClick={() => toggleDepartureExpand(dep)}
-                            className={`grid grid-cols-[60px_1fr_50px_50px_35px] gap-2 items-center px-2 py-0.5 md:py-1 border-b border-slate-100 dark:border-slate-800 transition-colors relative z-10 cursor-pointer
-                            ${isCancelled
-                                ? 'bg-red-50/70 dark:bg-red-900/20 border-l-2 border-l-red-500'
-                                : 'border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-900'
-                              }
-                        ${expandedDepartureId === dep.id ? 'bg-slate-50 dark:bg-slate-900 shadow-inner' : ''}
-                         `}>
-
-                            {/* Linje */}
-                            <div className="flex items-center gap-1 cursor-pointer hover:scale-105 transition-transform"
-                              title="Sätt avgångslarm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const dueTime = new Date(dep.datetime).getTime();
-                                if (dueTime > Date.now()) {
-                                  const alarmId = `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`;
-                                  const stationName = dep.stopPoint?.name || station?.name || "Unknown Station";
-                                  addAlarm({
-                                    id: alarmId,
-                                    departureTime: dep.timestamp,
-                                    dueTime: dueTime,
-                                    stationName: stationName,
-                                    line: dep.line,
-                                    direction: dep.direction
-                                  });
-                                  toast.success(`Larm satt!`, `Du får en notis inför avgång med linje ${dep.line}.`);
-                                }
-                              }}>
-                              <div className={`relative inline-block ${isCancelled ? 'opacity-70 grayscale-[0.4]' : ''}`}>
+                            className={`relative ${isDense ? 'px-2 py-1' : 'px-3 py-2.5'} hover:bg-sky-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group border-b border-slate-100 dark:border-slate-800/50 ${isCancelled ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {/* Line Badge - Compact */}
+                              <div className={`${isDense ? 'w-8' : 'w-10'} flex-shrink-0 flex justify-center`}>
                                 <div
-                                  className="h-5 md:h-6 min-w-[28px] md:min-w-[32px] px-1 rounded-md flex items-center justify-center font-black text-[10px] md:text-xs text-white shadow-md border border-white/20 bg-gradient-to-b from-white/20 to-transparent"
+                                  className={`${isDense ? 'h-5 px-1 min-w-[1.5rem] text-[10px]' : 'h-6 px-1.5 min-w-[2rem] text-xs'} rounded flex items-center justify-center font-bold shadow-sm transition-transform group-hover:scale-105 ${isCancelled ? 'opacity-75' : ''}`}
                                   style={{
-                                    backgroundColor: dep.bgColor || getDefaultLineColor(dep.type, dep.line, dep.operator),
-                                    color: dep.fgColor || '#ffffff',
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                    backgroundColor: dep.bgColor || '#475569',
+                                    color: dep.fgColor || '#ffffff'
                                   }}
                                 >
-                                  {dep.track === 'X' ? <FontAwesomeIcon icon={faTaxi} className="text-[16px]" /> : (
-                                    <span className="mx-0.5">{dep.line === '?' ? '-' : dep.line}</span>
+                                  {dep.line}
+                                </div>
+                              </div>
+
+                              {/* Destination & Disruption */}
+                              <div className="flex-1 min-w-0 pr-2">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`${isDense ? 'text-xs' : 'text-sm'} font-bold truncate ${isCancelled ? 'text-red-700 dark:text-red-400 line-through decoration-red-500 decoration-2' : 'text-slate-900 dark:text-slate-100'}`}>
+                                    {displayDirection}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Time & Track Columns */}
+                              <div className="flex items-center gap-2 text-right justify-end ml-auto">
+                                {/* TID (Scheduled or Mins) */}
+                                <div className="w-12 flex flex-col items-end">
+                                  <div className={`font-bold leading-none ${isDense ? 'text-xs' : 'text-sm'} ${isDeviation ? 'text-slate-400 dark:text-slate-500' + (isDense ? ' text-[10px]' : ' text-xs') : 'text-slate-900 dark:text-slate-100'}`}>
+                                    {timeDisplayMode === 'minutes' ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : (isDeviation ? <span className="line-through">{originalTime}</span> : originalTime)}
+                                  </div>
+                                </div>
+
+                                {/* NY TID (Realtime if deviation) */}
+                                <div className={`w-12 font-bold ${isDense ? 'text-xs' : 'text-sm'} flex items-center justify-end ${isCancelled ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                  {isCancelled ? (
+                                    <span className="text-[9px] uppercase font-black tracking-tight">Inställd</span>
+                                  ) : (
+                                    isDeviation && timeDisplayMode !== 'minutes' ? newTime : ''
                                   )}
                                 </div>
-                                {alarms.some(a => a.id === `${dep.stopPoint?.name || station?.name}-${dep.line}-${dep.timestamp}`) && (
-                                  <div className="absolute -top-1.5 -right-1.5 bg-sky-500 text-white rounded-full p-0.5 shadow-sm border border-white z-10 animate-in zoom-in-50">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                  </div>
-                                )}
+
+                                {/* LÄGE (Track) */}
+                                <div className={`w-10 font-bold ${isDense ? 'text-xs' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+                                  {dep.track}
+                                </div>
                               </div>
-                            </div>
-
-                            {/* Destination */}
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <div className={`font-bold text-xs md:text-sm truncate leading-tight ${isCancelled ? 'text-slate-400 line-through decoration-red-400 decoration-2' : 'text-slate-800 dark:text-slate-100'}`}>
-                                  {showOriginPrefix ? `Från ${displayDirection}` : displayDirection}
-                                </div>
-                                {hasDisruptionInfo && <DisruptionInfoIcon />}
-                              </div>
-                              {dep.track === 'X' && (
-                                <div className="flex items-center gap-1 mt-0.5">
-                                  <span className="bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 text-[9px] font-black uppercase px-1 rounded border border-sky-200 dark:border-sky-800">Förbokas</span>
-                                  <span className="text-[9px] text-slate-400 hidden sm:inline">Ring 0771-91 90 90 (minst 1h innan)</span>
-                                </div>
-                              )}
-                              {dep.disruptionMessage && (
-                                <div className="flex items-start gap-1 mt-1 animate-in zoom-in-95 origin-top-left">
-                                  <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 mt-[1px] text-[10px] flex-shrink-0" />
-                                  <span className="text-[10px] font-bold text-red-600 dark:text-red-400 leading-tight">
-                                    {dep.disruptionMessage}
-                                  </span>
-                                </div>
-                              )}
-                              {isCancelled && !dep.disruptionMessage && (
-                                <div className="flex items-center gap-1 mt-0.5 text-red-600 dark:text-red-400">
-                                  <FontAwesomeIcon icon={faBan} className="text-[10px]" />
-                                  <span className="text-[10px] font-black uppercase tracking-wider">Inställd</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Tid (Scheduled) - Respects timeDisplayMode */}
-                            <div className={`text-right font-bold text-xs md:text-sm leading-tight whitespace-nowrap ${isCancelled ? 'text-slate-400/50 line-through decoration-slate-300' : (isDeviation ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white')}`}>
-                              {timeDisplayMode === 'minutes' && displayRealtimeInMinutes
-                                ? ""
-                                : dep.time
-                              }
-                            </div>
-
-                            {/* Ny Tid (Realtime) - Respects timeDisplayMode */}
-                            <div className="text-right whitespace-nowrap">
-                              {isCancelled ? (
-                                <div className="flex justify-end">
-                                  <FontAwesomeIcon icon={faTimes} className="text-red-500 text-xl" />
-                                </div>
-                              ) : (
-                                timeDisplayMode === 'minutes' ? (
-                                  (isDeviation || displayRealtimeInMinutes) ? (
-                                    <span className={`font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none inline-block ${displayRealtimeInMinutes ? "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/40" : "text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30"}`}>
-                                      {displayRealtimeInMinutes ? (minsRemaining <= 0 ? "Nu" : `${minsRemaining} min`) : getDisplayTime(dep.realtime || dep.time, dep.timestamp)}
-                                    </span>
-                                  ) : null
-                                ) : (
-                                  hasRealtime && isDeviation ? (
-                                    <span className="font-black text-xs md:text-sm px-1.5 py-0.5 rounded leading-none text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 inline-block">
-                                      {dep.realtime}
-                                    </span>
-                                  ) : null
-                                )
-                              )}
-                            </div>
-
-                            {/* Läge (Track) - Premium Redesign */}
-                            <div className="flex justify-end">
-                              {isCancelled ? <span className="text-slate-300 font-bold">-</span> : (dep.track ? (
-                                <div className="flex flex-col items-center">
-                                  <span className="inline-flex items-center justify-center bg-slate-800 dark:bg-slate-700 text-white min-w-[24px] h-[24px] px-1.5 rounded-md font-black text-[11px] shadow-sm border border-slate-700 dark:border-slate-600 ring-1 ring-slate-900/50 dark:ring-slate-600/50 transition-all group-hover/row:scale-110 group-hover/row:shadow-md group-hover/row:border-white/50">
-                                    {dep.track}
-                                  </span>
-                                </div>
-                              ) : <span className="text-slate-300 font-bold">-</span>)}
                             </div>
                           </div>
-
-                          {/* Expanded Details Map */}
-                          {expandedDepartureId === dep.id && (
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 fade-in duration-200 cursor-default" onClick={(e) => e.stopPropagation()}>
-                              {loadingDetails ? (
-                                <div className="h-32 flex items-center justify-center">
-                                  <ThemedSpinner size={24} className="text-sky-500" />
-                                </div>
-                              ) : journeyDetails.length > 0 ? (
-                                <div>
-                                  <div className="mb-2 flex items-center justify-between">
-                                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Färdväg</h4>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{journeyDetails.length} hållplatser</span>
-                                  </div>
-                                  <DepartureRouteMap stops={journeyDetails} color={dep.bgColor || '#0ea5e9'} />
-
-                                  {/* Journey Details Timeline List */}
-                                  <div className="mt-4 pl-2 relative">
-                                    {/* Vertical Line */}
-                                    <div className="absolute top-2 left-[19px] bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800"></div>
-
-                                    <div className="space-y-0">
-                                      {journeyDetails.map((stop, idx) => {
-                                        const isFirst = idx === 0;
-                                        const isLast = idx === journeyDetails.length - 1;
-
-                                        return (
-                                          <div key={idx} className="relative flex items-center gap-3 py-2 group">
-                                            {/* Dot */}
-                                            <div className={`relative z-10 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${isFirst || isLast ? 'bg-slate-800 dark:bg-white w-5 h-5' : 'bg-slate-400 dark:bg-slate-600'}`}>
-                                              {(isFirst || isLast) && <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-white dark:bg-slate-900 rounded-full"></div>}
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-3">
-                                              <div className="min-w-0">
-                                                <div className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{stop.name}</div>
-                                              </div>
-                                              <div className="text-right flex-shrink-0">
-                                                <div className="font-bold text-sm text-slate-700 dark:text-slate-300">{stop.time}</div>
-                                                {stop.track && (
-                                                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 px-1 rounded inline-block mt-0.5">
-                                                    Läge {stop.track}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-center py-4 text-slate-400 text-xs">
-                                  Ingen färdvägsinformation tillgänglig.
-                                </div>
-                              )}
-                            </div>
-                          )}
                         </div>
-                      )
+                      );
                     })}
                     <div className="py-6"></div>
                   </div>
@@ -980,6 +1197,234 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
           </div>
         </>
       )
+      }
+      {/* Modal Overlay for Expanded Details */}
+      {
+        expandedDepartureId && (() => {
+          const dep = departures.find(d => d.id === expandedDepartureId);
+          if (!dep) return null;
+
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setExpandedDepartureId(null)}>
+              <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300">
+
+                {/* Modal Header */}
+                <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 shrink-0 flex items-start justify-between">
+                  <div className="flex items-start">
+                    {/* Transport Icon Circle */}
+                    <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white mr-3 shadow-md border border-sky-600 shrink-0 self-center">
+                      {(() => {
+                        const t = (dep.type || '').toUpperCase();
+                        if (t.includes('TRAIN') || t.includes('TÅG')) return <FontAwesomeIcon icon={faTrain} />;
+                        if (t.includes('TRAM') || t.includes('SPÅRVAGN')) return <FontAwesomeIcon icon={faTram} />;
+                        if (t.includes('FERRY') || t.includes('BÅT')) return <FontAwesomeIcon icon={faShip} />;
+                        if (t.includes('TAX') || t.includes('TAXI')) return <FontAwesomeIcon icon={faTaxi} />;
+                        return <FontAwesomeIcon icon={faBus} />;
+                      })()}
+                    </div>
+
+                    {/* Line Badge (Number Only - Simplified) */}
+                    <div
+                      className="h-10 px-3 min-w-[3rem] rounded-lg flex items-center justify-center font-bold text-xl shadow-sm mr-3 border-2 shrink-0 self-center"
+                      style={{
+                        backgroundColor: dep.bgColor || '#0ea5e9',
+                        color: dep.fgColor || '#ffffff',
+                        borderColor: dep.fgColor || 'transparent'
+                      }}
+                    >
+                      {dep.line}
+                    </div>
+
+                    <div className="flex flex-col min-w-0">
+                      <div className="font-bold text-lg leading-tight flex items-center gap-2 truncate">
+                        {mode === 'arrivals' ? <span className="text-sm font-normal text-slate-500 uppercase">Från</span> : null}
+                        {dep.direction}
+                        {!mode && <FontAwesomeIcon icon={faChevronRight} className="text-slate-300 text-xs shrink-0" />}
+                      </div>
+                      <div className="flex flex-col mt-1">
+                        <div className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                          {dep.track && (
+                            <div className="flex items-center gap-1.5 opacity-100">
+                              <FontAwesomeIcon icon={faMapMarkerAlt} className="text-slate-400 text-xs" />
+                              <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-1.5 py-0.5 rounded text-sm font-bold border border-slate-300 dark:border-slate-700 inline-flex items-center gap-1.5 align-middle shadow-sm">
+                                <span className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-1 rounded-[3px] text-[9px] uppercase font-black tracking-wider leading-tight py-[2px]">
+                                  {(() => {
+                                    const t = (dep.type || '').toUpperCase();
+                                    return (t.includes('TRAIN') || t.includes('TÅG')) ? 'SPÅR' : 'LÄGE';
+                                  })()}
+                                </span>
+                                {dep.track}
+                              </span>
+                            </div>
+                          )}
+                          <span className="font-mono tracking-tight text-xl ml-1">
+                            {new Date(dep.timestamp).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        {/* Next Stop Logic */}
+                        {(() => {
+                          // Check if trip hasn't started
+                          const firstStop = journeyDetails[0];
+                          const now = Date.now();
+
+                          // Helper to get time
+                          const getT = (s: any) => getMs(s?.realtimeDeparture || s?.departureTime || s?.time);
+
+                          if (firstStop) {
+                            const startT = getT(firstStop);
+                            if (startT && startT > now + 60000) { // 1 min buffer
+                              const diffMins = Math.ceil((startT - now) / 60000);
+                              return (
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                                  <FontAwesomeIcon icon={faClock} />
+                                  Turen har ej startat ännu! Avgår om {diffMins} min.
+                                </div>
+                              )
+                            }
+                          }
+
+                          if (nextStop && nextStop.name !== dep.direction) {
+                            return (
+                              <div className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                                <span className="text-base leading-none">•</span>
+                                NÄSTA: {nextStop.name}
+                                {nextStop.track && (
+                                  <span className="ml-1.5 text-[9px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800/50">
+                                    {nextStop.track}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => { setExpandedDepartureId(null); setNextStop(null); }} className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500">
+                    <FontAwesomeIcon icon={faTimes} className="text-lg" />
+                  </button>
+                </div>
+
+                {/* Action Bar */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      {detailsUpdatedAt && `Uppdaterad ${detailsUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Map Toggle Button (Moved here) */}
+                      {journeyDetails.length > 0 && journeyDetails.some(d => d.coords) && (
+                        <button
+                          onClick={() => setShowRouteMap(!showRouteMap)}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${showRouteMap
+                            ? 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800'
+                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                            }`}
+                          title="Visa karta"
+                        >
+                          <FontAwesomeIcon icon={faMap} />
+                        </button>
+                      )}
+
+
+                      <button
+                        onClick={() => {
+                          let arrivalTime: string | undefined;
+                          const lastStop = journeyDetails[journeyDetails.length - 1];
+                          if (lastStop) {
+                            arrivalTime = lastStop.realtimeArrival || lastStop.arrivalTime || lastStop.time;
+                            if (arrivalTime && !arrivalTime.includes('T')) {
+                              try {
+                                const [h, m] = arrivalTime.split(':');
+                                const arrivalDate = new Date(dep.timestamp);
+                                arrivalDate.setHours(parseInt(h), parseInt(m));
+                                if (arrivalDate.getTime() < new Date(dep.timestamp).getTime()) {
+                                  arrivalDate.setDate(arrivalDate.getDate() + 1);
+                                }
+                                arrivalTime = arrivalDate.toISOString();
+                              } catch (e) { }
+                            }
+                          }
+
+                          const alarmId = `${dep.id}-${Date.now()}`;
+                          const dueTime = new Date(dep.timestamp);
+                          dueTime.setMinutes(dueTime.getMinutes() - 5);
+
+                          addAlarm({
+                            id: alarmId,
+                            departureTime: dep.timestamp,
+                            dueTime: dueTime.getTime(),
+                            stationName: station?.name || 'Okänd hållplats',
+                            line: dep.line,
+                            direction: dep.direction,
+                            journeyRef: dep.journeyRef,
+                            arrivalTime: arrivalTime
+                          });
+                          toast.success(`Larm satt!`, `Du får notis 5 min innan avgång.`);
+                        }}
+                        className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-sm flex items-center gap-2 transition-transform active:scale-95 ml-auto"
+                      >
+                        <FontAwesomeIcon icon={faClock} />
+                        Bevaka
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Disruption Alert moved out of flex row */}
+                  {((dep.hasDisruption && dep.disruptionMessage) || (specificDisruptions && specificDisruptions.length > 0)) && (
+                    <div className={`p-3 rounded-xl border flex gap-3 items-start ${(specificDisruptions?.some(d => d.severity === 'severe') || (!specificDisruptions && dep.disruptionSeverity === 'severe'))
+                      ? 'bg-red-50 border-red-100 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200'
+                      : 'bg-amber-50 border-amber-100 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200'
+                      }`}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="text-base mt-0.5 shrink-0" />
+                      <div className="flex flex-col gap-1 min-w-0">
+                        {specificDisruptions && specificDisruptions.length > 0 ? (
+                          specificDisruptions.map((d, i) => (
+                            <div key={i}>
+                              <div className="text-xs font-bold">{d.title}</div>
+                              <div className="text-[11px] opacity-90 leading-snug">{d.description}</div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs font-medium leading-snug">
+                            {dep.disruptionMessage}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-4 bg-white dark:bg-slate-900 min-h-[300px]">
+                  {showRouteMap && (
+                    <div className="mb-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 relative shrink-0">
+                      <DepartureRouteMap
+                        stops={journeyDetails}
+                        color={dep.bgColor}
+                      />
+                    </div>
+                  )}
+
+                  {loadingDetails ? (
+                    <div className="flex justify-center py-12">
+                      <ThemedSpinner size={32} />
+                    </div>
+                  ) : (
+                    <div className="pb-8">
+                      <JourneyTimeline
+                        stops={journeyDetails}
+                        type={dep.type}
+                        currentStationName={station?.name}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()
       }
     </div >
   );

@@ -34,9 +34,8 @@ export const TrafiklabService = {
         let url = "";
 
         // Correct path for "GTFS Sweden 3" vs Regional Feeds
-        const path = operatorId === 'sweden'
-            ? 'gtfs-rt-sweden/VehiclePositions.pb'
-            : `gtfs-rt/${operatorId}/VehiclePositions.pb`;
+        // All feeds follow the gtfs-rt/{operator}/VehiclePositions.pb pattern
+        const path = `gtfs-rt/${operatorId}/VehiclePositions.pb`;
 
         if (import.meta.env.DEV) {
             url = `/trafiklab-proxy/${path}?key=${API_KEYS.TRAFIKLAB_API_KEY}`;

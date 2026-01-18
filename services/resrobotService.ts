@@ -69,7 +69,7 @@ export const ResrobotService = {
 
     getDepartures: async (stationId: string, duration = 60): Promise<Departure[]> => {
         try {
-            const url = `${API_URLS.RESROBOT_API}/departureBoard?id=${stationId}&duration=${duration}&accessId=${API_KEYS.RESROBOT_API_KEY}&format=json&maxJourneys=300`;
+            const url = `${API_URLS.RESROBOT_API}/departureBoard?id=${stationId}&duration=${duration}&accessId=${API_KEYS.RESROBOT_API_KEY}&format=json&maxJourneys=500`;
             const res = await fetchWithCors(url);
             if (!res.ok) return [];
             const data = await res.json();
@@ -86,29 +86,102 @@ export const ResrobotService = {
                 if (product?.catCode === '1') transportType = 'train';
                 else if (product?.catCode === '4') transportType = 'tram';
                 else if (product?.catCode === '5') transportType = 'bus';
+                else if (product?.catCode === '8' || product?.catCode === '3') transportType = 'bus'; // Express bus?
+
+                // Clean Destination: Remove city name if it matches station's city
+                let direction = item.direction.split('(')[0].trim();
+                const stationName = item.stop || "";
+                // Heuristic: First word of station is city.
+                const city = stationName.split(' ')[0];
+                if (city && direction.startsWith(city + " ") && city.length > 2) {
+                    direction = direction.substring(city.length + 1);
+                }
+
+                // User requested to remove generic operator names in the board
+                // We keep it undefined so the UI doesn't render the small gray text under the destination.
+                let operator = undefined;
+                // Exception: If we really want "Pågatågen" etc, we can keep it, but user said "Ta bort".
+                // Safest to just hide it completely as requested.
+
+                // Journey Ref
+                const journeyRef = item.JourneyDetailRef?.ref;
 
                 return {
                     id: `${item.name}-${item.date}-${item.time}`,
                     line: product?.num || item.name.replace(/\D/g, ''),
-                    direction: item.direction,
+                    direction: direction,
                     stopPoint: { name: item.stop, gid: stationId },
                     time: item.time.substring(0, 5),
                     timestamp: `${item.date}T${item.time}`,
                     datetime: `${item.date}T${item.time}`,
-                    realtime: item.rtTime?.substring(0, 5) || null,
+                    // Check rtTime and ensure it's formatted HH:MM
+                    realtime: item.rtTime ? item.rtTime.substring(0, 5) : null,
                     rtDate: item.rtDate,
-                    bgColor: null, // Let frontend decide based on operator
+                    bgColor: null,
                     fgColor: null,
                     provider: Provider.RESROBOT,
                     type: transportType,
-                    track: item.track || '',
+                    // Check both predicted track (rtTrack) and planned track (track)
+                    track: item.rtTrack || item.track || '',
                     status: 'ON_TIME',
                     hasDisruption: false,
-                    operator: product?.operator || item.Operator?.name || 'ResRobot' // Capture operator
+                    operator: operator,
+                    journeyRef: journeyRef
                 };
             });
         } catch (e) {
             console.error("Resrobot departures error:", e);
+            return [];
+        }
+    },
+
+    getJourneyDetails: async (ref: string): Promise<any[]> => {
+        if (!ref) return [];
+        try {
+            let url = ref;
+            // Ensure accessId is present
+            if (!url.includes('accessId=')) {
+                url += (url.includes('?') ? '&' : '?') + `accessId=${API_KEYS.RESROBOT_API_KEY}`;
+            }
+
+            const res = await fetchWithCors(url);
+            if (!res.ok) return [];
+            const data = await res.json();
+
+            // ResRobot JourneyDetail structure can be tricky.
+            // Often it is JourneyDetail -> Stops -> Stop (array or object)
+
+            const journeyDetail = data.JourneyDetail || data.JourneyLocation || (Array.isArray(data) ? data[0]?.JourneyDetail : null);
+
+            if (!journeyDetail) return [];
+
+            // Sometimes Stops is directly under JourneyDetail
+            let stops = journeyDetail.Stops?.Stop;
+
+            if (!stops) return [];
+
+            const list = Array.isArray(stops) ? stops : [stops];
+
+            return list.map((s: any) => {
+                const fmt = (t: string | undefined) => t ? t.substring(0, 5) : undefined;
+
+                return {
+                    name: s.name,
+                    time: (s.depTime || s.arrTime || "").substring(0, 5),
+                    arrivalTime: fmt(s.arrTime),
+                    departureTime: fmt(s.depTime),
+                    realtimeArrival: fmt(s.rtArrTime),
+                    realtimeDeparture: fmt(s.rtDepTime),
+                    date: s.depDate || s.arrDate,
+                    track: s.rtTrack || s.track,
+                    isCancelled: s.cancelled,
+                    isDeparture: !!s.depTime,
+                    coords: (s.lat && s.lon) ? { lat: parseFloat(s.lat), lng: parseFloat(s.lon) } : undefined
+                };
+            });
+
+        } catch (e) {
+            console.error("ResRobot JourneyDetails Error", e);
             return [];
         }
     },

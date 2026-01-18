@@ -53,6 +53,29 @@ export const TrafficDisruptions: React.FC = () => {
         return `${date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })} ${timeStr}`;
     };
 
+    const [provider, setProvider] = useState<Provider>(() => {
+        const saved = localStorage.getItem('resmus_storage_provider');
+        return (saved as Provider) || Provider.VASTTRAFIK;
+    });
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const saved = localStorage.getItem('resmus_storage_provider');
+            if (saved) setProvider(saved as Provider);
+        };
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('provider-change', handleStorageChange); // Custom event
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('provider-change', handleStorageChange);
+        };
+    }, []);
+
+    // Effect to refetch when provider changes
+    useEffect(() => {
+        fetchSituations();
+    }, [provider]);
+
     useEffect(() => {
         // Load notification preference
         const savedPref = localStorage.getItem('resmus_disruption_notifications_enabled');
@@ -84,63 +107,87 @@ export const TrafficDisruptions: React.FC = () => {
         try {
             const unified: UnifiedDisruption[] = [];
 
-            // Fetch Västtrafik
-            try {
-                const vtData = await TransitService.getVasttrafikDisruptions();
+            if (provider === Provider.TRAFIKVERKET) {
+                // Fetch Trafikverket Disruptions
+                try {
+                    const tvData = await TransitService.getTrafikverketDisruptions();
 
-
-                // Use a Set to track unique situation numbers and avoid duplicates
-                const seenSituationNumbers = new Set<string>();
-
-                vtData.forEach(ts => {
-                    // Skip if we've already processed this situation number
-                    if (seenSituationNumbers.has(ts.situationNumber)) {
-                        return;
-                    }
-                    seenSituationNumbers.add(ts.situationNumber);
-
-                    const title = ts.title.toLowerCase();
-                    const description = ts.description.toLowerCase();
-
-                    let type: 'BUS' | 'TRAM' | 'TRAIN' | 'SHIP' = 'BUS';
-                    const lowerTitle = title.toLowerCase();
-
-                    // 1. Explicit Tram Lines (1-13)
-                    const tramLines = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '13', '14'];
-
-                    // Check if any affected line is a tram line
-                    const hasTramLine = ts.affectedLines?.some(l => {
-                        const lineNum = l.designation.replace(/\D/g, '');
-                        return tramLines.includes(l.designation) || (parseInt(lineNum) >= 1 && parseInt(lineNum) <= 13);
+                    tvData.forEach(ts => {
+                        unified.push({
+                            id: ts.situationNumber,
+                            provider: Provider.TRAFIKVERKET,
+                            title: ts.title, // Reason Code
+                            description: ts.description, // Operative Event
+                            severity: 'normal', // Default for now
+                            startTime: ts.startTime,
+                            endTime: ts.endTime,
+                            updatedTime: ts.creationTime,
+                            type: 'TRAIN', // TV is mostly train
+                            affected: [] // TV doesn't give structured line info usually
+                        });
                     });
+                } catch (e) {
+                    console.error("TV Fetch failed", e);
+                }
+            } else {
+                // Fetch Västtrafik (Default)
+                try {
+                    const vtData = await TransitService.getVasttrafikDisruptions();
 
-                    // 2. Explicit Ferry Lines
-                    const ferryLines = ['281', '282', '283', '284', '285', '286', '287', '326', 'ÄLVS'];
-                    const hasFerryLine = ts.affectedLines?.some(l => ferryLines.includes(l.designation));
 
-                    if (title.includes('västtågen') || title.includes('tåg') || title.includes('kustpilen') || title.includes('öresundståg')) {
-                        type = 'TRAIN';
-                    } else if (hasTramLine || ts.affectedLines?.some(l => l.designation.includes('Spår')) || title.includes('spårvagn')) {
-                        type = 'TRAM';
-                    } else if (hasFerryLine || title.includes('färja') || /\bbåt\b/i.test(title) || title.includes('älvsnabben')) {
-                        type = 'SHIP';
-                    }
+                    // Use a Set to track unique situation numbers and avoid duplicates
+                    const seenSituationNumbers = new Set<string>();
 
-                    unified.push({
-                        id: ts.situationNumber,
-                        provider: Provider.VASTTRAFIK,
-                        title: ts.title,
-                        description: ts.description,
-                        severity: ts.severity === 'severe' ? 'severe' : (ts.severity === 'normal' ? 'normal' : 'slight'),
-                        startTime: ts.startTime,
-                        endTime: ts.endTime,
-                        updatedTime: ts.creationTime,
-                        type,
-                        affected: ts.affectedLines?.map(l => ({ designation: l.designation, color: l.backgroundColor, textColor: l.textColor }))
+                    vtData.forEach(ts => {
+                        // Skip if we've already processed this situation number
+                        if (seenSituationNumbers.has(ts.situationNumber)) {
+                            return;
+                        }
+                        seenSituationNumbers.add(ts.situationNumber);
+
+                        const title = ts.title.toLowerCase();
+                        const description = ts.description.toLowerCase();
+
+                        let type: 'BUS' | 'TRAM' | 'TRAIN' | 'SHIP' = 'BUS';
+                        const lowerTitle = title.toLowerCase();
+
+                        // 1. Explicit Tram Lines (1-13)
+                        const tramLines = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '13', '14'];
+
+                        // Check if any affected line is a tram line
+                        const hasTramLine = ts.affectedLines?.some(l => {
+                            const lineNum = l.designation.replace(/\D/g, '');
+                            return tramLines.includes(l.designation) || (parseInt(lineNum) >= 1 && parseInt(lineNum) <= 13);
+                        });
+
+                        // 2. Explicit Ferry Lines
+                        const ferryLines = ['281', '282', '283', '284', '285', '286', '287', '326', 'ÄLVS'];
+                        const hasFerryLine = ts.affectedLines?.some(l => ferryLines.includes(l.designation));
+
+                        if (title.includes('västtågen') || title.includes('tåg') || title.includes('kustpilen') || title.includes('öresundståg')) {
+                            type = 'TRAIN';
+                        } else if (hasTramLine || ts.affectedLines?.some(l => l.designation.includes('Spår')) || title.includes('spårvagn')) {
+                            type = 'TRAM';
+                        } else if (hasFerryLine || title.includes('färja') || /\bbåt\b/i.test(title) || title.includes('älvsnabben')) {
+                            type = 'SHIP';
+                        }
+
+                        unified.push({
+                            id: ts.situationNumber,
+                            provider: Provider.VASTTRAFIK,
+                            title: ts.title,
+                            description: ts.description,
+                            severity: ts.severity === 'severe' ? 'severe' : (ts.severity === 'normal' ? 'normal' : 'slight'),
+                            startTime: ts.startTime,
+                            endTime: ts.endTime,
+                            updatedTime: ts.creationTime,
+                            type,
+                            affected: ts.affectedLines?.map(l => ({ designation: l.designation, color: l.backgroundColor, textColor: l.textColor }))
+                        });
                     });
-                });
-            } catch (e) {
-                console.error("VT Fetch failed:", e);
+                } catch (e) {
+                    console.error("VT Fetch failed:", e);
+                }
             }
 
             console.log("Unified count before sort:", unified.length);

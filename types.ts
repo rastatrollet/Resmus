@@ -38,6 +38,7 @@ export interface Departure {
   disruptionMessage?: string;
   type?: 'BUS' | 'TRAM' | 'TRAIN' | 'FERRY' | 'METRO' | 'UNK';
   operator?: string;
+  serviceJourneyGid?: string;
 }
 
 export interface StopOnTrip {
@@ -62,6 +63,10 @@ export interface TrafficSituation {
     transportAuthorityName?: string;
     textColor?: string;
     backgroundColor?: string;
+  }[];
+  affectedStopPoints?: {
+    gid: string;
+    name: string;
   }[];
 }
 
@@ -93,10 +98,14 @@ export interface Journey {
 
 export interface JourneyDetail {
   name: string;
-  time: string;
+  time: string; // Keep legacy for fallback
   track?: string;
   date?: string;
   isCancelled?: boolean;
   isDeparture?: boolean;
   coords?: Coordinates;
+  arrivalTime?: string;
+  departureTime?: string;
+  realtimeArrival?: string;
+  realtimeDeparture?: string;
 }

@@ -8,6 +8,8 @@ export const API_KEYS = {
   TRAFIKLAB_STATIC_KEY: "07e9c042923d42cf8ec3189056c7ea60",
   // ResRobot v2.1
   RESROBOT_API_KEY: "d1adb079-6671-4598-a6b5-8b66a871b11b",
+  // Trafikverket API (Tåg)
+  TRAFIKVERKET_API_KEY: "6f63f23e56054e1d8447269c150280f4",
 };
 
 export const API_URLS = {

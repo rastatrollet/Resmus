@@ -7,7 +7,13 @@ export type Alarm = {
     stationName: string;
     line: string;
     direction: string;
-    notified?: boolean; // Track if we have already sent the notification
+    notified?: boolean; // Track if we have already sent the departure notification
+    arrivalTime?: string; // ISO string for final destination arrival
+    arrivalNotified?: boolean; // Track if we sent the arrival notification
+    journeyRef?: string; // Reference to track delays/cancellations
+    lastKnownRealtime?: string; // Last known realtime for delay detection
+    delayNotified?: boolean; // Track if we notified about delay
+    cancellationNotified?: boolean; // Track if we notified about cancellation
 };
 
 export const useAlarms = () => {
@@ -48,51 +54,68 @@ export const useAlarms = () => {
         const interval = setInterval(() => {
             const now = Date.now();
             alarms.forEach(alarm => {
-                if (alarm.notified) {
-                    // Cleanup expired alarms (10 mins after departure)
-                    if (now > alarm.dueTime + 600000) { // dueTime is actually departureTime? No, check logic.
-                        // Ideally check against actual departure time, but dueTime logic in addAlarm was confusing.
-                        // Let's assume dueTime is DEPARTURE time.
-                        if (now > (new Date(alarm.departureTime).getTime() + 600000)) {
-                            removeAlarm(alarm.id);
-                        }
-                    }
+                // Cleanup expired alarms (10 mins after arrival or departure if no arrival)
+                const finalTime = alarm.arrivalTime ? new Date(alarm.arrivalTime).getTime() : new Date(alarm.departureTime).getTime();
+                if (now > finalTime + 600000) {
+                    removeAlarm(alarm.id);
                     return;
                 }
 
                 // Calculate time until departure
                 const departureTimestamp = new Date(alarm.departureTime).getTime();
-                const diff = departureTimestamp - now;
+                const diffDeparture = departureTimestamp - now;
 
-                // Notify if within 5-6 minutes (300000ms - 360000ms range) OR if "late" add (e.g., user adds alarm 2 mins before)
-                // New logic: Notify when <= 5 minutes remain 
+                // 1. DEPARTURE NOTIFICATION (5 minutes before)
                 const FIVE_MINUTES = 300000;
-
-                if (diff <= FIVE_MINUTES && diff > 0) {
+                if (!alarm.notified && diffDeparture <= FIVE_MINUTES && diffDeparture > 0) {
                     if (Notification.permission === 'granted') {
                         try {
                             new Notification(`Avgång om 5 min! 🚌`, {
                                 body: `Linje ${alarm.line} mot ${alarm.direction} går snart från ${alarm.stationName}.`,
-                                icon: '/vite.svg', // Ensure this exists or use text
-                                tag: alarm.id // Prevent duplicate notifications
+                                icon: '/vite.svg',
+                                tag: alarm.id + '-departure'
                             });
                         } catch (e) {
                             console.error("Notification error:", e);
                         }
                     }
-
-                    // Also play sound? (Optional, maybe later)
                     markAsNotified(alarm.id);
                 }
-                // Fallback for immediate notification if added late (< 5 mins)
-                else if (diff <= 0 && diff > -60000) {
-                    // Departed?
+
+                // 2. ARRIVAL NOTIFICATION (10 minutes before arrival at final destination)
+                if (alarm.arrivalTime && !alarm.arrivalNotified) {
+                    const arrivalTimestamp = new Date(alarm.arrivalTime).getTime();
+                    const diffArrival = arrivalTimestamp - now;
+                    const TEN_MINUTES = 600000;
+
+                    if (diffArrival <= TEN_MINUTES && diffArrival > 0) {
+                        if (Notification.permission === 'granted') {
+                            try {
+                                new Notification(`Du ankommer snart! 🎯`, {
+                                    body: `Linje ${alarm.line} ankommer till ${alarm.direction} om ca 10 minuter.`,
+                                    icon: '/vite.svg',
+                                    tag: alarm.id + '-arrival'
+                                });
+                            } catch (e) {
+                                console.error("Notification error:", e);
+                            }
+                        }
+                        // Mark arrival as notified
+                        save(alarms.map(a => a.id === alarm.id ? { ...a, arrivalNotified: true } : a));
+                    }
                 }
+
+                // 3. DELAY NOTIFICATION (if realtime changes significantly)
+                // This would require periodic API checks, which is complex
+                // For now, we'll skip this as it requires background API polling
+
+                // 4. CANCELLATION NOTIFICATION
+                // This also requires API polling, skipping for now
             });
         }, 10000); // Check every 10s
 
         return () => clearInterval(interval);
-    }, [alarms]); // Re-run when alarms change (includes notified updates)
+    }, [alarms]);
 
     return { alarms, addAlarm, removeAlarm };
 };

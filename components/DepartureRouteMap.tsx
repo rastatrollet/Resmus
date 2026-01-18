@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import { Coordinates } from '../types';
 
@@ -118,32 +118,21 @@ export const DepartureRouteMap: React.FC<DepartureRouteMapProps> = ({ stops, col
                     </Tooltip>
                 </Marker>
 
-                {/* Intermediate dots */}
+                {/* Intermediate dots using CircleMarker */}
                 {validStops.slice(1, -1).map((stop, idx) => (
-                    <circle
+                    <CircleMarker
                         key={idx}
-                        cx={stop.coords!.lat}
-                        cy={stop.coords!.lng}
-                        r={3}
-                        fill={color}
-                    />
-                    // Note: Leaflet doesn't support <circle> directly as JSX like SVG. 
-                    // Using CircleMarker is better.
-                ))}
-
-                {validStops.slice(1, -1).map((stop, idx) => (
-                    <Marker
-                        key={idx}
-                        position={[stop.coords!.lat, stop.coords!.lng]}
-                        icon={L.divIcon({
-                            className: 'bg-transparent',
-                            html: `<div style="width: 8px; height: 8px; background-color: white; border: 2px solid ${color}; border-radius: 50%;"></div>`,
-                            iconSize: [8, 8],
-                            iconAnchor: [4, 4]
-                        })}
+                        center={[stop.coords!.lat, stop.coords!.lng]}
+                        radius={4}
+                        pathOptions={{
+                            color: color,
+                            fillColor: 'white',
+                            fillOpacity: 1,
+                            weight: 2
+                        }}
                     >
                         <Tooltip direction="top" opacity={0.9}>{stop.name}</Tooltip>
-                    </Marker>
+                    </CircleMarker>
                 ))}
 
             </MapContainer>

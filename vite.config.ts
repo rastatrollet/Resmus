@@ -25,6 +25,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/trafiklab-proxy/, ''),
         secure: false
+      },
+      '/trafikverket-api': {
+        target: 'https://api.trafikinfo.trafikverket.se',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/trafikverket-api/, ''),
+        secure: false
       }
     }
   },

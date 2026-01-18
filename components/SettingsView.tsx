@@ -23,13 +23,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
   };
 
   const [provider, setProvider] = useState<Provider>(() => {
-    return (localStorage.getItem('resmus_default_provider') as Provider) || Provider.VASTTRAFIK;
+    return (localStorage.getItem('resmus_storage_provider') as Provider) || Provider.VASTTRAFIK;
   });
 
+  // Force re-render trigger
+  const [_, setUpdateTrigger] = useState(0);
+  const forceUpdate = () => setUpdateTrigger(prev => prev + 1);
+
   const updateProvider = (newProvider: Provider) => {
+    if (newProvider === provider) return;
     setProvider(newProvider);
-    localStorage.setItem('resmus_default_provider', newProvider);
-    // Dispatch event so DeparturesBoard can listen if it wants (optional, but good practice)
+    localStorage.setItem('resmus_storage_provider', newProvider);
+    // Dispatch event so DeparturesBoard can listen if it wants
     window.dispatchEvent(new Event('storage'));
   };
 
@@ -85,7 +90,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
       items: [
         {
           label: 'Förvald API-tjänst',
-          value: provider === Provider.VASTTRAFIK ? 'Västtrafik (Standard)' : 'Trafiklab (Hela Sverige)',
+          value: provider === Provider.VASTTRAFIK ? 'Västtrafik (Standard)' : provider === Provider.RESROBOT ? 'ResRobot (Hela Sverige)' : 'Trafikverket (Tåg)',
           action: (
             <div className="flex items-center gap-2">
               <button
@@ -100,6 +105,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ deferredPrompt }) =>
               >
                 ResRobot
               </button>
+              <button
+                onClick={() => updateProvider(Provider.TRAFIKVERKET)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${provider === Provider.TRAFIKVERKET ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500'}`}
+              >
+                Trafikverket
+              </button>
+            </div>
+          )
+        },
+        {
+          label: 'Hämta avgångar framåt',
+          value: (() => {
+            const h = (parseInt(localStorage.getItem('resmus_time_span') || '240', 10) / 60);
+            return `${h} ${h === 1 ? 'timme' : 'timmar'}`;
+          })(),
+          action: (
+            <div className="flex items-center gap-2">
+              {[1, 2, 4, 8].map(h => {
+                const currentSpan = parseInt(localStorage.getItem('resmus_time_span') || '240', 10);
+                const isActive = currentSpan === h * 60;
+                return (
+                  <button
+                    key={h}
+                    onClick={() => {
+                      localStorage.setItem('resmus_time_span', (h * 60).toString());
+                      window.dispatchEvent(new Event('storage'));
+                      forceUpdate();
+                    }}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${isActive
+                      ? 'bg-sky-500 text-white border-sky-500 shadow-md'
+                      : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-sky-500'}`}
+                  >
+                    {h}h
+                  </button>
+                )
+              })}
             </div>
           )
         }

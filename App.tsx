@@ -14,7 +14,7 @@ import { NotFound } from './components/NotFound';
 import { TranslationProvider, useTranslation } from './components/TranslationProvider';
 import { UpdateNotification } from './components/UpdateNotification';
 import { TravelAssistant } from './components/TravelAssistant';
-import { AdUnit } from './components/AdUnit';
+
 import { ToastProvider } from './components/ToastProvider';
 import { ThemeProvider } from './components/ThemeContext';
 
@@ -114,7 +114,6 @@ const AppContent = () => {
           </nav>
 
           <div className="mt-6 mb-6">
-            <AdUnit format="vertical" className="min-h-[200px]" />
           </div>
         </div>
 
@@ -180,11 +179,7 @@ const AppContent = () => {
                 `}>
 
             {/* Top Ad Unit */}
-            {!isFullscreen && (
-              <div className="px-4 pt-4 md:px-8 md:pt-6">
-                <AdUnit format="horizontal" className="shadow-sm" />
-              </div>
-            )}
+
 
             <Routes>
               <Route path="/" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><DeparturesBoard mode="departures" /></div>} />
