@@ -1,12 +1,8 @@
 {
   "name": "Resmus",
   "short_name": "Resmus",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
-  "orientation": "portrait",
-  "scope": "./",
+  "start_url": "/Resmus/",
+  "scope": "/Resmus/",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/447/447031.png",

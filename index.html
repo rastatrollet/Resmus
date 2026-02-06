@@ -6,6 +6,8 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0ea5e9" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline';">
 
   <!-- PWA iOS settings -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -17,6 +19,12 @@
 
   <title>Resmus</title>
   <link rel="manifest" href="./manifest.json" />
+
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TGN3ZKHQBS"></script>
@@ -63,7 +71,7 @@
   </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-hidden select-none">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 overflow-hidden select-none font-sans">
   <div id="root" class="h-screen w-screen flex flex-col"></div>
   <script type="module" src="./index.tsx"></script>
 </body>

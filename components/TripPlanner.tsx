@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, MapPin, Loader2, AlertCircle, Bus, TramFront, Ship, Footprints, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowDown, CalendarClock, ChevronRight, Flag, MessageCircle, Send, Bot, User, Navigation, AlertTriangle, WifiOff } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faClock, faMapPin, faSpinner, faExclamationCircle, faBus, faTram, faShip, faWalking, faArrowRightArrowLeft, faChevronDown, faTimes, faArrowRight, faArrowDown, faCalendarAlt, faChevronRight, faFlag, faComment, faPaperPlane, faRobot, faUser, faLocationArrow, faExclamationTriangle, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { TransitService } from '../services/transitService';
 import { Station, Journey, TripLeg, Provider } from '../types';
 import { JourneySkeleton, ThemedSpinner } from './Loaders';
@@ -10,7 +11,7 @@ export const TripPlanner: React.FC = () => {
   const [toQuery, setToQuery] = useState('');
   const [fromStation, setFromStation] = useState<Station | null>(null);
   const [toStation, setToStation] = useState<Station | null>(null);
-  const [provider, setProvider] = useState<Provider>(Provider.VASTTRAFIK);
+  const [provider, setProvider] = useState<Provider>(Provider.RESROBOT);
 
   const [searchResultsFrom, setSearchResultsFrom] = useState<Station[]>([]);
   const [searchResultsTo, setSearchResultsTo] = useState<Station[]>([]);
@@ -227,12 +228,12 @@ export const TripPlanner: React.FC = () => {
   // PREMIUM ICON STYLE
   const getTransportIcon = (type: string, size = 18) => {
     const t = type.toUpperCase();
-    let Icon = Bus;
-    if (t.includes('TRAM')) Icon = TramFront;
-    else if (t.includes('FERRY') || t.includes('BOAT')) Icon = Ship;
-    else if (t === 'WALK') Icon = Footprints;
+    let icon = faBus;
+    if (t.includes('TRAM')) icon = faTram;
+    else if (t.includes('FERRY') || t.includes('BOAT')) icon = faShip;
+    else if (t === 'WALK') icon = faWalking;
 
-    return <Icon size={size} />;
+    return <FontAwesomeIcon icon={icon} style={{ fontSize: size }} />;
   };
 
   const calculateDuration = (start: string, end: string) => {
@@ -263,65 +264,58 @@ export const TripPlanner: React.FC = () => {
 
         <div className="relative bg-white dark:bg-slate-900 p-1 rounded-[1.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800">
 
-          <div className="p-4 pb-3">
-            {/* Provider Toggle */}
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
-              <button
-                onClick={() => { setProvider(Provider.VASTTRAFIK); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${provider === Provider.VASTTRAFIK ? 'bg-white dark:bg-slate-700 shadow text-sky-600 dark:text-sky-400' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Västtrafik
-              </button>
-              <button
-                onClick={() => { setProvider(Provider.RESROBOT); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${provider === Provider.RESROBOT ? 'bg-white dark:bg-slate-700 shadow text-green-600 dark:text-green-400' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Resrobot (Hela Sverige)
-              </button>
-            </div>
+          <div className="p-5 pb-4">
+            <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-6 tracking-tight">Vart vill du åka?</h1>
 
             <div className="relative">
               {/* Visual Connector Line */}
-              <div className="absolute left-[1.15rem] top-9 bottom-9 w-[2px] bg-gradient-to-b from-slate-300 via-slate-200 to-sky-500 dark:from-slate-600 dark:to-sky-900 rounded-full"></div>
+              <div className="absolute left-[1.15rem] top-10 bottom-10 w-[2px] bg-gradient-to-b from-slate-200 via-slate-300 to-sky-500 dark:from-slate-700 dark:to-sky-900 rounded-full"></div>
 
               {/* FROM Input */}
-              <div className="relative z-20 mb-3">
-                <div className={`flex items-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-2 border transition-all group ${fromStation ? 'border-sky-500/30 bg-sky-50/50 dark:bg-slate-900' : 'border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 border-[3px] border-slate-400 dark:border-slate-500 rounded-full bg-white dark:bg-slate-900 shadow-sm"></div>
+              <div className="relative z-20 mb-4">
+                <div className={`flex items-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-3 border-2 transition-all group shadow-sm ${fromStation ? 'border-sky-500/20 bg-sky-50/30' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}>
+                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 mr-1">
+                    <div className="w-3.5 h-3.5 border-[3.5px] border-slate-400 dark:border-slate-500 rounded-full bg-white dark:bg-slate-900 shadow-sm ring-2 ring-white dark:ring-slate-900"></div>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Var reser du ifrån?"
-                    className="flex-1 bg-transparent outline-none text-slate-800 dark:text-slate-100 font-bold text-base py-1 placeholder:text-slate-400 placeholder:font-medium"
-                    value={fromStation ? fromStation.name : fromQuery}
-                    onChange={(e) => {
-                      setFromQuery(e.target.value);
-                      setFromStation(null);
-                      // Debounce handled in useEffect
-                    }}
-                  />
+                  <div className="flex-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 block">Från</label>
+                    <input
+                      type="text"
+                      placeholder="Nuvarande plats"
+                      className="w-full bg-transparent outline-none text-slate-800 dark:text-white font-bold text-lg placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                      value={fromStation ? fromStation.name : fromQuery}
+                      onChange={(e) => {
+                        setFromQuery(e.target.value);
+                        setFromStation(null);
+                      }}
+                    />
+                  </div>
                   {/* Location Button or Clear Button */}
                   {fromStation || fromQuery ? (
-                    <button onClick={() => { setFromStation(null); setFromQuery(''); }} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><X size={18} /></button>
+                    <button onClick={() => { setFromStation(null); setFromQuery(''); }} className="p-2 text-slate-300 hover:text-slate-500 transition-colors"><FontAwesomeIcon icon={faTimes} /></button>
                   ) : (
                     <button
                       onClick={handleUseMyLocation}
                       disabled={gettingLocation}
-                      className="p-2 text-slate-400 hover:text-sky-500 transition-colors disabled:opacity-50"
+                      className="p-2 text-sky-500 hover:text-sky-600 transition-colors disabled:opacity-50"
                       title="Använd min plats"
                     >
-                      {gettingLocation ? <Loader2 size={18} className="animate-spin" /> : <Navigation size={18} />}
+                      {gettingLocation ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faLocationArrow} />}
                     </button>
                   )}
                 </div>
                 {/* Results Dropdown */}
                 {searchResultsFrom.length > 0 && !fromStation && (
-                  <div className="absolute top-full left-4 right-0 bg-white dark:bg-slate-900 shadow-2xl rounded-xl mt-2 z-50 max-h-[50vh] overflow-y-auto border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute top-full left-4 right-0 bg-white dark:bg-slate-900 shadow-2xl rounded-2xl mt-2 z-50 max-h-[50vh] overflow-y-auto border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 p-2">
                     {searchResultsFrom.map((s, i) => (
-                      <button key={i} onClick={() => { setFromStation(s); setSearchResultsFrom([]); }} className="w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3">
-                        <MapPin size={16} className="text-slate-400" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{s.name}</span>
+                      <button key={i} onClick={() => { setFromStation(s); setSearchResultsFrom([]); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 group">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-sky-100 dark:group-hover:bg-sky-900/30 transition-colors">
+                          <FontAwesomeIcon icon={faMapPin} className="text-slate-400 group-hover:text-sky-500 text-sm" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{s.name}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{s.provider === 'SL' ? 'Stockholm' : 'Västtrafik'}</span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -330,30 +324,37 @@ export const TripPlanner: React.FC = () => {
 
               {/* TO Input */}
               <div className="relative z-10">
-                <div className={`flex items-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-2 border transition-all group ${toStation ? 'border-sky-500/30 bg-sky-50/50 dark:bg-slate-900' : 'border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                    <MapPin size={18} className="text-sky-500 fill-sky-500/20" />
+                <div className={`flex items-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-3 border-2 transition-all group shadow-sm ${toStation ? 'border-sky-500/20 bg-sky-50/30' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}>
+                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 mr-1">
+                    <FontAwesomeIcon icon={faMapPin} className="text-sky-500 text-xl drop-shadow-sm" />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Vart vill du åka?"
-                    className="flex-1 bg-transparent outline-none text-slate-800 dark:text-slate-100 font-bold text-base py-1 placeholder:text-slate-400 placeholder:font-medium"
-                    value={toStation ? toStation.name : toQuery}
-                    onChange={(e) => {
-                      setToQuery(e.target.value);
-                      setToStation(null);
-                      // Debounce handled in useEffect
-                    }}
-                  />
-                  {toStation || toQuery ? <button onClick={() => { setToStation(null); setToQuery(''); }} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><X size={18} /></button> : null}
+                  <div className="flex-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-0.5 block">Till</label>
+                    <input
+                      type="text"
+                      placeholder="Vart ska du?"
+                      className="w-full bg-transparent outline-none text-slate-800 dark:text-white font-bold text-lg placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                      value={toStation ? toStation.name : toQuery}
+                      onChange={(e) => {
+                        setToQuery(e.target.value);
+                        setToStation(null);
+                      }}
+                    />
+                  </div>
+                  {toStation || toQuery ? <button onClick={() => { setToStation(null); setToQuery(''); }} className="p-2 text-slate-300 hover:text-slate-500 transition-colors"><FontAwesomeIcon icon={faTimes} /></button> : null}
                 </div>
                 {/* Results Dropdown */}
                 {searchResultsTo.length > 0 && !toStation && (
-                  <div className="absolute top-full left-4 right-0 bg-white dark:bg-slate-900 shadow-2xl rounded-xl mt-2 z-50 max-h-[50vh] overflow-y-auto border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute top-full left-4 right-0 bg-white dark:bg-slate-900 shadow-2xl rounded-2xl mt-2 z-50 max-h-[50vh] overflow-y-auto border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 p-2">
                     {searchResultsTo.map((s, i) => (
-                      <button key={i} onClick={() => { setToStation(s); setSearchResultsTo([]); }} className="w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3">
-                        <MapPin size={16} className="text-slate-400" />
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{s.name}</span>
+                      <button key={i} onClick={() => { setToStation(s); setSearchResultsTo([]); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 group">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-sky-100 dark:group-hover:bg-sky-900/30 transition-colors">
+                          <FontAwesomeIcon icon={faMapPin} className="text-slate-400 group-hover:text-sky-500 text-sm" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{s.name}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{s.provider === 'SL' ? 'Stockholm' : 'Västtrafik'}</span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -363,10 +364,10 @@ export const TripPlanner: React.FC = () => {
               {/* Swap Button (Floating) */}
               <button
                 onClick={handleReverse}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-2.5 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 shadow-sm hover:shadow-md hover:scale-105 active:rotate-180 transition-all"
+                className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-full p-2.5 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 shadow-lg hover:shadow-xl hover:scale-105 active:rotate-180 transition-all"
                 title="Växla riktning"
               >
-                <ArrowUpDown size={18} strokeWidth={2.5} />
+                <FontAwesomeIcon icon={faArrowRightArrowLeft} className="rotate-90 text-sm" />
               </button>
             </div>
 
@@ -388,7 +389,7 @@ export const TripPlanner: React.FC = () => {
                     <span className="truncate">{tripTime}</span>
                   ) : (
                     <>
-                      <CalendarClock size={14} />
+                      <FontAwesomeIcon icon={faCalendarAlt} />
                       <span>Annat datum</span>
                     </>
                   )}
@@ -401,7 +402,7 @@ export const TripPlanner: React.FC = () => {
                 onClick={handlePlanTrip}
                 className="bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-500 disabled:opacity-50 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-sky-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
-                {loading ? <ThemedSpinner size={20} className="text-white" /> : <Search size={20} strokeWidth={3} />}
+                {loading ? <ThemedSpinner size={20} className="text-white" /> : <FontAwesomeIcon icon={faSearch} className="text-lg" />}
               </button>
             </div>
 
@@ -426,7 +427,7 @@ export const TripPlanner: React.FC = () => {
             {/* Error Banner */}
             {error && (
               <div className="mt-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
-                <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={16} />
+                <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500 shrink-0 mt-0.5" />
                 <span className="text-sm font-medium text-red-800 dark:text-red-300">{error}</span>
               </div>
             )}
@@ -449,7 +450,7 @@ export const TripPlanner: React.FC = () => {
         {journeys.length === 0 && !loading && !hasSearched && (
           <div className="flex flex-col items-center justify-center mt-20 opacity-40 animate-in zoom-in-95 duration-500">
             <div className="w-20 h-20 bg-slate-200 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-4 rotate-6">
-              <Search size={32} className="text-slate-400 dark:text-slate-500" />
+              <FontAwesomeIcon icon={faSearch} className="text-slate-400 dark:text-slate-500 text-3xl" />
             </div>
             <p className="font-bold text-slate-400 dark:text-slate-500 text-sm uppercase tracking-widest">Sök din resa</p>
           </div>
@@ -457,7 +458,7 @@ export const TripPlanner: React.FC = () => {
 
         {journeys.length === 0 && !loading && hasSearched && (
           <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl text-center border border-red-100 dark:border-red-900/30 mt-4 animate-in fade-in">
-            <AlertCircle className="mx-auto text-red-400 mb-2" size={24} />
+            <FontAwesomeIcon icon={faExclamationCircle} className="mx-auto text-red-400 mb-2 text-2xl" />
             <p className="font-bold text-red-800 dark:text-red-400 mb-1">Inga resor hittades</p>
             <p className="text-xs text-red-600 dark:text-red-300">Prova att söka på en annan tid eller plats.</p>
           </div>
@@ -487,19 +488,19 @@ export const TripPlanner: React.FC = () => {
                   <div className="text-right">
                     <div className="flex flex-col items-end gap-1">
                       <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                        <Clock size={12} className="text-slate-400" />
+                        <FontAwesomeIcon icon={faClock} className="text-slate-400 text-xs" />
                         <span className="font-bold text-sm text-slate-700 dark:text-slate-200">{duration}</span>
                       </div>
                       {/* Warning Badge if any leg is cancelled or disrupted */}
                       {j.legs.some(l => l.cancelled || l.disruptionSeverity === 'severe') && (
                         <div className="flex items-center gap-1 text-xs font-bold text-red-500 animate-pulse">
-                          <AlertCircle size={12} />
+                          <FontAwesomeIcon icon={faExclamationCircle} />
                           <span>Strul</span>
                         </div>
                       )}
                       {j.legs.some(l => !l.cancelled && l.messages && l.messages.length > 0) && !j.legs.some(l => l.cancelled) && (
                         <div className="flex items-center gap-1 text-xs font-bold text-yellow-500">
-                          <AlertTriangle size={12} />
+                          <FontAwesomeIcon icon={faExclamationTriangle} />
                           <span>Info</span>
                         </div>
                       )}
@@ -516,7 +517,7 @@ export const TripPlanner: React.FC = () => {
                         <React.Fragment key={lIdx}>
                           <div className="h-[2px] w-2 bg-slate-200 dark:bg-slate-800"></div>
                           <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 p-1 rounded-md shadow-sm">
-                            <Footprints size={12} />
+                            <FontAwesomeIcon icon={faWalking} className="text-[10px]" />
                           </div>
                           <div className="h-[2px] w-2 bg-slate-200 dark:bg-slate-800"></div>
                         </React.Fragment>
@@ -549,7 +550,7 @@ export const TripPlanner: React.FC = () => {
                     <span className="truncate max-w-[150px]">Gång <span className="text-slate-900 dark:text-white">{j.legs.reduce((acc, l) => l.type === 'WALK' ? acc + l.duration : acc, 0)} min</span></span>
                   </div>
                   <div className={`text-slate-300 dark:text-slate-600 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
-                    <ChevronRight size={18} />
+                    <FontAwesomeIcon icon={faChevronRight} />
                   </div>
                 </div>
               </div>
@@ -619,7 +620,7 @@ export const TripPlanner: React.FC = () => {
                               </div>
                               <div className="relative z-10 flex-shrink-0 pt-1">
                                 <div className="w-4 h-4 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center shadow-lg">
-                                  <Flag size={8} className="text-white dark:text-slate-900 fill-current" />
+                                  <FontAwesomeIcon icon={faFlag} className="text-white dark:text-slate-900 text-[8px]" />
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
@@ -654,7 +655,7 @@ export const TripPlanner: React.FC = () => {
 
                   <div className="mt-2 pt-4">
                     <button className="w-full py-2.5 flex items-center justify-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20 rounded-xl hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors">
-                      <AlertCircle size={14} /> Visa detaljerad trafikinfo
+                      <FontAwesomeIcon icon={faExclamationCircle} /> Visa detaljerad trafikinfo
                     </button>
                   </div>
                 </div>
@@ -664,179 +665,8 @@ export const TripPlanner: React.FC = () => {
         })}
       </div>
 
-      {/* AI Travel Assistant Chat */}
-      <div className="fixed bottom-20 right-4 z-50">
-        {/* Chat Button */}
-        <button
-          onClick={() => setShowAIChat(!showAIChat)}
-          className={`w-14 h-14 rounded-full shadow-xl transition-all duration-300 hover:scale-110 ${showAIChat
-            ? 'bg-sky-500 text-white shadow-sky-500/30'
-            : 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 border-2 border-sky-500/20'
-            }`}
-        >
-          <Bot size={24} className="mx-auto" />
-        </button>
 
-        {/* Chat Window */}
-        {showAIChat && (
-          <div className="absolute bottom-16 right-0 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-300">
-            {/* Chat Header */}
-            <div className="bg-sky-500 text-white p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <Bot size={16} />
-                  {/* Active indicator */}
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-sky-500 animate-pulse"></div>
-                </div>
-                <div>
-                  <div className="font-bold text-sm">Resmus</div>
-                  <div className="text-xs opacity-90">Västtrafik Göteborg</div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAIChat(false)}
-                className="text-white/70 hover:text-white transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Chat Messages */}
-            <div className="h-80 overflow-y-auto p-4 space-y-3">
-              {chatMessages.map((message, idx) => (
-                <div
-                  key={idx}
-                  className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {message.role === 'assistant' && (
-                    <div className="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Bot size={12} className="text-sky-600 dark:text-sky-400" />
-                    </div>
-                  )}
-                  <div
-                    className={`max-w-[70%] p-3 rounded-2xl text-sm ${message.role === 'user'
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'
-                      }`}
-                  >
-                    {message.content}
-                  </div>
-                  {message.role === 'user' && (
-                    <div className="w-6 h-6 rounded-full bg-sky-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <User size={12} className="text-white" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Bot size={12} className="text-sky-600 dark:text-sky-400" />
-                  </div>
-                  <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Chat Input - Compact Footer */}
-            <div className="border-t border-slate-200 dark:border-slate-700 p-2 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm rounded-b-2xl">
-              <div className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Sök resa..."
-                  className="flex-1 bg-white dark:bg-slate-800 border-0 ring-1 ring-slate-200 dark:ring-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-sm"
-                  disabled={chatLoading}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!chatInput.trim() || chatLoading}
-                  className="bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:bg-slate-300 text-white w-8 h-8 flex items-center justify-center rounded-full transition-all shadow-md hover:scale-105 active:scale-95"
-                >
-                  <Send size={14} className="ml-0.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    </div >
   );
 
-  async function handleSendMessage() {
-    if (!chatInput.trim()) return;
-
-    const userMessage = chatInput.trim();
-    setChatInput('');
-
-    // Content filtering - prevent inappropriate messages
-    const inappropriateWords = ['fuck', 'shit', 'damn', 'bitch', 'asshole', 'bastard', 'crap', 'piss', 'dick', 'cock', 'pussy', 'tits', 'ass', 'sex', 'porn', 'nude', 'naked'];
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (inappropriateWords.some(word => lowerMessage.includes(word))) {
-      setChatMessages(prev => [...prev,
-      { role: 'user', content: userMessage },
-      { role: 'assistant', content: 'Jag är här för att hjälpa med frågor om kollektivtrafiken i Göteborg. Låt oss hålla samtalet vänligt och relevant. Vad kan jag hjälpa dig med angående resor och trafik?' }
-      ]);
-      return;
-    }
-
-    setChatLoading(true);
-
-    // Add user message
-    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-
-    try {
-      // Enhanced AI response logic with direct Västtrafik information
-      let response = '';
-
-      if (lowerMessage.includes('västtågen') || lowerMessage.includes('tåg')) {
-        response = 'Västtågen trafikerar sträckan Göteborg - Stockholm med moderna tåg. Just nu finns inga större störningar rapporterade. För realtidsinformation, använd sökfunktionen ovan eller Västtrafiks app.';
-      } else if (lowerMessage.includes('spårvagn') || lowerMessage.includes('tram')) {
-        response = 'Göteborgs spårvagnar trafikerar centrum och förorterna. Linje 1-13 är de viktigaste. Förseningar kan förekomma under rusningstid, men trafiken är generellt pålitlig.';
-      } else if (lowerMessage.includes('buss')) {
-        response = 'Göteborg har ett omfattande bussnätverk. Lokala linjer (1-99) trafikerar staden, regionala (100-199) går längre sträckor, och expresslinjer (200-299) har färre stopp.';
-      } else if (lowerMessage.includes('färja') || lowerMessage.includes('båt')) {
-        response = 'Västtrafiks färjor trafikerar främst Göteborg - Styrsö. Trafiken är väderberoende och kan påverkas av vind och vattenstånd.';
-      } else if (lowerMessage.includes('linje') && /\d+/.test(lowerMessage)) {
-        const lineNumber = lowerMessage.match(/(\d+)/)?.[1];
-        response = `Linje ${lineNumber} är en viktig förbindelse i Göteborgs kollektivtrafik. För aktuella tider och eventuella förseningar, använd sökfunktionen ovan.`;
-      } else if (lowerMessage.includes('störning') || lowerMessage.includes('försening') || lowerMessage.includes('problem')) {
-        response = 'Aktuella störningar i Göteborgs kollektivtrafik visas i fliken "Störningar". De flesta störningar är tillfälliga och trafiken återgår till normalt inom kort.';
-      } else if (lowerMessage.includes('hållplats') || lowerMessage.includes('station')) {
-        response = 'Göteborg har över 1000 hållplatser för kollektivtrafik. Populära knutpunkter är Centralstationen, Brunnsparken och Korsvägen. Använd sökfunktionen för att hitta din närmaste hållplats.';
-      } else if (lowerMessage.includes('tid') || lowerMessage.includes('avgång') || lowerMessage.includes('ankomst')) {
-        response = 'För exakta avgångstider, använd sökfunktionen ovan genom att ange från- och till-hållplats. Tiderna uppdateras i realtid och visar eventuella förseningar.';
-      } else if (lowerMessage.includes('biljett') || lowerMessage.includes('pris') || lowerMessage.includes('betala')) {
-        response = 'Västtrafik erbjuder olika biljettyper: enkelbiljett (30 dagar), 24-timmarsbiljett, månadsbiljett och årskort. Priser varierar beroende på zon och ålder.';
-      } else if (lowerMessage.includes('rusning') || lowerMessage.includes('trafik')) {
-        response = 'Under rusningstid (07:00-09:00 och 16:00-18:00) kan förseningar förekomma på grund av högre trafik. Planera extra tid för dina resor under dessa perioder.';
-      } else if (lowerMessage.includes('karta') || lowerMessage.includes('väg') || lowerMessage.includes('hitta')) {
-        response = 'För att hitta rätt väg till din hållplats kan du använda Västtrafiks reseplanerare eller app. De flesta hållplatser har även skyltar med linjeinformation.';
-      } else {
-        response = 'Jag kan hjälpa dig med information om Göteborgs kollektivtrafik: linjer, hållplatser, tider, störningar och allmänna råd. Vad vill du veta mer om?';
-      }
-
-      // Simulate typing delay
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: response }]);
-        setChatLoading(false);
-      }, 800);
-
-    } catch (error) {
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Tyvärr kunde jag inte behandla din fråga just nu. Västtrafiks tjänster kan vara tillfälligt otillgängliga. Försök igen senare eller använd Västtrafiks officiella app för den senaste informationen.'
-      }]);
-      setChatLoading(false);
-    }
-  }
-}
+};

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Check, AlertTriangle, TramFront, Ship, BusFront, Clock, Calendar, AlertCircle, BellOff, BellRing } from 'lucide-react';
+import { RefreshCw, Check, AlertTriangle, TramFront, Ship, BusFront, Clock, Calendar, AlertCircle, BellOff, BellRing, TrainFront, Filter } from 'lucide-react';
 import { TransitService } from '../services/transitService';
 import { Provider } from '../types';
 import { DisruptionSkeleton } from './Loaders';
+import { formatDisruption } from '../utils/disruptionHelpers';
 
 interface UnifiedDisruption {
     id: string;
@@ -14,7 +15,7 @@ interface UnifiedDisruption {
     endTime?: string;
     updatedTime?: string;
     affected?: { designation: string; color?: string; textColor?: string }[];
-    type: 'BUS' | 'TRAM' | 'TRAIN' | 'SHIP';
+    type: 'BUS' | 'TRAM' | 'TRAIN' | 'SHIP' | 'METRO';
 }
 
 export const TrafficDisruptions: React.FC = () => {
@@ -26,12 +27,7 @@ export const TrafficDisruptions: React.FC = () => {
     const isFirstLoad = useRef(true);
 
     // Filter state for carousel
-    const [showFilters, setShowFilters] = useState(false);
-    const [severityFilter, setSeverityFilter] = useState<string>('all');
-    const [transportFilter, setTransportFilter] = useState<string>('all');
-    const [timeFilter, setTimeFilter] = useState<string>('all'); // Default to all
-    const [areaFilter, setAreaFilter] = useState<string>('all');
-    const [dateFilter, setDateFilter] = useState<string>('all'); // Default to all
+
 
     // Relative time helper
     const getRelativeTime = (dateString?: string) => {
@@ -129,6 +125,71 @@ export const TrafficDisruptions: React.FC = () => {
                 } catch (e) {
                     console.error("TV Fetch failed", e);
                 }
+            } else if (provider === Provider.SL) {
+                // Fetch SL Deviations
+                try {
+                    const slData = await TransitService.getSLDeviations();
+                    slData.forEach((d: any) => {
+                        // Parse Message Variants
+                        const variant = d.message_variants?.find((v: any) => v.language === 'sv') || d.message_variants?.[0];
+                        const title = variant?.header || d.header || "Trafikstörning";
+                        const description = variant?.details || d.details || d.message || "Ingen detaljerad information.";
+
+                        const affected: any[] = [];
+                        let type: 'BUS' | 'TRAM' | 'TRAIN' | 'SHIP' | 'METRO' = 'BUS';
+
+                        // Infer type from scope
+                        const lines = d.scope?.lines || [];
+                        const stops = d.scope?.stop_areas || [];
+
+                        if (lines.length > 0) {
+                            const mode = lines[0].transport_mode;
+                            if (mode === 'METRO') type = 'METRO';
+                            else if (mode === 'TRAIN') type = 'TRAIN';
+                            else if (mode === 'TRAM') type = 'TRAM';
+                            else if (mode === 'SHIP' || mode === 'FERRY') type = 'SHIP';
+                        } else if (stops.length > 0) {
+                            const t = stops[0].type;
+                            if (t === 'METROSTN') type = 'METRO';
+                            else if (t === 'TRAINSTN') type = 'TRAIN';
+                        } else {
+                            // Text heuristic fallback
+                            const txt = (title + " " + description).toLowerCase();
+                            if (txt.includes("tunnelbana") || txt.includes("grön linje") || txt.includes("röd linje") || txt.includes("blå linje")) type = 'METRO';
+                            else if (txt.includes("pendeltåg") || txt.includes("tåg")) type = 'TRAIN';
+                            else if (txt.includes("spårvagn") || txt.includes("tvärbanan") || txt.includes("lidingöbanan")) type = 'TRAM';
+                            else if (txt.includes("båt") || txt.includes("färja") || txt.includes("pendelbåt")) type = 'SHIP';
+                        }
+
+                        // Parse affected lines
+                        if (lines.length > 0) {
+                            lines.forEach((l: any) => {
+                                affected.push({ designation: l.designation, color: undefined });
+                            });
+                        }
+
+                        // Determine severity: priority.importance_level (undefined for some alerts). 
+                        // Assuming lower is more important, e.g. 1-2.
+                        let severity: any = 'normal';
+                        if (d.priority?.importance_level !== undefined && d.priority.importance_level <= 2) severity = 'severe';
+
+                        unified.push({
+                            id: d.deviation_case_id ? String(d.deviation_case_id) : (d.id || `sl-${Math.random()}`),
+                            provider: Provider.SL,
+                            title,
+                            description,
+                            severity,
+                            // Use publish period
+                            startTime: d.publish?.from || d.fromDate,
+                            endTime: d.publish?.upto || d.toDate,
+                            updatedTime: d.modified || d.created,
+                            type,
+                            affected
+                        });
+                    });
+                } catch (e) {
+                    console.error("SL Fetch Failed", e);
+                }
             } else {
                 // Fetch Västtrafik (Default)
                 try {
@@ -196,11 +257,18 @@ export const TrafficDisruptions: React.FC = () => {
 
             // Sort by update time (newest first)
             // Removed severity sorting per user request
+            // Sort by the latest relevant timestamp (Updated or Start) to show newest activity first
+            // Sort by start time (newest first)
+            // Sort by latest activity (Updated or Created time)
             unified.sort((a, b) => {
-                const timeA = a.updatedTime ? new Date(a.updatedTime).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0);
-                const timeB = b.updatedTime ? new Date(b.updatedTime).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0);
-                if (timeB !== timeA) return timeB - timeA;
-                return a.id.localeCompare(b.id);
+                const getT = (item: UnifiedDisruption) => {
+                    // Prioritize Updated/Created time for "News Feed" style sorting
+                    // This puts the most recently modified or posted alerts at the top
+                    const t1 = item.updatedTime ? new Date(item.updatedTime).getTime() : 0;
+                    const t2 = item.startTime ? new Date(item.startTime).getTime() : 0;
+                    return Math.max(t1, t2);
+                };
+                return getT(b) - getT(a);
             });
 
             // Notification Logic
@@ -274,6 +342,8 @@ export const TrafficDisruptions: React.FC = () => {
 
     const getTransportIcon = (type: string) => {
         switch (type) {
+            case 'METRO': return TrainFront;
+            case 'TRAIN': return TrainFront;
             case 'TRAM': return TramFront;
             case 'SHIP': return Ship;
             default: return BusFront;
@@ -307,86 +377,42 @@ export const TrafficDisruptions: React.FC = () => {
 
 
     // Use all disruptions, don't filter out unknown severity
-    const activeDisruptions = disruptions;
+    const [filter, setFilter] = useState<'ALL' | 'BUS' | 'TRAIN' | 'METRO' | 'TRAM' | 'SHIP'>('ALL');
+    const [showFilter, setShowFilter] = useState(false);
 
-    // Apply filters
-    const filteredDisruptions = activeDisruptions.filter(disruption => {
-        const now = new Date();
-        // Severity filter
-        if (severityFilter !== 'all' && disruption.severity !== severityFilter) {
-            return false;
-        }
-
-        // Transport filter
-        if (transportFilter !== 'all' && disruption.type !== transportFilter) {
-            return false;
-        }
-
-        // Time filter (ongoing vs planned)
-        if (timeFilter === 'ongoing') {
-            // Ongoing: no endTime or endTime is in the future
-            if (disruption.endTime && new Date(disruption.endTime) < now) {
-                return false;
-            }
-        } else if (timeFilter === 'planned') {
-            // Planned: startTime is in the future
-            if (!disruption.startTime || new Date(disruption.startTime) <= now) {
-                return false;
-            }
-        }
-
-        // Date filter
-        const creationDate = disruption.updatedTime ? new Date(disruption.updatedTime) : (disruption.startTime ? new Date(disruption.startTime) : null);
-        if (creationDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const weekStart = new Date(today);
-            weekStart.setDate(weekStart.getDate() - today.getDay());
-            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            if (dateFilter === 'today' && creationDate < today) {
-                return false;
-            } else if (dateFilter === 'yesterday' && (creationDate < yesterday || creationDate >= today)) {
-                return false;
-            } else if (dateFilter === 'week' && creationDate < weekStart) {
-                return false;
-            } else if (dateFilter === 'month' && creationDate < monthStart) {
-                return false;
-            }
-        }
-
-        // Area filter (simplified - could be enhanced with location data)
-        if (areaFilter !== 'all') {
-            const titleDesc = (disruption.title + disruption.description).toLowerCase();
-            if (areaFilter === 'goteborg' && !titleDesc.includes('göteborg') && !titleDesc.includes('gbg')) {
-                return false;
-            } else if (areaFilter === 'regional' && (titleDesc.includes('göteborg') || titleDesc.includes('gbg'))) {
-                return false;
-            }
-            // 'other' would be the default, so no filtering needed
-        }
-
-        return true;
+    const activeDisruptions = disruptions.filter(d => {
+        if (filter === 'ALL') return true;
+        return d.type === filter;
     });
+
+
 
     return (
         <div className="h-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
 
             {/* Clean Header */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-10 transition-all duration-300">
                 <div className="px-4 sm:px-6 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
                                 Trafikstörningar
                             </h1>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                {filteredDisruptions.length} aktiva störningar
+                                {activeDisruptions.length} aktiva störningar
                             </p>
                         </div>
                         <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowFilter(!showFilter)}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${showFilter || filter !== 'ALL'
+                                    ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-md ring-2 ring-slate-200 dark:ring-slate-700'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    }`}
+                            >
+                                <Filter size={18} />
+                            </button>
+
                             <button
                                 onClick={handleToggleNotifications}
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${notificationsEnabled ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
@@ -407,6 +433,31 @@ export const TrafficDisruptions: React.FC = () => {
                             >
                                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                             </button>
+                        </div>
+                    </div>
+                    {/* Filter Bar */}
+                    <div className={`grid transition-all duration-300 ease-out overflow-hidden ${showFilter ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
+                        <div className="min-h-0 overflow-x-auto pb-1 no-scrollbar flex gap-2">
+                            {[
+                                { id: 'ALL', label: 'Alla', icon: null },
+                                { id: 'BUS', label: 'Buss', icon: BusFront },
+                                { id: 'METRO', label: 'Tunnelbana', icon: TrainFront },
+                                { id: 'TRAIN', label: 'Tåg', icon: TrainFront },
+                                { id: 'TRAM', label: 'Spårvagn', icon: TramFront },
+                                { id: 'SHIP', label: 'Båt', icon: Ship },
+                            ].map(opt => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => setFilter(opt.id as any)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${filter === opt.id
+                                        ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900 shadow-md transform scale-105'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                >
+                                    {opt.icon && <opt.icon size={14} />}
+                                    {opt.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -437,24 +488,41 @@ export const TrafficDisruptions: React.FC = () => {
                 )}
 
                 {/* Empty State */}
-                {!loading && filteredDisruptions.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-16">
-                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-2xl flex items-center justify-center mb-4">
-                            <Check size={32} className="text-green-600 dark:text-green-400" />
+                {/* Empty State */}
+                {!loading && activeDisruptions.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-16 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <Check size={40} className="text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2">
-                            Allt flyter på
+                        <h3 className="font-black text-xl text-slate-800 dark:text-white mb-2">
+                            Inga störningar
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
-                            Inga trafikstörningar just nu
+                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs mb-6 leading-relaxed">
+                            Just nu finns det inga rapporterade trafikstörningar för ditt valda filter.
                         </p>
+
+                        <button
+                            onClick={fetchSituations}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-full font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm hover:shadow"
+                        >
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                            <span>Uppdatera nu</span>
+                        </button>
                     </div>
                 )}
 
                 {/* Disruption Cards */}
-                {filteredDisruptions.map((item) => {
+                {activeDisruptions.map((item, index) => {
+                    const isLatest = index === 0 && filter === 'ALL';
                     const styles = getSeverityStyles(item.severity);
                     const Icon = getTransportIcon(item.type);
+
+                    // Use helper for formatting
+                    const formatted = formatDisruption({
+                        ...item,
+                        situationNumber: item.id,
+                        creationTime: item.updatedTime || ''
+                    } as any);
 
                     return (
                         <div
@@ -462,21 +530,29 @@ export const TrafficDisruptions: React.FC = () => {
                             className={`${styles.bg} ${styles.border} ${styles.animation} rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] shadow-md`}
                         >
                             <div className="p-4 sm:p-5">
-                                <div className="flex items-start gap-3 mb-4">
-                                    {/* Severity indicator */}
-                                    <div className={`w-1.5 h-16 ${styles.accent} rounded-full flex-shrink-0 mt-1`} />
-
-                                    {/* Icon */}
-                                    {/* Icon */}
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${styles.icon} border border-white/20`}>
-                                        <Icon size={24} className="opacity-100 drop-shadow-sm" />
+                                <div className="flex items-start gap-4 mb-4">
+                                    {/* Icon - Updated UI */}
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm ${styles.icon} ring-4 ring-white dark:ring-slate-800`}>
+                                        <Icon size={22} className="opacity-100" />
                                     </div>
 
                                     {/* Header Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="mb-3">
-                                            <h3 className="font-bold text-slate-800 dark:text-white text-base sm:text-lg leading-tight hover-copy" onClick={() => navigator.clipboard.writeText(item.title)}>
-                                                {item.title}
+                                    <div className="flex-1 min-w-0 pt-0.5">
+                                        {isLatest && (
+                                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase tracking-wide mb-2 border border-blue-200 dark:border-blue-800">
+                                                <Clock size={10} />
+                                                Senaste nytt
+                                            </div>
+                                        )}
+                                        <div className="mb-2">
+                                            {/* Helper Status Pre-header */}
+                                            {formatted?.statusText && formatted.statusText !== 'Trafikinfo' && (
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                                    {formatted.statusText}
+                                                </div>
+                                            )}
+                                            <h3 className="font-bold text-slate-800 dark:text-white text-base leading-tight hover-copy cursor-pointer" onClick={() => navigator.clipboard.writeText(item.title)}>
+                                                {formatted?.title || item.title}
                                             </h3>
                                         </div>
 
@@ -569,38 +645,35 @@ export const TrafficDisruptions: React.FC = () => {
 
                                         {/* Description */}
                                         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                                            {item.description}
+                                            {formatted?.description || item.description}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Compact Footer Info */}
-                                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-1.5">
-                                    {/* Start - Slut */}
-                                    <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                                        <Clock size={12} className="text-slate-400 flex-shrink-0" />
-                                        <span>
-                                            {item.startTime ? new Date(item.startTime).toLocaleString('sv-SE', {
-                                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                            }) : 'Startdatum saknas'}
-                                            {' - '}
-                                            {item.endTime ? new Date(item.endTime).toLocaleString('sv-SE', {
-                                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                            }) : 'Tillsvidare'}
-                                        </span>
-                                    </div>
-
-                                    {/* Uppdaterad */}
-                                    {item.updatedTime && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                            <RefreshCw size={12} className="opacity-70 flex-shrink-0" />
-                                            <span>
-                                                Uppdaterad {new Date(item.updatedTime).toLocaleString('sv-SE', {
-                                                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                                })}
-                                            </span>
+                                {/* Validity Period & Updated Info */}
+                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                            <Calendar size={12} />
+                                            Giltighetstid
                                         </div>
-                                    )}
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-sm">
+                                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                                <span className="text-slate-500 dark:text-slate-400">Giltig från</span>
+                                                <span className="font-medium text-slate-800 dark:text-slate-200">
+                                                    {formatted?.startTime || "Okänt"}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex justify-between sm:justify-start sm:gap-4">
+                                                <span className="text-slate-500 dark:text-slate-400">Beräknas pågå till</span>
+                                                <span className="font-medium text-slate-800 dark:text-slate-200">
+                                                    {formatted?.endTime || "Tillsvidare"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -608,205 +681,7 @@ export const TrafficDisruptions: React.FC = () => {
                 })}
             </div>
 
-            {/* Filter Carousel Button */}
-            <div className="fixed bottom-20 right-4 z-40">
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`w-12 h-12 rounded-full shadow-xl transition-all duration-300 hover:scale-110 ${showFilters
-                        ? 'bg-sky-400 text-white shadow-sky-400/30'
-                        : 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 border-2 border-sky-500/20'
-                        }`}
-                    title="Filtrera störningar"
-                >
-                    <AlertCircle size={20} className="mx-auto" />
-                </button>
 
-                {/* Filter Carousel */}
-                {showFilters && (
-                    <div className="absolute bottom-16 right-0 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-4 z-50 max-h-[70vh] overflow-y-auto">
-                        <div className="space-y-4">
-                            <div className="text-sm font-bold text-slate-800 dark:text-white mb-1">Filtrera störningar</div>
-
-                            {/* Severity Filter */}
-                            <div>
-                                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Allvarlighetsgrad</div>
-                                <div className="flex gap-1 overflow-x-auto pb-1">
-                                    {[
-                                        { key: 'all', label: 'Alla', color: 'bg-slate-100 dark:bg-slate-800' },
-                                        { key: 'severe', label: 'Kritiska', color: 'bg-red-100 dark:bg-red-900/20' },
-                                        { key: 'normal', label: 'Normala', color: 'bg-yellow-100 dark:bg-yellow-900/20' },
-                                        { key: 'slight', label: 'Lägre', color: 'bg-blue-100 dark:bg-blue-900/20' }
-                                    ].map((filter) => (
-                                        <button
-                                            key={filter.key}
-                                            onClick={() => setSeverityFilter(filter.key)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${severityFilter === filter.key
-                                                ? 'bg-sky-400 text-white'
-                                                : `${filter.color} text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700`
-                                                }`}
-                                        >
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Transport Type Filter */}
-                            <div>
-                                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Trafikslag</div>
-                                <div className="flex gap-1 overflow-x-auto pb-1">
-                                    {[
-                                        { key: 'all', label: 'Alla', icon: null },
-                                        { key: 'TRAM', label: 'Spårvagn', icon: <TramFront size={14} /> },
-                                        { key: 'BUS', label: 'Buss', icon: <BusFront size={14} /> },
-                                        { key: 'SHIP', label: 'Båt', icon: <Ship size={14} /> }
-                                    ].map((filter) => (
-                                        <button
-                                            key={filter.key}
-                                            onClick={() => setTransportFilter(filter.key)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${transportFilter === filter.key
-                                                ? 'bg-sky-400 text-white'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                                }`}
-                                        >
-                                            {filter.icon}
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Time Period Filter */}
-                            <div>
-                                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Giltighetstid</div>
-                                <div className="flex gap-1 overflow-x-auto pb-1">
-                                    {[
-                                        { key: 'all', label: 'Alla' },
-                                        { key: 'ongoing', label: 'Pågående' },
-                                        { key: 'planned', label: 'Planerade' }
-                                    ].map((filter) => (
-                                        <button
-                                            key={filter.key}
-                                            onClick={() => setTimeFilter(filter.key)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.key
-                                                ? 'bg-sky-400 text-white'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                                }`}
-                                        >
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Date/Time Filter */}
-                            <div>
-                                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Tidpunkt</div>
-                                <div className="flex gap-1 overflow-x-auto pb-1">
-                                    {[
-                                        { key: 'all', label: 'Alla' },
-                                        { key: 'today', label: 'Händelser skapade idag' },
-                                        { key: 'yesterday', label: 'Igår' },
-                                        { key: 'week', label: 'Denna vecka' },
-                                        { key: 'month', label: 'Denna månad' }
-                                    ].map((filter) => (
-                                        <button
-                                            key={filter.key}
-                                            onClick={() => setDateFilter(filter.key)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${dateFilter === filter.key
-                                                ? 'bg-sky-400 text-white'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                                }`}
-                                        >
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Area/Region Filter */}
-                            <div>
-                                <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Område</div>
-                                <div className="flex gap-1 overflow-x-auto pb-1">
-                                    {[
-                                        { key: 'all', label: 'Alla' },
-                                        { key: 'goteborg', label: 'Göteborg' },
-                                        { key: 'regional', label: 'Regionalt' },
-                                        { key: 'other', label: 'Övrigt' }
-                                    ].map((filter) => (
-                                        <button
-                                            key={filter.key}
-                                            onClick={() => setAreaFilter(filter.key)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${areaFilter === filter.key
-                                                ? 'bg-sky-400 text-white'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                                }`}
-                                        >
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Active Filters Summary */}
-                            {(severityFilter !== 'all' || transportFilter !== 'all' || timeFilter !== 'all' || areaFilter !== 'all' || dateFilter !== 'all') && (
-                                <div className="bg-amber-50/70 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-900/30 rounded-lg p-3">
-                                    <div className="text-xs font-bold text-amber-800 dark:text-amber-200 mb-2">Aktiva filter:</div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {severityFilter !== 'all' && (
-                                            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded text-xs">
-                                                {severityFilter === 'severe' ? 'Kritiska' : severityFilter === 'normal' ? 'Normala' : 'Lägre'}
-                                            </span>
-                                        )}
-                                        {transportFilter !== 'all' && (
-                                            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded text-xs">
-                                                {transportFilter === 'TRAIN' ? 'Tåg' : transportFilter === 'TRAM' ? 'Spårvagn' : transportFilter === 'BUS' ? 'Buss' : 'Båt'}
-                                            </span>
-                                        )}
-                                        {(timeFilter !== 'all') && (
-                                            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded text-xs">
-                                                {timeFilter === 'all' ? 'Alla tider' : timeFilter === 'ongoing' ? 'Pågående' : 'Planerade'}
-                                            </span>
-                                        )}
-                                        {areaFilter !== 'all' && (
-                                            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded text-xs">
-                                                {areaFilter === 'goteborg' ? 'Göteborg' : areaFilter === 'regional' ? 'Regionalt' : 'Övrigt'}
-                                            </span>
-                                        )}
-                                        {dateFilter !== 'all' && (
-                                            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded text-xs">
-                                                {dateFilter === 'all' ? 'Alla datum' : dateFilter === 'today' ? 'Idag' : dateFilter === 'yesterday' ? 'Igår' : dateFilter === 'week' ? 'Denna vecka' : 'Denna månad'}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Reset Filters */}
-                            <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700">
-                                <button
-                                    onClick={() => {
-                                        setSeverityFilter('all');
-                                        setTransportFilter('all');
-                                        setTimeFilter('all');
-                                        setAreaFilter('all');
-                                        setDateFilter('all');
-                                    }}
-                                    className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium"
-                                >
-                                    Återställ filter
-                                </button>
-                                <button
-                                    onClick={() => setShowFilters(false)}
-                                    className="px-3 py-1 bg-sky-400 text-white text-xs font-bold rounded-md hover:bg-sky-500 transition-colors"
-                                >
-                                    Klar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
         </div>
     );
 };

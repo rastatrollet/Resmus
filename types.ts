@@ -33,12 +33,13 @@ export interface Departure {
   fgColor?: string;
   bgColor?: string;
   journeyRef?: string;
+  journeyDetailRefUrl?: string;
   hasDisruption?: boolean;
   disruptionSeverity?: 'severe' | 'normal' | 'slight' | 'unknown';
   disruptionMessage?: string;
   type?: 'BUS' | 'TRAM' | 'TRAIN' | 'FERRY' | 'METRO' | 'UNK';
-  operator?: string;
   serviceJourneyGid?: string;
+  operationalTransportIdentifiers?: any;
 }
 
 export interface StopOnTrip {
@@ -68,6 +69,7 @@ export interface TrafficSituation {
     gid: string;
     name: string;
   }[];
+  affected?: { designation: string; color?: string; textColor?: string }[];
 }
 
 // --- Trip Planner Types ---
@@ -108,4 +110,5 @@ export interface JourneyDetail {
   departureTime?: string;
   realtimeArrival?: string;
   realtimeDeparture?: string;
+  operationalTransportIdentifiers?: any;
 }

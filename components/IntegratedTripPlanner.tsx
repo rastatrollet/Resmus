@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, MapPin, Loader2, AlertCircle, Bus, TramFront, Ship, Footprints, ArrowUpDown, X, CalendarClock, ChevronRight, Flag, AlertTriangle } from 'lucide-react';
 import { TransitService } from '../services/transitService';
-import { Station, Journey, TripLeg } from '../types';
+import { Station, Journey, TripLeg, Provider } from '../types';
 import { JourneySkeleton, ThemedSpinner } from './Loaders';
 
 export const IntegratedTripPlanner: React.FC = () => {
@@ -12,6 +12,7 @@ export const IntegratedTripPlanner: React.FC = () => {
 
     const [searchResultsFrom, setSearchResultsFrom] = useState<Station[]>([]);
     const [searchResultsTo, setSearchResultsTo] = useState<Station[]>([]);
+    const [searchProvider, setSearchProvider] = useState<Provider>(Provider.VASTTRAFIK);
 
     const [journeys, setJourneys] = useState<Journey[]>([]);
     const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ export const IntegratedTripPlanner: React.FC = () => {
 
     const handleSearchLocation = async (q: string, setResults: (s: Station[]) => void) => {
         try {
-            const results = await TransitService.searchStations(q);
+            const results = await TransitService.searchStations(q, searchProvider);
             setResults(results);
         } catch (err) {
             console.error("Search failed", err);
@@ -112,7 +113,11 @@ export const IntegratedTripPlanner: React.FC = () => {
                 isoDateTime = `${tripDate}T${tripTime}:00`;
             }
 
-            const results = await TransitService.planTrip(fromStation.id, toStation.id, isoDateTime);
+            if (timeMode === 'later') {
+                isoDateTime = `${tripDate}T${tripTime}:00`;
+            }
+
+            const results = await TransitService.planTrip(fromStation.id, toStation.id, isoDateTime, searchProvider);
             if (results.length === 0) {
                 setError("Inga resor hittades för den valda tiden/rutten.");
             }
@@ -166,6 +171,22 @@ export const IntegratedTripPlanner: React.FC = () => {
                     <div className="flex flex-col gap-3">
                         {/* Visual Connector Line */}
                         <div className="absolute left-[1.15rem] top-10 bottom-10 w-[2px] bg-gradient-to-b from-slate-300 via-slate-200 to-sky-500 dark:from-slate-600 dark:to-sky-900 rounded-full"></div>
+
+                        {/* Provider Toggle */}
+                        <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl mb-2">
+                            <button
+                                onClick={() => { setSearchProvider(Provider.VASTTRAFIK); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${searchProvider === Provider.VASTTRAFIK ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                            >
+                                <span>Västtrafik</span>
+                            </button>
+                            <button
+                                onClick={() => { setSearchProvider(Provider.RESROBOT); setFromStation(null); setToStation(null); setFromQuery(''); setToQuery(''); }}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${searchProvider === Provider.RESROBOT ? 'bg-sky-500 text-white shadow-md' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                            >
+                                <span>Hela Sverige</span>
+                            </button>
+                        </div>
 
                         {/* FROM Input */}
                         <div className="relative group">

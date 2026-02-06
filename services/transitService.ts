@@ -2,14 +2,16 @@ import { Departure, Provider, Station, TrafficSituation, Journey, TripLeg, Journ
 import { API_KEYS, API_URLS } from './config';
 import { ResrobotService } from './resrobotService';
 import { TrafiklabRealtimeService } from './trafiklabRealtimeService';
+import { TrafiklabRealtimeService } from './trafiklabRealtimeService';
+import { SLService } from './slService';
 import { TrafiklabService } from './trafiklabService';
 
 // Cache for API responses
 const apiCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 60000; // 60 seconds for better performance
 
-// Helper for CORS requests with caching
-const fetchWithCors = async (url: string, options: RequestInit = {}, useCache = true) => {
+// Helper for CORS requests with caching and retry logic
+const fetchWithCors = async (url: string, options: RequestInit = {}, useCache = true, retries = 3): Promise<Response> => {
     // Check cache first
     if (useCache) {
         const cached = apiCache.get(url);
@@ -22,33 +24,62 @@ const fetchWithCors = async (url: string, options: RequestInit = {}, useCache = 
     }
 
     const separator = url.includes('?') ? '&' : '?';
+    // Use a simpler timestamp strategy or ensure it doesn't break caching on the server side
     const targetUrl = `${url}${separator}_t=${Date.now()}`;
     const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
-    const response = await fetch(proxyUrl, options);
-
-    // Cache successful responses
-    if (useCache && response.ok) {
+    let lastError: any;
+    for (let i = 0; i < retries; i++) {
         try {
-            const data = await response.clone().json();
-            apiCache.set(url, { data, timestamp: Date.now() });
+            const response = await fetch(proxyUrl, options);
 
-            // Clean old cache entries (keep only last 50)
-            if (apiCache.size > 50) {
-                const oldestKey = apiCache.keys().next().value;
-                if (oldestKey) {
-                    apiCache.delete(oldestKey);
-                }
+            // If 429 Too Many Requests, wait and retry
+            if (response.status === 429) {
+                await new Promise(r => setTimeout(r, 1000 * (i + 1))); // Linear backoff
+                continue;
             }
+
+            // Accept 200-299 status code
+            if (response.ok) {
+                // Cache successful responses if requested
+                if (useCache) {
+                    try {
+                        const data = await response.clone().json();
+                        apiCache.set(url, { data, timestamp: Date.now() });
+
+                        // Clean old cache entries (keep only last 50)
+                        if (apiCache.size > 50) {
+                            const oldestKey = apiCache.keys().next().value;
+                            if (oldestKey) apiCache.delete(oldestKey);
+                        }
+                    } catch (e) {
+                        // Ignore cache errors for non-JSON responses
+                    }
+                }
+                return response;
+            }
+
+            // If server error 5xx, retry
+            if (response.status >= 500) {
+                lastError = new Error(`Status ${response.status}`);
+                await new Promise(r => setTimeout(r, 500 * Math.pow(2, i))); // Exponential backoff
+                continue;
+            }
+
+            return response; // Return other errors (400, 401, 403) directly as they likely won't be fixed by retry
+
         } catch (e) {
-            // Ignore cache errors for non-JSON responses
+            lastError = e;
+            await new Promise(r => setTimeout(r, 500 * Math.pow(2, i)));
         }
     }
 
-    return response;
+    // Return a dummy error response if all retries failed
+    console.error(`Fetch failed for ${url} after ${retries} attempts`, lastError);
+    return new Response(JSON.stringify({ error: 'Network Error', details: String(lastError) }), { status: 503, statusText: 'Service Unavailable' });
 };
 
-// Helper: Ensure color has # prefix and is valid
+// ... existing fixColor and formatDateForVT ...
 const fixColor = (color: string | undefined | null, defaultColor: string): string => {
     if (!color || typeof color !== 'string') return defaultColor;
     const trimmed = color.trim();
@@ -82,39 +113,68 @@ const formatDateForVT = (dateString: string): string => {
 };
 
 // -- AUTHENTICATION --
+const TOKEN_STORAGE_KEY = 'vt_access_token';
 let vtToken: string | null = null;
 let vtTokenExpiry: number = 0;
 
 const getVasttrafikToken = async (): Promise<string | null> => {
+    // 1. Check Memory
     if (vtToken && Date.now() < vtTokenExpiry) return vtToken;
+
+    // 2. Check LocalStorage
+    try {
+        const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+        if (stored) {
+            const { token, expiry } = JSON.parse(stored);
+            if (Date.now() < expiry) {
+                vtToken = token;
+                vtTokenExpiry = expiry;
+                console.log("[Auth] Using restored Västtrafik token");
+                return token;
+            }
+        }
+    } catch (e) { /* ignore storage errors */ }
+
     if (!API_KEYS.VASTTRAFIK_AUTH) {
         console.warn("Missing VASTTRAFIK_AUTH in config.ts");
         return null;
     }
 
-    for (let i = 0; i < 2; i++) {
-        try {
+    console.log("[Auth] Fetching new Västtrafik token...");
 
+    // Explicit 2 retries handled by fetchWithCors now, but complex logic here might need explicit handling
+    // Using simple fetchWithCors with retry logic built-in
+    try {
+        const res = await fetchWithCors(API_URLS.VASTTRAFIK_TOKEN, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH.trim()}`
+            },
+            body: 'grant_type=client_credentials'
+        }, false, 3); // Don't cache the token request result itself, but do retry
 
-            const res = await fetchWithCors(API_URLS.VASTTRAFIK_TOKEN, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH.trim()}`
-                },
-                body: 'grant_type=client_credentials'
-            });
+        if (!res.ok) {
+            console.error("[Auth] Failed to fetch token", res.status);
+            return null;
+        }
 
-            if (!res.ok) continue;
+        const data = await res.json();
+        if (data.access_token) {
+            vtToken = data.access_token;
+            // Set expiry 30 seconds before actual to be safe
+            vtTokenExpiry = Date.now() + (data.expires_in * 1000) - 30000;
 
-            const data = await res.json();
-            if (data.access_token) {
-                vtToken = data.access_token;
-                vtTokenExpiry = Date.now() + (data.expires_in * 1000) - 30000;
-                return vtToken;
-            }
-        } catch (e) { console.error(e); }
-    }
+            // Persist
+            localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
+                token: vtToken,
+                expiry: vtTokenExpiry
+            }));
+
+            return vtToken;
+        }
+    } catch (e) { console.error("[Auth] Token fetch error", e); }
+
     return null;
 };
 
@@ -127,12 +187,18 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
     const limit = 100;
 
     const startMs = dateTime ? new Date(dateTime).getTime() : Date.now();
-    const targetEndMs = startMs + (timeSpanInMinutes * 60000);
+
+    // Optimize for Arrivals: preventing UI blocking loops.
+    // Arrivals boards rarely need > 2 hours of data.
+    const effectiveDuration = (mode === 'arrivals' && timeSpanInMinutes > 120) ? 120 : timeSpanInMinutes;
+    const targetEndMs = startMs + (effectiveDuration * 60000);
 
     let currentDateTime = dateTime;
     let collectedResults: any[] = [];
     let iterations = 0;
-    const maxIterations = 15; // Allow enough fetches to cover 8h if density is high
+
+    // Reduce iterations for arrivals to ensure fast switching (avoid 5s+ delays)
+    const maxIterations = mode === 'arrivals' ? 4 : 15;
 
     try {
         while (iterations < maxIterations) {
@@ -206,11 +272,13 @@ const fetchVasttrafikDepartures = async (gid: string, mode: 'departures' | 'arri
             if (!transportMode) transportMode = 'BUS';
 
             let dir = serviceJourney?.direction || "Okänd";
+            if (dir) dir = dir.replace("Påstigning fram", "").trim();
 
             if (mode === 'arrivals') {
-                const origin = entry.origin || entry.serviceJourney?.origin;
-                if (origin) {
-                    dir = typeof origin === 'string' ? origin : (origin.name || "Ankommande");
+                // Try to find the Origin (where it came from)
+                const originVal = entry.origin || entry.serviceJourney?.origin;
+                if (originVal) {
+                    dir = typeof originVal === 'string' ? originVal : (originVal.name || "Ankommande");
                 } else {
                     dir = "Ankommande";
                 }
@@ -471,6 +539,10 @@ export const TransitService = {
         } catch (e) { return []; }
     },
 
+    getSLDeviations: async (): Promise<any[]> => {
+        return SLService.getDeviations();
+    },
+
     getJourneyDisruptions: async (journeyGid: string): Promise<TrafficSituation[]> => {
         const token = await getVasttrafikToken();
         if (!token) return [];
@@ -521,6 +593,9 @@ export const TransitService = {
         if (provider === Provider.TRAFIKVERKET) {
             const { TrafikverketService } = await import('./trafikverketService');
             return TrafikverketService.searchStations(query);
+        }
+        if (provider === Provider.SL) {
+            return SLService.searchStations(query);
         }
 
         const token = await getVasttrafikToken();
@@ -643,6 +718,10 @@ export const TransitService = {
             // We should update `getTrainDepartures` to support fetching by Signature directly to be efficient.
 
             return TrafikverketService.getTrainDepartures(id, dateTime);
+        }
+        if (provider === Provider.SL) {
+            // SL Departure Fetch
+            return SLService.getDepartures(stationId, duration);
         }
         return fetchVasttrafikDepartures(stationId, mode, dateTime, duration);
     },
@@ -771,6 +850,11 @@ export const TransitService = {
         if (journeyRef.startsWith('resrobot:') || journeyRef.includes('accessId') || journeyRef.includes('resrobot')) {
             const ref = journeyRef.startsWith('resrobot:') ? journeyRef.substring(9) : journeyRef;
             return ResrobotService.getJourneyDetails(ref);
+        }
+
+        // SL Handler
+        if (journeyRef.startsWith('sl-')) {
+            return SLService.getJourneyDetails(journeyRef).then(res => res || []);
         }
 
         // Västtrafik Handler

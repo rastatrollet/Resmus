@@ -10,6 +10,9 @@ export default {
     darkMode: 'class', // or 'media'
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['Outfit', 'sans-serif'],
+            },
             colors: {
                 // Custom colors if needed, but standard palette is fine
             }

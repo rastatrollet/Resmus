@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faList, faCog, faSearch, faExclamationTriangle, faBus, faExpand, faCompress, faStar, faGlobe, faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faSliders, faTriangleExclamation, faBus, faExpand, faCompress, faStar, faGlobe, faTrophy, faList, faCog, faSearch, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { DigitalClock } from './components/DigitalClock';
 import { DeparturesBoard } from './components/DeparturesBoard';
 import { TripPlanner } from './components/TripPlanner';
@@ -13,10 +13,12 @@ import { LiveMap } from './components/LiveMap';
 import { NotFound } from './components/NotFound';
 import { TranslationProvider, useTranslation } from './components/TranslationProvider';
 import { UpdateNotification } from './components/UpdateNotification';
-import { TravelAssistant } from './components/TravelAssistant';
+import { ToggleSwitch } from './components/ToggleSwitch';
+import { TrafikverketService } from './services/trafikverketService';
 
 import { ToastProvider } from './components/ToastProvider';
 import { ThemeProvider } from './components/ThemeContext';
+import { TripMonitorProvider } from './contexts/TripMonitorContext';
 
 const AppContent = () => {
   // Update checker is now handled by the notification component internally or we can hoist it. 
@@ -74,107 +76,123 @@ const AppContent = () => {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
   return (
-    <div className="flex h-[100dvh] w-screen bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300 font-sans selection:bg-sky-500/30 no-context-menu">
+    <div className="flex h-[100dvh] w-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100 dark:from-slate-950 dark:to-slate-900 overflow-hidden transition-colors duration-300 font-sans selection:bg-sky-500/30 no-context-menu">
       <UpdateNotification />
-      <TravelAssistant />
+
 
       {/* --- DESKTOP SIDEBAR (Visible on lg screens) --- */}
-      <aside className={`hidden ${isFullscreen ? 'hidden' : 'md:flex'} w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50`}>
-        <div className="p-6">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 lg:w-14 lg:h-14 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/30 transition-all duration-300">
-              <FontAwesomeIcon icon={faBus} className="text-xl lg:text-2xl transform -scale-x-100" />
+      <aside className={`hidden ${isFullscreen ? 'hidden' : 'md:flex'} w-80 flex-col bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-xl border-r border-slate-200/60 dark:border-slate-800/60 z-50 transition-all duration-300`}>
+        <div className="p-8">
+          <div className="flex items-center gap-4 mb-12 px-2">
+            <div className="group relative w-12 h-12">
+              <div className="absolute inset-0 bg-sky-500 rounded-2xl rotate-6 transition-transform group-hover:rotate-12 opacity-20 dark:opacity-40"></div>
+              <div className="relative w-12 h-12 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-sky-500/20 transition-transform group-hover:scale-105 active:scale-95">
+                <FontAwesomeIcon icon={faBus} className="text-xl transform -scale-x-100" />
+              </div>
             </div>
-            <div>
-              <h1 className="font-black text-2xl lg:text-3xl text-slate-800 dark:text-white tracking-tighter leading-none transition-all duration-300">Resmus</h1>
+            <div className="flex flex-col">
+              <h1 className="font-black text-3xl text-slate-800 dark:text-white tracking-tighter leading-none">Resmus</h1>
+              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-0.5 mt-1">Beta</span>
             </div>
           </div>
 
-          <nav className="space-y-2">
+          <nav className="space-y-3 flex-1">
             {[
-              { to: "/", icon: faList, label: "Avgångar" },
-              { to: "/favorites", icon: faStar, label: "Favoriter" },
-              { to: "/map", icon: faGlobe, label: "Karta" },
-              { to: "/disruptions", icon: faExclamationTriangle, label: "Störningar" },
-              { to: "/settings", icon: faCog, label: "Inställningar" }
+              { to: "/", icon: faClock, label: "Avgångar" },
+              // { to: "/favorites", icon: faStar, label: "Favoriter" },
+              { to: "/disruptions", icon: faTriangleExclamation, label: "Störningar" },
+              { to: "/settings", icon: faSliders, label: "Inställningar" }
             ].map(({ to, icon, label }) => (
               <NavLink
                 key={to}
                 to={to}
-                className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${isActive ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 scale-105' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-[1.02]'}`}
+                className={({ isActive }) => `flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-[15px] transition-all duration-300 group relative overflow-hidden ${isActive
+                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25 translate-x-2'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 hover:shadow-md hover:shadow-slate-200/50 dark:hover:shadow-none hover:translate-x-1'}`}
               >
                 {({ isActive }) => (
                   <>
-                    <FontAwesomeIcon icon={icon} className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
-                    {label}
+                    <FontAwesomeIcon icon={icon} className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                    <span className="relative z-10">{label}</span>
+                    {isActive && <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/20"></div>}
                   </>
                 )}
               </NavLink>
             ))}
           </nav>
 
-          <div className="mt-6 mb-6">
-          </div>
+
         </div>
 
-        <div className="mt-auto p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+        <div className="mt-auto p-8 space-y-6">
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            className="w-full group flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all"
           >
-            {isFullscreen ? <FontAwesomeIcon icon={faCompress} className="w-5 h-5" /> : <FontAwesomeIcon icon={faExpand} className="w-5 h-5" />}
-            {isFullscreen ? 'Avsluta helskärm' : 'Helskärmsläge'}
+            <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center transition-colors group-hover:bg-sky-100 dark:group-hover:bg-sky-900/30 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+              {isFullscreen ? <FontAwesomeIcon icon={faCompress} className="w-3.5 h-3.5" /> : <FontAwesomeIcon icon={faExpand} className="w-3.5 h-3.5" />}
+            </div>
+            <span>{isFullscreen ? 'Avsluta helskärm' : 'Helskärmsläge'}</span>
           </button>
 
-          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex items-center justify-between">
-            <DigitalClock />
-          </div>
+          {/* Clock Removed */}
         </div>
-      </aside>
+      </aside >
 
       {/* --- MAIN CONTENT AREA --- */}
       <div className="flex-1 flex flex-col h-full relative w-full">
-        {/* Header - Mobile Only */}
-        <header className="md:hidden flex-none bg-sky-400 dark:bg-slate-900 text-white shadow-lg z-[60] pt-safe-top relative overflow-hidden transition-colors">
-
-          <div className="max-w-4xl mx-auto w-full px-4 h-14 flex items-center justify-between relative z-10">
+        {/* Header - Mobile Only - Polished Glass Plus */}
+        <header className="md:hidden flex-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 z-[60] pt-safe-top sticky top-0 transition-colors duration-300">
+          <div className="max-w-4xl mx-auto w-full px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Iconic "Old Resmus" Bus Button - Modernized */}
-              <div className="w-9 h-9 bg-sky-500 text-white dark:bg-sky-500 dark:text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-900/10 border border-sky-600 backdrop-blur-sm">
-                <FontAwesomeIcon icon={faBus} className="text-sm transform -scale-x-100" />
+              {/* Logo / Icon */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-sky-500 blur-sm opacity-20 rounded-xl"></div>
+                <div className="w-9 h-9 bg-gradient-to-br from-sky-400 to-sky-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20 relative z-10">
+                  <FontAwesomeIcon icon={faBus} className="text-sm transform -scale-x-100" />
+                </div>
               </div>
-              <div className="flex flex-col justify-center">
-                <span className="font-black text-xl tracking-tighter text-white drop-shadow-sm">Resmus</span>
-              </div>
+              <span className="font-black text-xl tracking-tighter text-slate-800 dark:text-white leading-none">Resmus</span>
             </div>
-            <div className="bg-white/10 dark:bg-white/5 px-3 py-1 rounded-full border border-white/20 text-xs backdrop-blur-md shadow-inner font-bold tracking-wider text-white/90">
-              <DigitalClock />
-            </div>
+
+            {/* Clock Removed */}
           </div>
         </header>
 
         {/* Header - Desktop Only - Search Bar Location */}
-        <header className="hidden md:flex flex-none h-16 items-center justify-between px-8 z-40 bg-slate-50 dark:bg-slate-950">
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
-            {(() => {
-              if (location.pathname === '/') return 'Avgångar';
-              if (location.pathname === '/favorites') return 'Favoriter';
-              if (location.pathname === '/map') return 'Karta';
-              if (location.pathname === '/disruptions') return 'Störningar';
-              if (location.pathname === '/settings') return 'Inställningar';
-              if (location.pathname === '/search') return 'Reseplanerare';
-              return 'Resmus';
-            })()}
-          </h2>
+        <header className="hidden md:flex flex-none h-24 items-center justify-between px-12 z-40">
+          <div>
+            <h2 className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter drop-shadow-sm leading-none mb-1">
+              {(() => {
+                const path = location.pathname;
+                if (path === '/') return 'Avgångar';
+                if (path === '/favorites') return 'Favoriter';
+                if (path === '/map') return 'Karta';
+                if (path === '/disruptions') return 'Störningar';
+                if (path === '/settings') return 'Inställningar';
+                if (path === '/search') return 'Reseplanerare';
+                return 'Resmus';
+              })()}
+            </h2>
+            <p className="text-slate-400 dark:text-slate-500 font-medium text-sm">
+              {(() => {
+                const path = location.pathname;
+                if (path === '/') return 'Hitta din nästa resa';
+                if (path === '/disruptions') return 'Trafikläget just nu';
+                if (path === '/settings') return 'Anpassa din upplevelse';
+                return 'Stockholm & Västra Götaland';
+              })()}
+            </p>
+          </div>
         </header>
 
         {/* Content Body */}
-        <main className={`flex-1 relative overflow-hidden w-full bg-slate-100 dark:bg-black transition-all duration-300 ${isFullscreen ? 'p-0' : 'md:p-6'}`}>
-          <div className={`h-full w-full mx-auto bg-slate-50 dark:bg-slate-950 shadow-2xl relative flex flex-col overflow-hidden transition-all duration-300
+        <main className={`flex-1 relative overflow-hidden w-full transition-all duration-500 ease-out ${isFullscreen ? 'p-0' : 'md:p-8 md:pt-0'}`}>
+          <div className={`h-full w-full mx-auto bg-white/40 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:shadow-black/50 relative flex flex-col overflow-hidden transition-all duration-500 border border-white/20 dark:border-white/10
                     ${isFullscreen
               ? 'max-w-none rounded-none border-none'
-              : 'w-full md:w-[96%] md:h-[96%] md:rounded-[2rem] md:border border-slate-200 dark:border-slate-800'
+              : 'w-full md:rounded-[3rem]'
             }
                 `}>
 
@@ -183,6 +201,7 @@ const AppContent = () => {
 
             <Routes>
               <Route path="/" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><DeparturesBoard mode="departures" /></div>} />
+              <Route path="/station/:stationId" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><DeparturesBoard mode="departures" /></div>} />
               <Route path="/favorites" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><FavoritesView /></div>} />
               <Route path="/disruptions" element={<div className="h-full flex flex-col animate-in fade-in duration-300"><TrafficDisruptions /></div>} />
 
@@ -219,32 +238,30 @@ const AppContent = () => {
           </div>
         </main>
 
-        {/* Footer Navigation - MOBILE ONLY */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sky-400 pb-safe pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-sky-500">
-          <div className="flex justify-around items-end h-14">
+        {/* Footer Navigation - MOBILE ONLY - Fixed Bottom Safe Area */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe shadow-lg">
+          <div className="flex justify-between items-center h-16 px-8">
             {[
-              { to: "/", icon: faList, label: "Avgångar" },
-              { to: "/map", icon: faGlobe, label: "Karta" },
-              { to: "/disruptions", icon: faExclamationTriangle, label: "Info" },
-              { to: "/settings", icon: faCog, label: "Mer" }
+              { to: "/", icon: faClock, label: "Avgångar" },
+              { to: "/search", icon: faSearch, label: "Sök Resa" }, // Added Search per request
+              { to: "/disruptions", icon: faTriangleExclamation, label: "Störningar" }, // Changed Label to "Störningar" to match header, removed "Info"
+              { to: "/settings", icon: faSliders, label: "Mer" }
             ].map(({ to, icon, label }) => (
-              <NavLink key={to} to={to} className={({ isActive }) => `flex-1 flex flex-col items-center justify-center h-full gap-1 transition-all active:scale-95 ${isActive ? 'text-white' : 'text-white/60 hover:text-white/80'}`}>
-                {({ isActive }) => (
-                  <>
-                    <div className={`p-1 rounded-full transition-all ${isActive ? 'bg-white/10' : ''}`}>
-                      <FontAwesomeIcon icon={icon} className="text-xl" />
-                    </div>
-                    <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
-                      {label}
-                    </span>
-                  </>
-                )}
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `flex flex-col items-center justify-center gap-1 transition-all duration-300 ${isActive ? 'text-sky-500 dark:text-sky-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+              >
+                <FontAwesomeIcon icon={icon} className="text-xl mb-0.5" />
+                <span className="text-[10px] font-bold tracking-wide">
+                  {label}
+                </span>
               </NavLink>
             ))}
           </div>
         </nav>
       </div>
-    </div>
+    </div >
   );
 };
 
@@ -252,9 +269,11 @@ export default () => (
   <ThemeProvider>
     <TranslationProvider>
       <ToastProvider>
-        <HashRouter>
-          <AppContent />
-        </HashRouter>
+        <TripMonitorProvider>
+          <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AppContent />
+          </HashRouter>
+        </TripMonitorProvider>
       </ToastProvider>
     </TranslationProvider>
   </ThemeProvider>

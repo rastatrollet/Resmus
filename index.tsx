@@ -9,7 +9,14 @@ import './index.css';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Service worker registration removed as PWA is not fully configured yet
+// Service Worker Registration
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('SW registered: ', reg))
+      .catch(err => console.log('SW registration failed: ', err));
+  });
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Departure, Station, Provider, JourneyDetail, TrafficSituation } from '../types';
 import { TransitService } from '../services/transitService';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MapPin, Navigation } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faMapPin, faArrowUp, faArrowDown, faChevronUp, faExclamationCircle, faExclamationTriangle, faArrowsAltV, faCalendarAlt, faTimes, faBus, faLocationArrow, faTram, faShip, faBan, faStar, faTrash, faWalking, faTaxi, faFilter, faChevronLeft, faChevronRight, faInfoCircle, faClock, faGlobe, faMap, faTrain, faSubway, faMapMarkerAlt, faLocationDot, faSearchPlus, faSearchMinus } from '@fortawesome/free-solid-svg-icons';
 import { DepartureSkeleton, ThemedSpinner } from './Loaders';
@@ -10,6 +12,8 @@ import { useAlarms } from '../hooks/useAlarms';
 
 const DepartureRouteMap = React.lazy(() => import('./DepartureRouteMap').then(module => ({ default: module.DepartureRouteMap })));
 const TripPlanner = React.lazy(() => import('./TripPlanner').then(module => ({ default: module.TripPlanner })));
+import { MonitorTripButton } from './MonitorTripButton';
+import { DepartureDetailsModal } from './DepartureDetailsModal';
 
 interface DeparturesBoardProps {
   initialStation?: Station;
@@ -54,7 +58,7 @@ const DepartureRow = React.memo(({
     <div className="group/row">
       <div
         onClick={() => toggleExpand(dep)}
-        className={`relative ${isDense ? 'px-2 py-1' : 'px-3 py-2.5'} hover:bg-sky-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group border-b border-slate-100 dark:border-slate-800/50 ${isCancelled ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}
+        className={`relative ${isDense ? 'px-2 py-1' : 'px-3 py-2'} hover:bg-sky-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group border-b border-slate-100 dark:border-slate-800/50 ${isCancelled ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}
       >
         <div className="flex items-center gap-3">
           {/* Line Badge - Compact */}
@@ -72,11 +76,24 @@ const DepartureRow = React.memo(({
 
           {/* Destination */}
           <div className="flex-1 min-w-0 pr-2">
-            <div className="flex items-center gap-1.5">
-              <span className={`${isDense ? 'text-xs' : 'text-sm'} font-bold truncate ${isCancelled ? 'text-red-700 dark:text-red-400 line-through decoration-red-500 decoration-2' : 'text-slate-900 dark:text-slate-100'}`}>
-                {displayDirection}
-              </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className={`${isDense ? 'text-xs' : 'text-sm'} font-bold truncate ${isCancelled ? 'text-red-700 dark:text-red-400 line-through decoration-red-500 decoration-2' : 'text-slate-900 dark:text-slate-100'}`}>
+                  {displayDirection}
+                </span>
+              </div>
+              {dep.track === 'X' && (
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                  <FontAwesomeIcon icon={faTaxi} className="text-amber-500" />
+                  <span className="text-amber-600 dark:text-amber-500">Turen behöver förbeställas 1h innan</span>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Watch Button */}
+          <div className="mr-2">
+            <MonitorTripButton departure={dep} />
           </div>
 
           {/* Time & Track */}
@@ -129,6 +146,15 @@ const DisruptionInfoIcon = () => (
     aria-label="Trafikstörning"
   >
     <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 0 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+  </svg>
+);
+
+const StationHIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M10 8v8" />
+    <path d="M14 8v8" />
+    <path d="M10 12h4" />
   </svg>
 );
 
@@ -259,12 +285,53 @@ import { useToast } from './ToastProvider';
 export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation, mode = 'departures' }) => {
   const toast = useToast();
   const { addAlarm, alarms } = useAlarms();
+  const { stationId } = useParams();
+  const navigate = useNavigate();
+
   // View Mode State (Station vs Trip Planner)
   const [rootView, setRootView] = useState<'station' | 'planner'>('station');
 
   // Search & Station State
   const [query, setQuery] = useState('');
   const [station, setStation] = useState<Station | null>(initialStation || null);
+
+  // Sync station with URL
+  useEffect(() => {
+    if (stationId && (!station || station.id !== stationId)) {
+      // If we have an ID but no station object (or mismatch), we need to fetch/create it.
+      // Since we don't have a direct "getStationById" that returns full name/coords easily for all providers,
+      // we might need to rely on what we can get. 
+      // For now, let's try to mock a station object or use a service if available.
+      // Or, better, assume we might need to fetch departures to confirm station name if not known.
+      // A simple workaround: Create a dummy station with the ID and let the fetchDepartures logic handle it.
+      // If fetchDepartures returns data, we can potentialy extract the real station name from the first departure's stopPoint.
+
+      const potentialProvider = (localStorage.getItem('resmus_storage_provider') as Provider) || Provider.VASTTRAFIK;
+
+      // Attempt to set a temporary station object
+      setStation({
+        id: stationId,
+        name: "Laddar station...", // Placeholder
+        provider: potentialProvider,
+        coords: { lat: 0, lng: 0 }
+      });
+      // The main fetch effect will trigger on 'station' change. 
+      // We might want to refine the name later if possible.
+    } else if (!stationId && station && location.pathname === '/') {
+      // If we navigated to root and had a station, maybe keep it or clear it? 
+      // User behavior: if they click "Avgångar" (root), they might expect reset. 
+      // For now, let's not clear it aggressively unless explicit.
+    }
+  }, [stationId]);
+
+  // Update existing handleSelectStation to navigate
+  const handleSelectStation = (s: Station) => {
+    setStation(s);
+    setQuery('');
+    setSearchResults([]);
+    setDepartures([]);
+    navigate(`/station/${s.id}`, { replace: true });
+  };
   const [provider, setProvider] = useState<Provider>(() => {
     return (localStorage.getItem('resmus_storage_provider') as Provider) || Provider.VASTTRAFIK;
   });
@@ -502,6 +569,14 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
       }
     };
 
+    if (station && station.name === 'Laddar station...' && departures.length > 0) {
+      // Auto-correct station name from first departure
+      const realName = departures[0].stopPoint.name;
+      if (realName) {
+        setStation(prev => prev ? { ...prev, name: realName } : prev);
+      }
+    }
+
     fetchData();
     intervalId = setInterval(fetchData, 60000);
 
@@ -567,15 +642,13 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
   const toggleSort = () => setSortMode(prev => prev === 'time' ? 'line' : 'time');
 
-  const handleSelectStation = (s: Station) => {
-    setStation(s);
-    setQuery('');
-    setSearchResults([]);
-    setDepartures([]);
-  };
+
 
   const getTransportIcon = (type: string | undefined, size = 16) => {
     const t = (type || '').toUpperCase();
+
+    // Metro / Tunnelbana
+    if (t.includes('METRO') || t.includes('TUNNELBANA')) return <FontAwesomeIcon icon={faSubway} className={`text-[${size}px]`} />;
 
     // Tram / Spårvagn
     if (t.includes('TRAM') || t.includes('SPÅRVAGN') || t.includes('SPARVAGN')) return <FontAwesomeIcon icon={faTram} className={`text-[${size}px]`} />;
@@ -701,7 +774,12 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
       if (dep.serviceJourneyGid) {
         TransitService.getJourneyDisruptions(dep.serviceJourneyGid).then(disruptions => {
           if (expandedDepartureId === dep.id) {
-            setSpecificDisruptions(disruptions);
+            // Filter out disruptions that affect strictly other lines
+            const relevant = disruptions.filter(d => {
+              if (!d.affectedLines || d.affectedLines.length === 0) return true;
+              return d.affectedLines.some((l: any) => l.designation === dep.line);
+            });
+            setSpecificDisruptions(relevant);
           }
         });
       }
@@ -790,22 +868,38 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
   }, [station]);
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
 
       {/* --- Root Mode Switcher (Compact) --- */}
-      <div className="flex-none z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-sky-100 dark:border-slate-800 px-4 py-2">
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl max-w-sm mx-auto w-full">
+      {/* --- Root Mode Switcher (Enhanced Design) --- */}
+      <div className="flex-none z-30 bg-white/60 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm border-b border-slate-200/50 dark:border-slate-800/50 px-6 py-4">
+        <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-full max-w-sm mx-auto w-full shadow-inner ring-1 ring-black/5 dark:ring-white/5">
           <button
             onClick={() => setRootView('station')}
-            className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 ${rootView === 'station' ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200/50'}`}
+            className={`relative flex-1 py-2.5 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold tracking-tight overflow-hidden group ${rootView === 'station'
+              ? 'bg-[#0095eb] text-white shadow-md shadow-sky-500/20 ring-1 ring-white/20 scale-[1.02]'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
+              }`}
           >
-            <FontAwesomeIcon icon={faMapPin} className="text-sm" />Hållplats
+            <StationHIcon
+              className={`w-5 h-5 transition-transform duration-300 ${rootView === 'station' ? 'scale-110' : 'group-hover:scale-110 opacity-70'}`}
+            />
+            <span>Hållplats</span>
           </button>
+
           <button
             onClick={() => setRootView('planner')}
-            className={`flex-1 py-1.5 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 ${rootView === 'planner' ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200/50'}`}
+            className={`relative flex-1 py-2.5 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold tracking-tight overflow-hidden group ${rootView === 'planner'
+              ? 'bg-[#0095eb] text-white shadow-md shadow-sky-500/20 ring-1 ring-white/20 scale-[1.02]'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
+              }`}
           >
-            <FontAwesomeIcon icon={faLocationArrow} className="text-sm" />Sök Resa
+            <Navigation
+              className={`w-4 h-4 transition-transform duration-300 ${rootView === 'planner' ? 'scale-110' : 'group-hover:scale-110 opacity-70'}`}
+              strokeWidth={2.5}
+              fill={rootView === 'planner' ? "currentColor" : "none"}
+            />
+            <span>Sök Resa</span>
           </button>
         </div>
       </div>
@@ -844,7 +938,8 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                       <button
                         onClick={() => {
                           let next: Provider;
-                          if (provider === Provider.VASTTRAFIK) next = Provider.TRAFIKVERKET;
+                          if (provider === Provider.VASTTRAFIK) next = Provider.SL;
+                          else if (provider === Provider.SL) next = Provider.TRAFIKVERKET;
                           else if (provider === Provider.TRAFIKVERKET) next = Provider.RESROBOT;
                           else next = Provider.VASTTRAFIK;
 
@@ -854,21 +949,42 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                           setStation(null);
                           setDepartures([]);
                         }}
-                        className={`p-1.5 rounded-full transition-colors flex items-center justify-center w-7 h-7
-                            ${provider === Provider.RESROBOT ? 'text-sky-600 bg-sky-50' :
-                            provider === Provider.TRAFIKVERKET ? 'text-red-600 bg-red-50' :
-                              'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}
+                        className="group relative flex items-center justify-center transition-transform hover:scale-110 active:scale-95 focus:outline-none"
                         title={
                           provider === Provider.VASTTRAFIK ? "Källa: Västtrafik (Klicka för att byta)" :
-                            provider === Provider.TRAFIKVERKET ? "Källa: Trafikverket (Tåg)" :
-                              "Källa: Resrobot (Hela Sverige)"
+                            provider === Provider.SL ? "Källa: SL (Stockholm)" :
+                              provider === Provider.TRAFIKVERKET ? "Källa: Trafikverket (Tåg)" :
+                                "Källa: Resrobot (Hela Sverige)"
                         }
                       >
-                        {provider === Provider.TRAFIKVERKET ? (
-                          <span className="font-bold text-[10px] tracking-tighter">TV</span>
-                        ) : (
-                          <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                        {/* Brand Badges */}
+                        {provider === Provider.VASTTRAFIK && (
+                          <div className="w-7 h-7 rounded-full bg-[#0095eb] flex items-center justify-center shadow-sm border border-white/20">
+                            <span className="font-black text-white text-[10px] tracking-tighter leading-none mt-[1px]">VT</span>
+                          </div>
                         )}
+
+                        {provider === Provider.SL && (
+                          <div className="w-7 h-7 rounded-full bg-[#0078bf] flex items-center justify-center shadow-sm border border-white/20">
+                            <span className="font-black text-white text-[10px] tracking-tighter leading-none mt-[1px]">SL</span>
+                          </div>
+                        )}
+
+                        {provider === Provider.TRAFIKVERKET && (
+                          <div className="w-7 h-7 rounded-full bg-[#d2232a] flex items-center justify-center shadow-sm border border-white/20">
+                            <span className="font-black text-white text-[10px] tracking-tighter leading-none mt-[1px]">TrV</span>
+                          </div>
+                        )}
+
+                        {provider === Provider.RESROBOT && (
+                          <div className="w-7 h-7 rounded-full bg-[#1f2937] flex items-center justify-center shadow-sm border border-white/20">
+                            <span className="font-black text-[#8cc63f] text-[10px] tracking-tighter leading-none mt-[1px]">RR</span>
+                          </div>
+                        )}
+
+                        <div className="absolute top-full mt-2 right-0 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                          Byt källa
+                        </div>
                       </button>
                     )}
 
@@ -882,7 +998,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                       {/* No Results Message */}
                       {query && searchResults.length === 0 && !isSearching && (
                         <div className="px-4 py-3 text-slate-500 dark:text-slate-400 text-sm text-center italic">
-                          Inga hållplatser hittades via {provider === Provider.VASTTRAFIK ? 'Västtrafik' : provider === Provider.TRAFIKVERKET ? 'Trafikverket' : 'Resrobot'}.
+                          Inga hållplatser hittades via {provider === Provider.VASTTRAFIK ? 'Västtrafik' : provider === Provider.SL ? 'SL' : provider === Provider.TRAFIKVERKET ? 'Trafikverket' : 'Resrobot'}.
                           <br /><span className="text-xs opacity-70">Prova att byta sökkälla med knappen till höger.</span>
                         </div>
                       )}
@@ -901,9 +1017,26 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                       )}
 
                       {searchResults.map((s, idx) => (
-                        <button key={`${s.id}-${idx}`} onClick={() => handleSelectStation(s)} className="w-full text-left px-4 py-2.5 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center gap-3 border-b border-slate-50 dark:border-slate-800">
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600"><FontAwesomeIcon icon={faMapPin} className="text-sm" /></div>
-                          <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">{s.name}</div>
+                        <button
+                          key={`${s.id}-${idx}`}
+                          onClick={() => handleSelectStation(s)}
+                          className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center gap-3.5 transition-colors group relative border-b border-slate-50 dark:border-slate-800/50 last:border-0"
+                        >
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-all group-hover:scale-105 group-hover:shadow-md ${provider === Provider.SL ? 'bg-blue-100 text-[#0078bf] dark:bg-[#0078bf]/20 dark:text-[#0078bf]' :
+                            provider === Provider.VASTTRAFIK ? 'bg-sky-100 text-[#0095eb] dark:bg-[#0095eb]/20 dark:text-[#0095eb]' :
+                              provider === Provider.TRAFIKVERKET ? 'bg-red-100 text-[#d2232a] dark:bg-[#d2232a]/20 dark:text-[#d2232a]' :
+                                'bg-green-100 text-[#8cc63f] dark:bg-[#8cc63f]/20 dark:text-[#8cc63f]'
+                            }`}>
+                            <FontAwesomeIcon icon={faMapPin} className="text-sm" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                              {s.name}
+                            </div>
+                          </div>
+
+                          <FontAwesomeIcon icon={faChevronRight} className="text-slate-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-xs" />
                         </button>
                       ))}
                     </div>
@@ -915,28 +1048,120 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
 
 
 
-          {/* STATION HEADER - VISIBLE ONLY WHEN STATION IS SELECTED - MOVED BELOW BLUE HEADER */}
           {
             station && (
-              <div className="flex-none z-20 bg-white dark:bg-slate-900 shadow-sm pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex flex-col px-4 pt-4 animate-in slide-in-from-top-4 fade-in duration-500">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0 mr-2">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <h1 className="text-2xl font-black text-slate-800 dark:text-white truncate tracking-tight">{station.name}</h1>
+              <div className="flex-none z-20 bg-transparent shadow-sm pb-1 border-b border-white/20 dark:border-white/5">
+                <div className="px-3 pt-3 pb-1 animate-in slide-in-from-top-4 fade-in duration-500">
 
+                  {/* COMPACT ROW: Name + Tools */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
 
+                    {/* Left: Station & Weather */}
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                      <h1 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white truncate tracking-tight leading-none">
+                        {station.name}
+                      </h1>
 
-
-                        <div className="bg-sky-100 dark:bg-sky-900/30 p-1.5 rounded-full">
-                          <FontAwesomeIcon icon={faLocationDot} className="text-sky-500 text-sm" />
+                      {station.coords && (
+                        <div className="scale-75 origin-left flex-shrink-0 opacity-80">
+                          <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />
                         </div>
-                        {station.coords && <WeatherDisplay lat={station.coords.lat} lon={station.coords.lng} />}
+                      )}
+
+                      <div className="flex gap-0.5 ml-1 flex-shrink-0 border-l border-slate-200 dark:border-slate-700 pl-2">
+                        <button
+                          onClick={() => toggleFavorite(station)}
+                          className={`p-1.5 rounded-full transition-all hover:bg-slate-100 dark:hover:bg-slate-800 ${isStationFavorite(station) ? 'text-yellow-500' : 'text-slate-300 hover:text-slate-400'}`}
+                        >
+                          <FontAwesomeIcon icon={faStar} className="text-xs" />
+                        </button>
+                        <button
+                          onClick={() => setStation(null)}
+                          className="p-1.5 text-slate-300 hover:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                        >
+                          <FontAwesomeIcon icon={faTimes} className="text-xs" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right: Compact Toolbar */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* View Mode (Avg/Ank) - Text Links */}
+                      <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 mr-1.5">
+                        <button
+                          onClick={() => setViewMode('departures')}
+                          className={`px-2 py-1 text-[10px] font-bold rounded ${viewMode === 'departures' ? 'bg-white dark:bg-slate-700 shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          Avg
+                        </button>
+                        <button
+                          onClick={() => setViewMode('arrivals')}
+                          className={`px-2 py-1 text-[10px] font-bold rounded ${viewMode === 'arrivals' ? 'bg-white dark:bg-slate-700 shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                          Ank
+                        </button>
                       </div>
 
-                      {/* Show withdrawn lines */}
+                      {/* Tools Group */}
+                      <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800/50 rounded-full px-1 border border-slate-100 dark:border-slate-800">
+
+                        {/* Time */}
+                        <div className="relative flex items-center justify-center w-7 h-7">
+                          <button className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${customTime ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-sky-600'}`} title="Välj tid">
+                            <FontAwesomeIcon icon={faCalendarAlt} className="text-xs" />
+                          </button>
+                          <input type="datetime-local" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onChange={(e) => setCustomTime(e.target.value)} />
+                        </div>
+
+                        {/* Clock/Min Toggle */}
+                        <button onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')} className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-sky-600 transition-colors" title="Växla tidsvisning">
+                          {timeDisplayMode === 'minutes' ? <span className="text-[9px] font-bold">MIN</span> : <FontAwesomeIcon icon={faClock} className="text-xs" />}
+                        </button>
+
+                        {/* Zoom */}
+                        <button onClick={() => setIsDense(!isDense)} className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${isDense ? 'text-sky-600 bg-sky-50 dark:bg-sky-900/20' : 'text-slate-400 hover:text-sky-600'}`} title="Kompakt läge">
+                          <FontAwesomeIcon icon={isDense ? faSearchPlus : faSearchMinus} className="text-xs" />
+                        </button>
+
+                        {/* Filter */}
+                        <div className="relative">
+                          <button onClick={() => setShowFilterMenu(!showFilterMenu)} className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${transportFilter !== 'all' ? 'text-amber-600 bg-amber-50' : 'text-slate-400 hover:text-sky-600'}`} title="Filtrera">
+                            <FontAwesomeIcon icon={faFilter} className="text-xs" />
+                          </button>
+                          {showFilterMenu && (
+                            <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 w-40 animate-in fade-in zoom-in-95">
+                              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">Visa</h4>
+                              {[
+                                { id: 'all', label: 'Alla', icon: null },
+                                { id: 'BUS', label: 'Buss', icon: faBus },
+                                { id: 'METRO', label: 'Tunnelbana', icon: faSubway },
+                                { id: 'TRAM', label: 'Spårvagn', icon: faTram },
+                                { id: 'TRAIN', label: 'Tåg', icon: faTrain },
+                                { id: 'FERRY', label: 'Färja', icon: faShip }
+                              ].map(opt => (
+                                <button
+                                  key={opt.id}
+                                  onClick={() => { setTransportFilter(opt.id); setShowFilterMenu(false); }}
+                                  className={`w-full text-left px-2 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 ${transportFilter === opt.id ? 'bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                  {opt.icon && <FontAwesomeIcon icon={opt.icon} className="w-4 text-center" />}
+                                  <span className={!opt.icon ? 'pl-6' : ''}>{opt.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* ALERTS SECTION (Withdrawn & Disruptions) - Only if exists */}
+                  {(withdrawnLines.size > 0 || stationDisruptions.length > 0) && (
+                    <div className="space-y-2 mb-2">
+                      {/* Withdrawn */}
                       {withdrawnLines.size > 0 && (
-                        <div className="mt-1 flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
+                        <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md border border-red-100 dark:border-red-900/30">
                           <FontAwesomeIcon icon={faExclamationCircle} className="text-sm" />
                           <span className="text-xs font-bold uppercase tracking-wide">
                             Linje {Array.from(withdrawnLines).join(', ')} indragen
@@ -944,15 +1169,11 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                         </div>
                       )}
 
-                      {/* Station Disruptions - "Mini snygg ruta" */}
+                      {/* Station Disruptions */}
                       {stationDisruptions.length > 0 && (
-                        <div className="mt-2 text-left">
-                          {/* Always use the collapsible "Mini" style, but red if severe */}
-                          <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2.5 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.98]`}
+                        <div className="text-left">
+                          <div className={`bg-gradient-to-r ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200/50 dark:border-red-700/30' : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/30'} border rounded-xl p-2 flex items-start gap-2.5 shadow-sm group cursor-pointer relative overflow-hidden transition-all active:scale-[0.99]`}
                             onClick={() => setShowDisruptionDetails(!showDisruptionDetails)}>
-
-                            {/* Decorative Background Element */}
-                            <div className={`absolute -right-2 -top-2 w-8 h-8 rounded-full ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? 'bg-red-400/10 dark:bg-red-500/10' : 'bg-amber-400/10 dark:bg-amber-500/10'} blur-xl`}></div>
 
                             <div className="flex-1 min-w-0 pl-1">
                               <p className={`text-[11px] font-medium ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-900 dark:text-red-200" : "text-amber-900 dark:text-amber-200"} leading-relaxed`}>
@@ -973,12 +1194,9 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                                   return `Trafikläge: ${scope} ${status}. ${d.description}`;
                                 })()}
                               </p>
-
-                              {stationDisruptions.length > 1 && (
-                                <div className="mt-1.5 pt-1.5 border-t border-black/5 dark:border-white/10">
-                                  <span className={`text-[9px] font-bold ${stationDisruptions.some((d: any) => d.severity === 'severe' || d.title.toLowerCase().includes('indragen')) ? "text-red-700/70 dark:text-red-400" : "text-amber-700/70 dark:text-amber-400"}`}>
-                                    +{stationDisruptions.length - 1} meddelande(n) till
-                                  </span>
+                              {stationDisruptions.length > 1 && !showDisruptionDetails && (
+                                <div className="mt-0.5 text-[9px] font-bold opacity-60">
+                                  +{stationDisruptions.length - 1} meddelande(n) till
                                 </div>
                               )}
                             </div>
@@ -988,7 +1206,7 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                             </div>
                           </div>
 
-                          {/* Expanded Details - Only show remaining messages if needed */}
+                          {/* Details */}
                           {showDisruptionDetails && stationDisruptions.length > 0 && (
                             <div className="mt-2 pl-3 space-y-2 animate-in slide-in-from-top-2 fade-in">
                               {stationDisruptions.map((d, index) => (
@@ -1004,24 +1222,16 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                         </div>
                       )}
                     </div>
-
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => toggleFavorite(station)}
-                        className={`p-2 rounded-full transition-all ${isStationFavorite(station) ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600'}`}
-                      >
-                        <FontAwesomeIcon icon={faStar} className="text-lg" />
-                      </button>
-                      <button onClick={() => setStation(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
-                        <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                      </button>
-                    </div>
-                  </div>
+                  )}
 
                 </div>
+
               </div>
             )
           }
+
+          {/* Controls Bar - Discrete & Clean */}
+
 
           {/* Blue Header Bar (With Integrated Controls) */}
           {
@@ -1043,98 +1253,9 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
                   {/* Right: Time & Track */}
                   <div className="flex items-center gap-2 pl-2 text-right">
                     <div className="min-w-[3.5rem]">Tid</div>
-                    <div className="w-14 text-center text-[10px] font-bold tracking-tight">NY TID</div>
+                    <div className="w-14 text-center">NY TID</div>
                     <div className="w-8 md:w-9 text-center">Läge</div>
                   </div>
-                </div>
-
-                {/* Centered View Controls (Floating) - Modernized */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-sky-600/95 rounded-full px-2 py-0.5 shadow-lg backdrop-blur-sm border border-sky-400/30 ring-1 ring-black/5 z-20">
-                  {/* Avg/Ank Toggles */}
-                  <button
-                    onClick={() => setViewMode('departures')}
-                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${viewMode === 'departures' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                    title="Avgångar"
-                  >
-                    <FontAwesomeIcon icon={faArrowUp} className={`text-sm ${viewMode === 'departures' ? 'rotate-45' : ''} transition-transform`} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('arrivals')}
-                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all duration-300 ${viewMode === 'arrivals' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                    title="Ankomster"
-                  >
-                    <FontAwesomeIcon icon={faArrowDown} className={`text-sm ${viewMode === 'arrivals' ? 'rotate-45' : ''} transition-transform`} />
-                  </button>
-
-                  <div className="w-[1px] h-3 bg-sky-400/40 mx-0.5"></div>
-
-                  {/* Time Picker */}
-                  <div className="relative flex items-center justify-center w-9 h-9 group">
-                    <button className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${customTime ? 'bg-amber-400 text-amber-900 border border-amber-500 scale-105' : 'text-sky-200 group-hover:text-white group-hover:bg-sky-500/50'}`} title={customTime ? `Vald tid: ${new Date(customTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Välj tid"}>
-                      <FontAwesomeIcon icon={faCalendarAlt} className="text-xs" />
-                    </button>
-                    <input
-                      type="datetime-local"
-                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                      onChange={(e) => setCustomTime(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Min/Tid Toggle */}
-                  <button
-                    onClick={() => setTimeDisplayMode(timeDisplayMode === 'minutes' ? 'clock' : 'minutes')}
-                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${timeDisplayMode === 'minutes' ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                    title={timeDisplayMode === 'minutes' ? 'Byt till klocktid' : 'Byt till minuter'}
-                  >
-                    {timeDisplayMode === 'minutes' ? <span className="text-[9px] font-bold">MIN</span> : <FontAwesomeIcon icon={faClock} className="text-xs" />}
-                  </button>
-
-                  <div className="w-[1px] h-4 bg-sky-400/40 mx-1"></div>
-
-                  {/* Zoom Toggle */}
-                  <button
-                    onClick={() => setIsDense(!isDense)}
-                    className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${isDense ? 'bg-white text-sky-600 shadow-sm scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                    title={isDense ? "Zooma in" : "Zooma ut"}
-                  >
-                    <FontAwesomeIcon icon={isDense ? faSearchPlus : faSearchMinus} className="text-xs" />
-                  </button>
-
-                  <div className="w-[1px] h-3 bg-sky-400/40 mx-0.5"></div>
-
-                  {/* Filter Toggle */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowFilterMenu(!showFilterMenu)}
-                      className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${transportFilter !== 'all' ? 'bg-amber-400 text-amber-900 border border-amber-500 scale-105' : 'text-sky-200 hover:text-white hover:bg-sky-500/50'}`}
-                      title="Filtrera trafikslag"
-                    >
-                      <FontAwesomeIcon icon={faFilter} className="text-xs" />
-                    </button>
-
-                    {showFilterMenu && (
-                      <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 w-40 animate-in fade-in zoom-in-95">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2">Visa</h4>
-                        {[
-                          { id: 'all', label: 'Alla', icon: null },
-                          { id: 'BUS', label: 'Buss', icon: faBus },
-                          { id: 'TRAM', label: 'Spårvagn', icon: faTram },
-                          { id: 'TRAIN', label: 'Tåg', icon: faTrain },
-                          { id: 'FERRY', label: 'Färja', icon: faShip }
-                        ].map(opt => (
-                          <button
-                            key={opt.id}
-                            onClick={() => { setTransportFilter(opt.id); setShowFilterMenu(false); }}
-                            className={`w-full text-left px-2 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 ${transportFilter === opt.id ? 'bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                          >
-                            {opt.icon && <FontAwesomeIcon icon={opt.icon} className="w-4 text-center" />}
-                            <span className={!opt.icon ? 'pl-6' : ''}>{opt.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
                 </div>
 
               </div>
@@ -1217,266 +1338,18 @@ export const DeparturesBoard: React.FC<DeparturesBoardProps> = ({ initialStation
       )
       }
       {/* Modal Overlay for Expanded Details */}
+      {/* Modal Overlay for Expanded Details */}
       {
         expandedDepartureId && (() => {
           const dep = departures.find(d => d.id === expandedDepartureId);
           if (!dep) return null;
 
           return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setExpandedDepartureId(null)}>
-              <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300">
-
-                {/* Modal Header */}
-                <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 shrink-0 flex items-start justify-between">
-                  <div className="flex items-start">
-                    {/* Transport Icon Circle */}
-                    <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white mr-3 shadow-md border border-sky-600 shrink-0 self-center">
-                      {(() => {
-                        const t = (dep.type || '').toUpperCase();
-                        if (t.includes('TRAIN') || t.includes('TÅG')) return <FontAwesomeIcon icon={faTrain} />;
-                        if (t.includes('TRAM') || t.includes('SPÅRVAGN')) return <FontAwesomeIcon icon={faTram} />;
-                        if (t.includes('FERRY') || t.includes('BÅT')) return <FontAwesomeIcon icon={faShip} />;
-                        if (t.includes('TAX') || t.includes('TAXI')) return <FontAwesomeIcon icon={faTaxi} />;
-                        return <FontAwesomeIcon icon={faBus} />;
-                      })()}
-                    </div>
-
-                    {/* Line Badge (Number Only - Simplified) */}
-                    <div
-                      className="h-10 px-3 min-w-[3rem] rounded-lg flex items-center justify-center font-bold text-xl shadow-sm mr-3 border-2 shrink-0 self-center"
-                      style={{
-                        backgroundColor: dep.bgColor || '#0ea5e9',
-                        color: dep.fgColor || '#ffffff',
-                        borderColor: dep.fgColor || 'transparent'
-                      }}
-                    >
-                      {dep.line}
-                    </div>
-
-                    <div className="flex flex-col min-w-0">
-                      <div className="font-bold text-lg leading-tight flex items-center gap-2 truncate">
-                        {mode === 'arrivals' ? <span className="text-sm font-normal text-slate-500 uppercase">Från</span> : null}
-                        {dep.direction}
-                        {!mode && <FontAwesomeIcon icon={faChevronRight} className="text-slate-300 text-xs shrink-0" />}
-                      </div>
-                      <div className="flex flex-col mt-1">
-                        <div className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 whitespace-nowrap">
-                          {dep.track && (
-                            <div className="flex items-center gap-1.5 opacity-100">
-                              <FontAwesomeIcon icon={faMapMarkerAlt} className="text-slate-400 text-xs" />
-                              <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-1.5 py-0.5 rounded text-sm font-bold border border-slate-300 dark:border-slate-700 inline-flex items-center gap-1.5 align-middle shadow-sm">
-                                <span className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-1 rounded-[3px] text-[9px] uppercase font-black tracking-wider leading-tight py-[2px]">
-                                  {(() => {
-                                    const t = (dep.type || '').toUpperCase();
-                                    return (t.includes('TRAIN') || t.includes('TÅG')) ? 'SPÅR' : 'LÄGE';
-                                  })()}
-                                </span>
-                                {dep.track}
-                              </span>
-                            </div>
-                          )}
-                          <span className="font-mono tracking-tight text-xl ml-1">
-                            {new Date(dep.timestamp).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        {/* Next Stop Logic */}
-                        {(() => {
-                          const now = Date.now();
-                          const getT = (s: any) => getMs(s?.realtimeDeparture || s?.departureTime || s?.time);
-                          const firstStop = journeyDetails[0];
-
-                          // 1. Check Not Started
-                          if (firstStop) {
-                            const startT = getT(firstStop);
-                            if (startT && startT > now + 60000) {
-                              const diffMins = Math.ceil((startT - now) / 60000);
-                              return (
-                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mt-1">
-                                  <FontAwesomeIcon icon={faClock} />
-                                  Turen har ej startat ännu! Avgår om {diffMins} min.
-                                </div>
-                              )
-                            }
-                          }
-
-                          // 2. Status Info (Late/Early) - Only if started
-                          let statusNode = null;
-                          if (dep.realtime && dep.time) {
-                            const t1 = getMs(dep.time);
-                            const t2 = getMs(dep.realtime);
-                            if (t1 && t2) {
-                              let diff = (t2 - t1) / 60000;
-                              diff = Math.round(diff);
-
-                              let text = "i tid";
-                              let colorClass = "text-green-600 dark:text-green-400";
-
-                              if (diff > 0) {
-                                text = `${diff} min sen`;
-                                colorClass = "text-amber-600 dark:text-amber-400";
-                              } else if (diff < 0) {
-                                text = `${Math.abs(diff)} min tidig`;
-                              }
-
-                              statusNode = (
-                                <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1 ${colorClass}`}>
-                                  <FontAwesomeIcon icon={faInfoCircle} />
-                                  Fordonet är {text}
-                                </div>
-                              );
-                            }
-                          }
-
-                          // 3. Next Stop Info
-                          let nextStopNode = null;
-                          if (nextStop && nextStop.name !== dep.direction) {
-                            nextStopNode = (
-                              <div className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5 mt-1">
-                                <span className="text-base leading-none">•</span>
-                                NÄSTA: {nextStop.name}
-                                {nextStop.track && (
-                                  <span className="ml-1.5 text-[9px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800/50">
-                                    {nextStop.track}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="flex flex-col">
-                              {statusNode}
-                              {nextStopNode}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                  <button onClick={() => { setExpandedDepartureId(null); setNextStop(null); }} className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500">
-                    <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                  </button>
-                </div>
-
-                {/* Action Bar */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                      {detailsUpdatedAt && `Uppdaterad ${detailsUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                    </div>
-                    <div className="flex gap-2">
-                      {/* Map Toggle Button (Moved here) */}
-                      {journeyDetails.length > 0 && journeyDetails.some(d => d.coords) && (
-                        <button
-                          onClick={() => setShowRouteMap(!showRouteMap)}
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${showRouteMap
-                            ? 'bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800'
-                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                            }`}
-                          title="Visa karta"
-                        >
-                          <FontAwesomeIcon icon={faMap} />
-                        </button>
-                      )}
-
-
-                      <button
-                        onClick={() => {
-                          let arrivalTime: string | undefined;
-                          const lastStop = journeyDetails[journeyDetails.length - 1];
-                          if (lastStop) {
-                            arrivalTime = lastStop.realtimeArrival || lastStop.arrivalTime || lastStop.time;
-                            if (arrivalTime && !arrivalTime.includes('T')) {
-                              try {
-                                const [h, m] = arrivalTime.split(':');
-                                const arrivalDate = new Date(dep.timestamp);
-                                arrivalDate.setHours(parseInt(h), parseInt(m));
-                                if (arrivalDate.getTime() < new Date(dep.timestamp).getTime()) {
-                                  arrivalDate.setDate(arrivalDate.getDate() + 1);
-                                }
-                                arrivalTime = arrivalDate.toISOString();
-                              } catch (e) { }
-                            }
-                          }
-
-                          const alarmId = `${dep.id}-${Date.now()}`;
-                          const dueTime = new Date(dep.timestamp);
-                          dueTime.setMinutes(dueTime.getMinutes() - 5);
-
-                          addAlarm({
-                            id: alarmId,
-                            departureTime: dep.timestamp,
-                            dueTime: dueTime.getTime(),
-                            stationName: station?.name || 'Okänd hållplats',
-                            line: dep.line,
-                            direction: dep.direction,
-                            journeyRef: dep.journeyRef,
-                            arrivalTime: arrivalTime
-                          });
-                          toast.success(`Larm satt!`, `Du får notis 5 min innan avgång.`);
-                        }}
-                        className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-sm flex items-center gap-2 transition-transform active:scale-95 ml-auto"
-                      >
-                        <FontAwesomeIcon icon={faClock} />
-                        Bevaka
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Disruption Alert moved out of flex row */}
-                  {((dep.hasDisruption && dep.disruptionMessage) || (specificDisruptions && specificDisruptions.length > 0)) && (
-                    <div className={`p-3 rounded-xl border flex gap-3 items-start ${(specificDisruptions?.some(d => d.severity === 'severe') || (!specificDisruptions && dep.disruptionSeverity === 'severe'))
-                      ? 'bg-red-50 border-red-100 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200'
-                      : 'bg-amber-50 border-amber-100 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200'
-                      }`}>
-                      <FontAwesomeIcon icon={faExclamationTriangle} className="text-base mt-0.5 shrink-0" />
-                      <div className="flex flex-col gap-1 min-w-0">
-                        {specificDisruptions && specificDisruptions.length > 0 ? (
-                          specificDisruptions.map((d, i) => (
-                            <div key={i}>
-                              <div className="text-xs font-bold">{d.title}</div>
-                              <div className="text-[11px] opacity-90 leading-snug">{d.description}</div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-xs font-medium leading-snug">
-                            {dep.disruptionMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4 bg-white dark:bg-slate-900 min-h-[300px]">
-                  {showRouteMap && (
-                    <div className="mb-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 relative shrink-0">
-                      <React.Suspense fallback={<div className="w-full h-full flex items-center justify-center"><ThemedSpinner /></div>}>
-                        <DepartureRouteMap
-                          stops={journeyDetails}
-                          color={dep.bgColor}
-                        />
-                      </React.Suspense>
-                    </div>
-                  )}
-
-                  {loadingDetails ? (
-                    <div className="flex justify-center py-12">
-                      <ThemedSpinner size={32} />
-                    </div>
-                  ) : (
-                    <div className="pb-8">
-                      <JourneyTimeline
-                        stops={journeyDetails}
-                        type={dep.type}
-                        currentStationName={station?.name}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <DepartureDetailsModal
+              departure={dep}
+              stationName={station?.name}
+              onClose={() => setExpandedDepartureId(null)}
+            />
           );
         })()
       }

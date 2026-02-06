@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
-import { ArrowLeft, Trophy, Map, Clock } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faTrophy, faMap, faClock } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 
 export const StatisticsView = () => {
@@ -20,7 +21,7 @@ export const StatisticsView = () => {
                         onClick={() => navigate(-1)}
                         className="p-2 -ml-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                     >
-                        <ArrowLeft size={20} />
+                        <FontAwesomeIcon icon={faArrowLeft} className="text-xl" />
                     </button>
                     <h1 className="font-black text-lg tracking-tight bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
                         Din Resa
@@ -38,7 +39,7 @@ export const StatisticsView = () => {
                             <div className="text-5xl font-black">{trips}</div>
                         </div>
                         <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                            <Trophy size={32} className="text-yellow-300" />
+                            <FontAwesomeIcon icon={faTrophy} className="text-yellow-300 text-3xl" />
                         </div>
                     </div>
                     <div className="mt-6 flex items-center gap-2 text-indigo-100 text-sm">
@@ -51,14 +52,14 @@ export const StatisticsView = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-2 mb-3 text-sky-600">
-                            <Map size={18} />
+                            <FontAwesomeIcon icon={faMap} />
                             <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Sträcka</span>
                         </div>
                         <div className="text-2xl font-black text-slate-800 dark:text-white">42 <span className="text-sm font-medium text-slate-400">km</span></div>
                     </div>
                     <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-2 mb-3 text-emerald-600">
-                            <Clock size={18} />
+                            <FontAwesomeIcon icon={faClock} />
                             <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Tid</span>
                         </div>
                         <div className="text-2xl font-black text-slate-800 dark:text-white">8.5 <span className="text-sm font-medium text-slate-400">h</span></div>

@@ -1,15 +1,49 @@
-import { Departure, Provider, Station, Journey } from '../types';
+import { Departure, Provider, Station, Journey, TripLeg } from '../types';
 import { API_KEYS, API_URLS } from './config';
 
-const fetchWithCors = async (url: string) => {
+const fetchWithCors = async (url: string, retries = 3) => {
     // If using local proxy (starts with /), fetch directly.
+    let proxyUrl = "";
     if (url.startsWith('/')) {
         const targetUrl = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
-        return fetch(targetUrl);
+        proxyUrl = targetUrl;
+    } else {
+        const targetUrl = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+        proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
     }
-    const targetUrl = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
-    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
-    return fetch(proxyUrl);
+
+    let lastError: any;
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(proxyUrl);
+
+            // 429 Too Many Requests - Wait
+            if (res.status === 429) {
+                await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+                continue;
+            }
+
+            // Success
+            if (res.ok) return res;
+
+            // Server Errors - Retry
+            if (res.status >= 500) {
+                lastError = new Error(`Status ${res.status}`);
+                await new Promise(r => setTimeout(r, 500 * Math.pow(2, i)));
+                continue;
+            }
+
+            return res; // Return client errors directly
+        } catch (e) {
+            lastError = e;
+            await new Promise(r => setTimeout(r, 500 * Math.pow(2, i)));
+        }
+    }
+
+    // Fallback if all retries fail
+    console.error(`Resrobot Fetch failed after ${retries} attempts`, lastError);
+    // Return a mocked error response to avoid crashes downstream
+    return new Response(JSON.stringify({ error: 'Network Error' }), { status: 503, statusText: 'Service Unavailable' });
 };
 
 export const ResrobotService = {
@@ -127,7 +161,8 @@ export const ResrobotService = {
                     status: 'ON_TIME',
                     hasDisruption: false,
                     operator: operator,
-                    journeyRef: journeyRef
+                    journeyRef: journeyRef,
+                    journeyDetailRefUrl: item.JourneyDetailRef?.ref
                 };
             });
         } catch (e) {
@@ -141,29 +176,29 @@ export const ResrobotService = {
         try {
             let url = ref;
 
-            // If ref is not a full URL (doesn't start with http), construct it
+            // Handle if ref is just an ID or partial (not a full URL)
             if (!url.startsWith('http')) {
-                // But wait, the API ref is usually a URL. If it's just an encoded URI component or ID?
-                // Usually it is a full URL. If not, we might need to prepend base.
-                // However, the test output "Proxy fetch failed" implies it IS a URL (since proxy tried to fetch it).
-                // Let's assume it is a URL, but safeguard just in case.
-                if (url.includes('/journeyDetail')) {
-                    url = API_URLS.RESROBOT_API + url; // Unlikely case
+                // Construct the full URL manually
+                url = `${API_URLS.RESROBOT_API}/journeyDetail?ref=${encodeURIComponent(ref)}&accessId=${API_KEYS.RESROBOT_API_KEY}&format=json`;
+            } else {
+                // It is a URL. Ensure format=json is present (API defaults to XML sometimes)
+                if (!url.includes('format=json')) {
+                    url += (url.includes('?') ? '&' : '?') + 'format=json';
+                }
+                // Ensure accessId is present
+                if (!url.includes('accessId=')) {
+                    url += (url.includes('?') ? '&' : '?') + `accessId=${API_KEYS.RESROBOT_API_KEY}`;
                 }
             }
 
-            // Ensure accessId is present
-            if (!url.includes('accessId=')) {
-                url += (url.includes('?') ? '&' : '?') + `accessId=${API_KEYS.RESROBOT_API_KEY}`;
-            }
-
             const res = await fetchWithCors(url);
-            if (!res.ok) return [];
+            if (!res.ok) {
+                console.error(`ResRobot JourneyDetails failed: ${res.status}`);
+                return [];
+            }
             const data = await res.json();
 
-            // ResRobot JourneyDetail structure can be tricky.
-            // Often it is JourneyDetail -> Stops -> Stop (array or object)
-
+            // ResRobot JourneyDetail structure handling
             const journeyDetail = data.JourneyDetail || data.JourneyLocation || (Array.isArray(data) ? data[0]?.JourneyDetail : null);
 
             if (!journeyDetail) return [];
@@ -200,7 +235,123 @@ export const ResrobotService = {
     },
 
     planTrip: async (originId: string, destId: string, dateTime?: string): Promise<Journey[]> => {
-        console.log("ResRobot trip planning not implemented yet");
-        return [];
+        try {
+            let url = `${API_URLS.RESROBOT_API}/trip?originId=${originId}&destId=${destId}&format=json&accessId=${API_KEYS.RESROBOT_API_KEY}&passlist=0`;
+
+            if (dateTime) {
+                const parts = dateTime.split('T');
+                if (parts.length === 2) {
+                    url += `&date=${parts[0]}&time=${parts[1].substring(0, 5)}`;
+                }
+            }
+
+            console.log('ResRobot PlanTrip URL:', url);
+            const res = await fetchWithCors(url);
+            if (!res.ok) {
+                console.error('ResRobot PlanTrip Error:', res.status);
+                return [];
+            }
+            const data = await res.json();
+
+            if (!data.Trip) return [];
+
+            const trips = Array.isArray(data.Trip) ? data.Trip : [data.Trip];
+
+            return trips.map((trip: any, idx: number) => {
+                const legsRaw = trip.LegList.Leg;
+                const legsList = Array.isArray(legsRaw) ? legsRaw : [legsRaw];
+
+                const legs: TripLeg[] = legsList.map((leg: any) => {
+                    const isWalk = leg.type === 'WALK';
+
+                    let transportType: any = 'BUS';
+                    let name = "Gå";
+                    let bgColor = '#cbd5e1';
+                    let fgColor = '#334155';
+
+                    if (!isWalk) {
+                        const product = leg.Product ? (Array.isArray(leg.Product) ? leg.Product[0] : leg.Product) : null;
+                        if (product) {
+                            if (product.catCode === '1' || product.catCode === '2') transportType = 'TRAIN';
+                            else if (product.catCode === '4') transportType = 'TRAM';
+                            else if (product.catCode === '5' || product.catCode === '8') transportType = 'BUS';
+                            else if (product.catCode === '9') transportType = 'METRO';
+                            else if (product.catCode === '6') transportType = 'FERRY';
+                            else transportType = 'BUS';
+
+                            name = product.name || leg.name;
+                            // Clean up name (e.g., "Bus 123" -> "123")
+                            name = name.replace(/Bus |Tram |Tåg |Länstrafik |Expressbuss /gi, '').trim();
+                        } else {
+                            name = leg.name;
+                        }
+
+                        // Assign Colors based on type
+                        if (transportType === 'TRAIN') { bgColor = '#fca5a5'; fgColor = '#b91c1c'; } // Reddish for trains
+                        else if (transportType === 'TRAM') { bgColor = '#bae6fd'; fgColor = '#0369a1'; } // Blue for trams
+                        else if (transportType === 'BUS') { bgColor = '#d9f99d'; fgColor = '#3f6212'; } // Green for bus
+                        else if (transportType === 'METRO') { bgColor = '#fbcfe8'; fgColor = '#be185d'; } // Pink
+                        else if (transportType === 'FERRY') { bgColor = '#c7d2fe'; fgColor = '#3730a3'; } // Indigo
+                    } else {
+                        transportType = 'WALK';
+                        // dist is in meters
+                        if (leg.dist) name = `Gå ${leg.dist}m`;
+                    }
+
+                    // Format times (HH:MM)
+                    const startTime = leg.Origin.time.substring(0, 5);
+                    const endTime = leg.Destination.time.substring(0, 5);
+
+                    // Duration in min
+                    const startD = new Date(`${leg.Origin.date}T${leg.Origin.time}`);
+                    const endD = new Date(`${leg.Destination.date}T${leg.Destination.time}`);
+                    const dur = Math.round((endD.getTime() - startD.getTime()) / 60000);
+
+                    return {
+                        type: transportType,
+                        name: name,
+                        direction: leg.direction || (isWalk ? `Mot ${leg.Destination.name}` : ''),
+                        origin: {
+                            name: leg.Origin.name,
+                            time: startTime,
+                            track: leg.Origin.track,
+                            date: leg.Origin.date,
+                            coords: (leg.Origin.lat && leg.Origin.lon) ? { lat: parseFloat(leg.Origin.lat), lng: parseFloat(leg.Origin.lon) } : undefined
+                        },
+                        destination: {
+                            name: leg.Destination.name,
+                            time: endTime,
+                            track: leg.Destination.track,
+                            date: leg.Destination.date,
+                            coords: (leg.Destination.lat && leg.Destination.lon) ? { lat: parseFloat(leg.Destination.lat), lng: parseFloat(leg.Destination.lon) } : undefined
+                        },
+                        duration: dur,
+                        bgColor: bgColor,
+                        fgColor: fgColor,
+                        distance: leg.dist,
+                        cancelled: false, // ResRobot doesn't easily expose this in standard leg
+                        messages: leg.Notes?.Note?.map((n: any) => n.value) || [],
+                        intermediateStops: [] // requires passlist=1 and parsing
+                    } as TripLeg;
+                });
+
+                // Calculate total Duration
+                const first = legs[0];
+                const last = legs[legs.length - 1];
+                const totalDur = (new Date(`${last.destination.date}T${last.destination.time}:00`).getTime() - new Date(`${first.origin.date}T${first.origin.time}:00`).getTime()) / 60000;
+
+                return {
+                    id: `rr-trip-${idx}-${Date.now()}`,
+                    legs: legs,
+                    startTime: first.origin.time,
+                    endTime: last.destination.time,
+                    duration: Math.round(totalDur)
+                };
+            });
+
+        } catch (e) {
+            console.error("ResRobot planTrip error", e);
+            return [];
+        }
     }
 };

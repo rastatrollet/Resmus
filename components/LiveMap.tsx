@@ -5,13 +5,14 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TransitService } from '../services/transitService';
 import { TRAFIKLAB_OPERATORS } from '../services/config';
-import { BusFront, Navigation, TrainFront, TramFront, Map as MapIcon, ChevronDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBus, faTrain, faTram, faMap, faChevronDown, faLocationArrow, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { renderToString } from 'react-dom/server';
 
 // ... (existing imports)
 
 // ... (existing MapEvents component but updated props)
-const MapEvents = ({ setVehicles, setStops, setParkings, selectedOperator }: { setVehicles: (v: any[]) => void, setStops: (s: any[]) => void, setParkings: (p: any[]) => void, selectedOperator?: string }) => {
+const MapEvents = ({ setVehicles, setStops, setParkings, setDisruptions, selectedOperator }: { setVehicles: (v: any[]) => void, setStops: (s: any[]) => void, setParkings: (p: any[]) => void, setDisruptions: (d: any[]) => void, selectedOperator?: string }) => {
     const map = useMap();
 
     // Fly to fleet region when operator changes
@@ -38,6 +39,16 @@ const MapEvents = ({ setVehicles, setStops, setParkings, selectedOperator }: { s
         if (zoom > 8) { // Allow slightly wider zoom for regional operators
             const vehicleData = await TransitService.getVehiclePositions(minLat, minLng, maxLat, maxLng, selectedOperator);
             setVehicles(vehicleData);
+        }
+
+        // 2. Fetch Disruptions (Trafikverket) - Fetch globally or for area
+        // Since we have coords now, we can optimize or just fetch all
+        try {
+            // Fetching all for now as the API doesn't filter by bbox easily
+            const disruptions = await TransitService.getTrafikverketDisruptions();
+            setDisruptions(disruptions);
+        } catch (e) {
+            console.error("Failed to fetch map disruptions", e);
         }
 
         // ... (rest of function)
@@ -119,6 +130,7 @@ export const LiveMap = () => {
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [stops, setStops] = useState<any[]>([]);
     const [parkings, setParkings] = useState<any[]>([]);
+    const [disruptions, setDisruptions] = useState<any[]>([]); // New State
     const [selectedParking, setSelectedParking] = useState<any | null>(null);
     const [parkingImage, setParkingImage] = useState<string | null>(null);
     const [selectedOperator, setSelectedOperator] = useState<string>('sweden'); // Default to aggregated
@@ -170,7 +182,7 @@ export const LiveMap = () => {
             <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-950 relative z-0">
                 <div className="text-center p-8 max-w-md mx-auto">
                     <div className="w-24 h-24 bg-sky-100 dark:bg-sky-900/30 text-sky-500 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-sky-500/10 animate-in zoom-in-50 duration-500">
-                        <MapIcon size={48} className="animate-pulse" />
+                        <FontAwesomeIcon icon={faMap} className="text-5xl animate-pulse" />
                     </div>
                     <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">Kartan kommer snart</h2>
                     <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Vi slipar på de sista detaljerna. Håll utkik!</p>
@@ -192,7 +204,7 @@ export const LiveMap = () => {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 />
 
-                <MapEvents setVehicles={setVehicles} setStops={setStops} setParkings={setParkings} />
+                <MapEvents setVehicles={setVehicles} setStops={setStops} setParkings={setParkings} setDisruptions={setDisruptions} />
 
                 {/* Render Journey Path */}
                 {journeyPath.length > 0 && (
@@ -285,6 +297,32 @@ export const LiveMap = () => {
                 {vehicles.map(v => (
                     <VehicleMarker key={v.id} v={v} onSelect={handleSelectVehicle} />
                 ))}
+
+                {/* Render Disruptions */}
+                {disruptions.map(d => (
+                    d.coordinates && d.coordinates.length > 0 && d.coordinates.map((coord: any, idx: number) => (
+                        <Marker
+                            key={`disruption-${d.id}-${idx}`}
+                            position={[coord.lat, coord.lng]}
+                            icon={L.divIcon({
+                                className: 'bg-transparent',
+                                html: `<div class="w-8 h-8 bg-amber-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center text-white animate-pulse"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></div>`,
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 32]
+                            })}
+                        >
+                            <Popup>
+                                <div className="max-w-xs">
+                                    <h3 className="font-bold text-sm mb-1">{d.title}</h3>
+                                    <p className="text-xs text-slate-600 mb-2">{d.description}</p>
+                                    <div className="text-[10px] text-slate-400 font-mono">
+                                        Start: {d.startTime ? new Date(d.startTime).toLocaleString() : '-'}
+                                    </div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))
+                ))}
             </MapContainer>
 
             {/* Selected Journey Card */}
@@ -293,7 +331,7 @@ export const LiveMap = () => {
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md ${selectedVehicle.transportMode === 'TRAM' ? 'bg-teal-600' : 'bg-sky-500'}`}>
-                                {selectedVehicle.transportMode === 'TRAM' ? <TramFront size={20} /> : <BusFront size={20} />}
+                                {selectedVehicle.transportMode === 'TRAM' ? <FontAwesomeIcon icon={faTram} className="text-xl" /> : <FontAwesomeIcon icon={faBus} className="text-xl" />}
                             </div>
                             <div>
                                 <h3 className="font-black text-lg text-slate-800 leading-none">Linje {selectedVehicle.line}</h3>
@@ -302,7 +340,7 @@ export const LiveMap = () => {
                         </div>
                         <button onClick={() => { setSelectedVehicle(null); setJourneyPath([]); setJourneyStops([]); }} className="p-1 rounded-full hover:bg-slate-100 text-slate-400">
                             <span className="sr-only">Stäng</span>
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            <FontAwesomeIcon icon={faXmark} className="text-lg" />
                         </button>
                     </div>
 
@@ -358,7 +396,7 @@ export const LiveMap = () => {
                             ))}
                         </select>
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <ChevronDown size={14} />
+                            <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
                         </div>
                     </div>
                 </div>

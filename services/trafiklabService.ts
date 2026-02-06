@@ -1,5 +1,5 @@
 
-import { API_KEYS } from './config';
+import { API_KEYS, API_URLS } from './config';
 import GtfsRealtimeBindings from 'gtfs-realtime-bindings';
 
 // Helper for CORS requests
@@ -128,6 +128,120 @@ export const TrafiklabService = {
         } catch (e) {
             console.error("[Trafiklab] Error fetching GTFS-RT positions:", e);
             return [];
+        }
+    },
+
+    getDepartures: async (stopId: string): Promise<any[]> => {
+        if (!API_KEYS.RESROBOT_API_KEY) {
+            console.warn("Missing RESROBOT_API_KEY");
+            return [];
+        }
+
+        const url = `${API_URLS.RESROBOT_API}/departureBoard?id=${stopId}&format=json&accessId=${API_KEYS.RESROBOT_API_KEY}&passlist=0`;
+
+        try {
+            console.log(`[Resrobot] Fetching departures for stop ${stopId}`);
+            let res;
+
+            // Handle Proxy/CORS
+            if (import.meta.env.DEV) {
+                res = await fetch(url);
+            } else {
+                // In production, use corsproxy if needed, or direct if allowed. 
+                // Using fetchWithCors helper defined above.
+                // Reconstruct full URL for proxy if using API_URLS.RESROBOT_API which might be relative?
+                // API_URLS.RESROBOT_API is absolute in prod.
+                res = await fetchWithCors(url);
+            }
+
+            if (!res.ok) {
+                console.error(`[Resrobot] Fetch failed: ${res.status}`);
+                return [];
+            }
+
+            const data = await res.json();
+            const departures = data.Departure || [];
+
+            return departures.map((dep: any) => {
+                // Extract Line Number
+                // 'name' often contains "Länstrafik - 101" or "Buss 101". 
+                // Product.num is usually more direct e.g. "101".
+                let line = dep.name;
+                if (dep.Product && dep.Product.num) {
+                    line = dep.Product.num;
+                } else if (dep.Product && Array.isArray(dep.Product) && dep.Product[0]?.num) {
+                    line = dep.Product[0].num;
+                } else {
+                    // Fallback regex to get number from "Buss 101"
+                    const match = dep.name.match(/(\d+)$/);
+                    if (match) line = match[1];
+                }
+
+                return {
+                    line: line,
+                    destination: dep.direction,
+                    time: dep.time.substring(0, 5), // Ensure HH:MM
+                    rtTime: dep.rtTime ? dep.rtTime.substring(0, 5) : null,
+                    date: dep.date,
+                    track: dep.track || null,
+                    journeyRef: dep.JourneyDetailRef?.ref || null,
+                    // Additional helpful fields
+                    formattedTime: dep.rtTime || dep.time, // For sorting/display logic
+                    isLate: dep.rtTime && dep.rtTime !== dep.time,
+                    type: dep.ProductAtStop?.cls || 'BUS' // Class: B=Bus, etc.
+                };
+            });
+
+        } catch (error) {
+            console.error("[Resrobot] Error fetching departures:", error);
+            return [];
+        }
+    },
+
+    getJourneyDetails: async (journeyRef: string): Promise<any> => {
+        if (!API_KEYS.RESROBOT_API_KEY) {
+            console.warn("Missing RESROBOT_API_KEY");
+            return null;
+        }
+
+        // Handle URL encoding for the ref if needed, though usually it's passed as is or already encoded.
+        // Resrobot refs can be long strings.
+        const url = `${API_URLS.RESROBOT_API}/journeyDetail?ref=${encodeURIComponent(journeyRef)}&format=json&accessId=${API_KEYS.RESROBOT_API_KEY}`;
+
+        try {
+            console.log(`[Resrobot] Fetching journey details for ref: ${journeyRef}`);
+            let res;
+
+            if (import.meta.env.DEV) {
+                res = await fetch(url);
+            } else {
+                res = await fetchWithCors(url);
+            }
+
+            if (!res.ok) {
+                console.error(`[Resrobot] Fetch failed: ${res.status}`);
+                return null;
+            }
+
+            const data = await res.json();
+            const stops = data.JourneyDetail?.Stop || [];
+
+            return {
+                stops: stops.map((stop: any) => ({
+                    id: stop.id,
+                    name: stop.name,
+                    arrTime: stop.arrTime ? stop.arrTime.substring(0, 5) : null,
+                    depTime: stop.depTime ? stop.depTime.substring(0, 5) : null,
+                    rtArrTime: stop.rtArrTime ? stop.rtArrTime.substring(0, 5) : null,
+                    rtDepTime: stop.rtDepTime ? stop.rtDepTime.substring(0, 5) : null,
+                    track: stop.track,
+                    routeIdx: stop.routeIdx
+                }))
+            };
+
+        } catch (error) {
+            console.error("[Resrobot] Error fetching journey details:", error);
+            return null;
         }
     }
 };
