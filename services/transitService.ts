@@ -2,7 +2,7 @@ import { Departure, Provider, Station, TrafficSituation, Journey, TripLeg, Journ
 import { API_KEYS, API_URLS } from './config';
 import { ResrobotService } from './resrobotService';
 import { TrafiklabRealtimeService } from './trafiklabRealtimeService';
-import { TrafiklabRealtimeService } from './trafiklabRealtimeService';
+
 import { SLService } from './slService';
 import { TrafiklabService } from './trafiklabService';
 

@@ -23,5 +23,20 @@ try {
 
     console.log('✅ Generated version.json:', versionInfo);
 } catch (error) {
-    console.error('❌ Failed to generate version info:', error);
+    console.warn('⚠️ Could not retrieve git info (likely non-git environment). Using fallback.');
+
+    // Fallback info
+    const versionInfo = {
+        version: 'dev-build',
+        message: 'No git info available',
+        timestamp: new Date().toISOString()
+    };
+
+    const filePath = join(process.cwd(), 'public', 'version.json');
+    try {
+        writeFileSync(filePath, JSON.stringify(versionInfo, null, 2));
+        console.log('✅ Generated fallback version.json');
+    } catch (e) {
+        console.error('❌ Failed to write fallback version.json', e);
+    }
 }
