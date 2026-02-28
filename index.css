@@ -73,3 +73,25 @@
 .clean-popup .leaflet-popup-tip-container {
   display: none;
 }
+
+/* Vehicle info panel – rendered as Leaflet popup above vehicle icon */
+.vehicle-panel-popup .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.vehicle-panel-popup .leaflet-popup-content {
+  margin: 0;
+  width: 340px !important;
+  max-width: 340px !important;
+}
+
+.vehicle-panel-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.vehicle-panel-popup .leaflet-popup-close-button {
+  display: none;
+}

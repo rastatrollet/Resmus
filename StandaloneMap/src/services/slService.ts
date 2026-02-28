@@ -283,42 +283,6 @@ export const SLService = {
             return [];
         }
     },
-
-    // Get Line Information (Cached 1 hour)
-    getLines: async (): Promise<any[]> => {
-        const CACHE_KEY = 'sl_lines_cache';
-        const CACHE_TTL = 3600 * 1000; // 1 hr
-
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const { timestamp, data } = JSON.parse(cached);
-                if (Date.now() - timestamp < CACHE_TTL) {
-                    return data;
-                }
-            }
-        } catch (e) { /* ignore parse errors */ }
-
-        try {
-            const url = `https://transport.integration.sl.se/v1/lines`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`SL Lines API Error: ${res.status}`);
-
-            const data = await res.json();
-
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    timestamp: Date.now(),
-                    data: data
-                }));
-            } catch (e) { /* ignore storage errors */ }
-
-            return data;
-        } catch (e) {
-            console.error("SL GetLines Error:", e);
-            return [];
-        }
-    },
 };
 
 // Optimize: Auto-prefetch SL network data shortly after load

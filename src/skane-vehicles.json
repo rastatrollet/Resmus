@@ -1,0 +1,5862 @@
+{
+  "9031012000700434": {
+    "plate": "KHW 40A",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700435": {
+    "plate": "NHH 33M",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700436": {
+    "plate": "ONB 63J",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700437": {
+    "plate": "ESN 75W",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700438": {
+    "plate": "BKW 12U",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700439": {
+    "plate": "YME 20A",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700440": {
+    "plate": "KNH 99S",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700441": {
+    "plate": "OEP 00F",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700442": {
+    "plate": "CAS 54F",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700443": {
+    "plate": "XUC 29J",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700444": {
+    "plate": "TFX 27W",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700445": {
+    "plate": "CGZ 14X",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700446": {
+    "plate": "BCD 32E",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700447": {
+    "plate": "CAG 04Z",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700448": {
+    "plate": "ZCR 74G",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700449": {
+    "plate": "KHC 99H",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700450": {
+    "plate": "USL 48E",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700451": {
+    "plate": "AFR 63S",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700452": {
+    "plate": "HWX 90L",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700453": {
+    "plate": "CGF 368",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700454": {
+    "plate": "HOP 00B",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700455": {
+    "plate": "DMW 46M",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700456": {
+    "plate": "EBB 24K",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700457": {
+    "plate": "ADB 11F",
+    "model": "Setra S418LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700469": {
+    "plate": "ZLZ 922",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700470": {
+    "plate": "ZLZ 928",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700471": {
+    "plate": "ZLZ 932",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700472": {
+    "plate": "ZLZ 937",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700473": {
+    "plate": "ZLZ 917",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700474": {
+    "plate": "ZLZ 918",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700475": {
+    "plate": "ZMK 552",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700476": {
+    "plate": "ZMK 557",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700478": {
+    "plate": "ZMK 562",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700479": {
+    "plate": "ZMK 563",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700480": {
+    "plate": "ZMK 567",
+    "model": "Scania CW LE Suburban 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700601": {
+    "plate": "DKW 291",
+    "model": "MB O530 Citaro LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700602": {
+    "plate": "DKW 294",
+    "model": "MB O530 Citaro LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700603": {
+    "plate": "DKW 301",
+    "model": "MB O530 Citaro LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000700700": {
+    "plate": "TUE 76F",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700701": {
+    "plate": "UCE 88E",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700702": {
+    "plate": "RJG 85M",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700703": {
+    "plate": "NBH 21N",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700704": {
+    "plate": "UCK 48L",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700705": {
+    "plate": "OWL 14H",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700706": {
+    "plate": "FON 10A",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700707": {
+    "plate": "GNL 87M",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700708": {
+    "plate": "CZN 04R",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700709": {
+    "plate": "RLO 880",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000700710": {
+    "plate": "YMU 92L",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700711": {
+    "plate": "MUT 93J",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700712": {
+    "plate": "KGW 19U",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700713": {
+    "plate": "HLU 67J",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700714": {
+    "plate": "SBX 48E",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700715": {
+    "plate": "OPN 84X",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700716": {
+    "plate": "XDP 81U",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700717": {
+    "plate": "FPP 00K",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700718": {
+    "plate": "FER 68R",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700719": {
+    "plate": "TOP 67H",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700720": {
+    "plate": "CTL 04U",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700721": {
+    "plate": "KLJ 89W",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700722": {
+    "plate": "AWL 83F",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700723": {
+    "plate": "DDM 24E",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700724": {
+    "plate": "ACL 13M",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700725": {
+    "plate": "HEH 28R",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700726": {
+    "plate": "UTG 80A",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700727": {
+    "plate": "ZDJ 72H",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700728": {
+    "plate": "DAG 55B",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700729": {
+    "plate": "WWK 88F",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700730": {
+    "plate": "EER 34J",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000700731": {
+    "plate": "ZCT 41S",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701079": {
+    "plate": "YGX 725",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701080": {
+    "plate": "YGX 715",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701081": {
+    "plate": "YGX 709",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701082": {
+    "plate": "YGX 700",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701083": {
+    "plate": "YGX 695",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701084": {
+    "plate": "YHE 977",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701085": {
+    "plate": "YHE 982",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701086": {
+    "plate": "YHE 976",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701087": {
+    "plate": "YHE 986",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701088": {
+    "plate": "YBW 709",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701089": {
+    "plate": "YBW 153",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701090": {
+    "plate": "ESN 459",
+    "model": "MAN Lion's City A44 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701091": {
+    "plate": "EXG 853",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701092": {
+    "plate": "YAC 464",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701093": {
+    "plate": "YAC 468",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701094": {
+    "plate": "EXG 856",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701095": {
+    "plate": "YAC 469",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701096": {
+    "plate": "EXG 837",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701098": {
+    "plate": "YAC 454",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701099": {
+    "plate": "YAC 458",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701100": {
+    "plate": "YAC 459",
+    "model": "MB O530 MÜ Citaro C2 LE",
+    "operator": "Bergkvara"
+  },
+  "9031012000701102": {
+    "plate": "DWL 992",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701103": {
+    "plate": "DWM 004",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701104": {
+    "plate": "DWM 034",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701105": {
+    "plate": "DWM 049",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701106": {
+    "plate": "DWM 068",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701107": {
+    "plate": "DWL 979",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701109": {
+    "plate": "DWL 987",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701112": {
+    "plate": "DWM 046",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701114": {
+    "plate": "DWM 104",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701119": {
+    "plate": "DWM 103",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701125": {
+    "plate": "DWM 361",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701126": {
+    "plate": "DWM 362",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701127": {
+    "plate": "DWM 410",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701131": {
+    "plate": "DWM 182",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701132": {
+    "plate": "EHD 475",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701133": {
+    "plate": "DWM 186",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701135": {
+    "plate": "EHD 842",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701136": {
+    "plate": "DWX 420",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701137": {
+    "plate": "DWX 424",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701138": {
+    "plate": "DWX 429",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701143": {
+    "plate": "DWX 484",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701145": {
+    "plate": "DWX 501",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701146": {
+    "plate": "DWX 505",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701148": {
+    "plate": "DWX 349",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701167": {
+    "plate": "DYT 526",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701169": {
+    "plate": "REE 553",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701170": {
+    "plate": "REG 781",
+    "model": "MAN Lion's City A44 CNG 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000701294": {
+    "plate": "GMT 97L",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000701295": {
+    "plate": "WPB 28H",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000701296": {
+    "plate": "XBB 92F",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000701297": {
+    "plate": "DRD 95K",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000701298": {
+    "plate": "JCE 89G",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000701299": {
+    "plate": "DBF 65A",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000702001": {
+    "plate": "CXJ 23K",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702002": {
+    "plate": "JOH 18H",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702003": {
+    "plate": "KTL 29X",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702004": {
+    "plate": "AGN 32U",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702011": {
+    "plate": "TJT 99E",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702012": {
+    "plate": "PDW 00A",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702013": {
+    "plate": "JJA 01W",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702014": {
+    "plate": "RAA 71R",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702015": {
+    "plate": "ARA 00P",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702016": {
+    "plate": "YAW 05D",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702017": {
+    "plate": "ODW 43H",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702018": {
+    "plate": "OBW 24Y",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702019": {
+    "plate": "SDW 67G",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702020": {
+    "plate": "RAA 71W",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702021": {
+    "plate": "SEA 67S",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702022": {
+    "plate": "BWC 13J",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702023": {
+    "plate": "GUC 27U",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702024": {
+    "plate": "ZLB 97S",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702025": {
+    "plate": "AOB 45A",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702026": {
+    "plate": "BHE 12R",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702027": {
+    "plate": "JFH 32J",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702029": {
+    "plate": "FRA 00D",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702030": {
+    "plate": "GSJ 83K",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702031": {
+    "plate": "UXJ 09F",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702032": {
+    "plate": "LWJ 91L",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702033": {
+    "plate": "HAJ 00C",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702034": {
+    "plate": "RZN 40A",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702035": {
+    "plate": "JDM 99M",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702036": {
+    "plate": "WDM 48S",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702037": {
+    "plate": "UHN 25N",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702045": {
+    "plate": "WBU 45M",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000702046": {
+    "plate": "UWU 26C",
+    "model": "MB eCitaro",
+    "operator": "Bergkvara"
+  },
+  "9031012000702051": {
+    "plate": "THP 05B",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702052": {
+    "plate": "SFN 96R",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702053": {
+    "plate": "HOU 00T",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702054": {
+    "plate": "XFR 91M",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702055": {
+    "plate": "HZZ 31S",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702056": {
+    "plate": "RCA 29E",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702057": {
+    "plate": "ZRM 43U",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702058": {
+    "plate": "TFG 14G",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702059": {
+    "plate": "JAL 75P",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702060": {
+    "plate": "PAF 98G",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702061": {
+    "plate": "WTH 10D",
+    "model": "BYD K9UB",
+    "operator": "Bergkvara"
+  },
+  "9031012000702107": {
+    "plate": "XNO 945",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702108": {
+    "plate": "JKN 30B",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702109": {
+    "plate": "XFP 89M",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702110": {
+    "plate": "PWP 23F",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702111": {
+    "plate": "AAB 23Z",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702112": {
+    "plate": "BBA 74X",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702113": {
+    "plate": "CME 25U",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702114": {
+    "plate": "LPD 42L",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702115": {
+    "plate": "NAF 95B",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702116": {
+    "plate": "HWF 70L",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702117": {
+    "plate": "RDH 96X",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702118": {
+    "plate": "ULZ 08H",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702119": {
+    "plate": "NKY 03X",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702120": {
+    "plate": "EHX 65A",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702121": {
+    "plate": "JTZ 79F",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702122": {
+    "plate": "XBB 90C",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702123": {
+    "plate": "MFE 73K",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702124": {
+    "plate": "XOD 08U",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702125": {
+    "plate": "DKH 15B",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702126": {
+    "plate": "RMH 56W",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702127": {
+    "plate": "FCE 72R",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702128": {
+    "plate": "WAA 74S",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702129": {
+    "plate": "HJE 77K",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702130": {
+    "plate": "GKE 29W",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702131": {
+    "plate": "JAA 56X",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702132": {
+    "plate": "FHJ 00E",
+    "model": "BYD B13E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702138": {
+    "plate": "EKG 86P",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702139": {
+    "plate": "PNF 15N",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702140": {
+    "plate": "FKE 66E",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702141": {
+    "plate": "EJH 16B",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702142": {
+    "plate": "BRK 22S",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702143": {
+    "plate": "FCF 55Y",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702144": {
+    "plate": "CPF 46E",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702145": {
+    "plate": "EEH 44J",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702146": {
+    "plate": "WWH 98W",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702147": {
+    "plate": "BGG 34U",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702148": {
+    "plate": "HCP 02K",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702149": {
+    "plate": "JBM 697",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702150": {
+    "plate": "GPR 77S",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702151": {
+    "plate": "CDP 25A",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702152": {
+    "plate": "EBO 517",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702153": {
+    "plate": "DNC 65A",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702154": {
+    "plate": "ESB 36C",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702155": {
+    "plate": "HBD 77T",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702156": {
+    "plate": "CRD 46E",
+    "model": "Scania Interlink LD 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702157": {
+    "plate": "KDC 09W",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702158": {
+    "plate": "WGC 85A",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702159": {
+    "plate": "LNZ 10C",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702160": {
+    "plate": "GOE 68K",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702161": {
+    "plate": "KRE 64W",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702162": {
+    "plate": "XJA 00C",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702163": {
+    "plate": "JHE 79R",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702164": {
+    "plate": "WND 20M",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702165": {
+    "plate": "HFZ 77F",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702166": {
+    "plate": "KTD 09W",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702167": {
+    "plate": "FHX 72R",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702168": {
+    "plate": "EBW 61B",
+    "model": "Scania Interlink II 14.9 CL2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702171": {
+    "plate": "PEE 24J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702172": {
+    "plate": "LXU 91U",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702173": {
+    "plate": "JCE 06E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702174": {
+    "plate": "BJA 56R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702201": {
+    "plate": "UTZ 80B",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702202": {
+    "plate": "FBK 58U",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702203": {
+    "plate": "MRZ 00S",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702204": {
+    "plate": "MWB 41R",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702205": {
+    "plate": "ZTN 625",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702206": {
+    "plate": "AGP 11J",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702207": {
+    "plate": "NFL 01N",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702208": {
+    "plate": "JOJ 69E",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702209": {
+    "plate": "CDB 22M",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702210": {
+    "plate": "AOC 23Y",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702211": {
+    "plate": "HBL 58E",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702212": {
+    "plate": "WMZ 18Y",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702213": {
+    "plate": "XGZ 82Y",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702214": {
+    "plate": "AFZ 22E",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702215": {
+    "plate": "FDP 05B",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702216": {
+    "plate": "SBT 48X",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702217": {
+    "plate": "OGN 12T",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702218": {
+    "plate": "ZED 21M",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702219": {
+    "plate": "DJM 05W",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702220": {
+    "plate": "UFT 07F",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702221": {
+    "plate": "UNT 77M",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702222": {
+    "plate": "YLR 52J",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702223": {
+    "plate": "COT 04Z",
+    "model": "BYD B15E",
+    "operator": "Bergkvara"
+  },
+  "9031012000702231": {
+    "plate": "MKD 93J",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702232": {
+    "plate": "MJY 10R",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702233": {
+    "plate": "GXX 98E",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702234": {
+    "plate": "GCT 29F",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702235": {
+    "plate": "ECX 75R",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702236": {
+    "plate": "AOP 93Y",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702237": {
+    "plate": "UBM 50B",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702238": {
+    "plate": "WGA 88Y",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702239": {
+    "plate": "WMP 28Z",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702240": {
+    "plate": "XJL 60C",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702241": {
+    "plate": "KKW 82U",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702242": {
+    "plate": "FDK 88F",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702243": {
+    "plate": "SFB 55P",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702244": {
+    "plate": "YWZ 71S",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702245": {
+    "plate": "PCZ 43X",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702246": {
+    "plate": "WHU 98Y",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702247": {
+    "plate": "OHS 32L",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702248": {
+    "plate": "LLT 62F",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702249": {
+    "plate": "ENS 05U",
+    "model": "Unvi Urbis DD Intercity 14.2 6x2",
+    "operator": "Bergkvara"
+  },
+  "9031012000702251": {
+    "plate": "TPH 98F",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702252": {
+    "plate": "JAW 42K",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702253": {
+    "plate": "UHW 01H",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702254": {
+    "plate": "PAH 63T",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702255": {
+    "plate": "AWA 45N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702256": {
+    "plate": "JAN 11X",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702257": {
+    "plate": "NBS 02R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702258": {
+    "plate": "SSP 77G",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702259": {
+    "plate": "BJS 38K",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702260": {
+    "plate": "OPW 43F",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702261": {
+    "plate": "JAN 45P",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012000702262": {
+    "plate": "DAP 50U",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Bergkvara"
+  },
+  "9031012001001801": {
+    "plate": "BTJ 28J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001802": {
+    "plate": "CXG 77M",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001803": {
+    "plate": "SWA 17H",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001804": {
+    "plate": "CEP 39L",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001805": {
+    "plate": "RJA 15P",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001806": {
+    "plate": "CXR 93J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001807": {
+    "plate": "BXA 12S",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001808": {
+    "plate": "JAE 02K",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001809": {
+    "plate": "GNH 09W",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001810": {
+    "plate": "CAE 49E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001811": {
+    "plate": "TFU 51R",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001812": {
+    "plate": "NJE 23E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001813": {
+    "plate": "WRE 37G",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001814": {
+    "plate": "JAE 02J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001815": {
+    "plate": "OWF 97R",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001816": {
+    "plate": "RXH 29L",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001817": {
+    "plate": "SGH 30P",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001818": {
+    "plate": "HWA 11X",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001819": {
+    "plate": "RAF 20R",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001820": {
+    "plate": "HHG 84G",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001821": {
+    "plate": "NCJ 00D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001822": {
+    "plate": "JAE 03E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001823": {
+    "plate": "GGJ 19H",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001824": {
+    "plate": "DWK 40A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001825": {
+    "plate": "JMK 43L",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001826": {
+    "plate": "ACK 72E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001827": {
+    "plate": "TLL 69E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001828": {
+    "plate": "YCL 96X",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001829": {
+    "plate": "JTM 90A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001830": {
+    "plate": "WAF 75C",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001831": {
+    "plate": "LKP 05C",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001832": {
+    "plate": "RAF 211",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001833": {
+    "plate": "OJA 16G",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001834": {
+    "plate": "NDM 02E",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001835": {
+    "plate": "OSN 13J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001836": {
+    "plate": "FTR 10A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001837": {
+    "plate": "EJA 11B",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001838": {
+    "plate": "JAE 04G",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001839": {
+    "plate": "ERP 98T",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001840": {
+    "plate": "JJA 16Z",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001841": {
+    "plate": "BER 00N",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001842": {
+    "plate": "WAF 75D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001843": {
+    "plate": "MGR 38J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001844": {
+    "plate": "RRA 20D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001845": {
+    "plate": "OJA 16R",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001846": {
+    "plate": "RKB 76N",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001847": {
+    "plate": "JBE 82F",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001848": {
+    "plate": "FCX 62D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001849": {
+    "plate": "BFB 92S",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001850": {
+    "plate": "HZC 30Y",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001851": {
+    "plate": "MAB 01K",
+    "model": "MAN Lion's City 12E",
+    "operator": "Keolis"
+  },
+  "9031012001001857": {
+    "plate": "CMP 451",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001858": {
+    "plate": "ZMY 100",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001859": {
+    "plate": "ZMY 139",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001860": {
+    "plate": "ZMY 099",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001861": {
+    "plate": "ZMY 090",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001862": {
+    "plate": "ZMY 125",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001863": {
+    "plate": "ZMY 115",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001864": {
+    "plate": "BOM 493",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001865": {
+    "plate": "ZMY 130",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001866": {
+    "plate": "BOP 089",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001867": {
+    "plate": "ZMY 135",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001868": {
+    "plate": "ZMY 129",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001869": {
+    "plate": "ZMY 134",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001870": {
+    "plate": "ZMY 110",
+    "model": "BYD K9UB",
+    "operator": "Keolis"
+  },
+  "9031012001001871": {
+    "plate": "LXR 74X",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001872": {
+    "plate": "SWR 041",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001873": {
+    "plate": "CFR 23E",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001874": {
+    "plate": "TTS 51E",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001875": {
+    "plate": "EGS 62T",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001876": {
+    "plate": "TRT 154",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001877": {
+    "plate": "JAE 01Z",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001878": {
+    "plate": "JTD 69G",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001879": {
+    "plate": "MGD 38W",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001880": {
+    "plate": "JBA 43M",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001881": {
+    "plate": "ENB 51R",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001882": {
+    "plate": "KAB 16G",
+    "model": "MAN Lion's City 18E",
+    "operator": "Keolis"
+  },
+  "9031012001001891": {
+    "plate": "WSN 75A",
+    "model": "Solaris Trollino 12",
+    "operator": "Keolis"
+  },
+  "9031012001001892": {
+    "plate": "EPP 00Z",
+    "model": "Solaris Trollino 12",
+    "operator": "Keolis"
+  },
+  "9031012001001893": {
+    "plate": "ZBA 06F",
+    "model": "Solaris Trollino 12",
+    "operator": "Keolis"
+  },
+  "9031012001001894": {
+    "plate": "UCC 089",
+    "model": "Solaris Trollino 12",
+    "operator": "Keolis"
+  },
+  "9031012001006990": {
+    "plate": "CLP 254",
+    "model": "Solaris Trollino 12",
+    "operator": "Keolis",
+    "altId": "1895"
+  },
+  "9031012001007500": {
+    "plate": "HXL 807",
+    "model": "MAN Lion's City A47",
+    "operator": "Keolis"
+  },
+  "9031012001008651": {
+    "plate": "EAK 27F",
+    "model": "MB eSprinter",
+    "operator": "Keolis"
+  },
+  "9031012001008652": {
+    "plate": "WFG 08Y",
+    "model": "MB eSprinter",
+    "operator": "Keolis"
+  },
+  "9031012001008901": {
+    "plate": "Sfinxen",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "01"
+  },
+  "9031012001008902": {
+    "plate": "Åsa-Hanna",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "02"
+  },
+  "9031012001008903": {
+    "plate": "Blåtand",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "03"
+  },
+  "9031012001008904": {
+    "plate": "Brandklipparen",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "04"
+  },
+  "9031012001008905": {
+    "plate": "Inferno",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "05"
+  },
+  "9031012001008906": {
+    "plate": "Saxo Grammaticus",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "06"
+  },
+  "9031012001008907": {
+    "plate": "Lindeman",
+    "model": "CAF Urbos 100",
+    "operator": "Keolis",
+    "altId": "07"
+  },
+  "9031012001008921": {
+    "plate": "EHJ 01C",
+    "model": "Iveco Feniksbus 7.5m",
+    "operator": "Keolis"
+  },
+  "9031012001008922": {
+    "plate": "FHL 63T",
+    "model": "Iveco Heuliez E-way 9.5m",
+    "operator": "Keolis"
+  },
+  "9031012001008923": {
+    "plate": "JNN 05P",
+    "model": "Iveco Heuliez E-way 10.7m",
+    "operator": "Keolis"
+  },
+  "9031012002201132": {
+    "plate": "SRK 562",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002201133": {
+    "plate": "AZM 059",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002201134": {
+    "plate": "ROG 922",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002201135": {
+    "plate": "KJP 917",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002201419": {
+    "plate": "AHS 18E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201420": {
+    "plate": "SPA 48W",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201421": {
+    "plate": "FWR 00X",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201422": {
+    "plate": "NGY 60B",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201423": {
+    "plate": "HER 78T",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201424": {
+    "plate": "JAL 81Z",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201425": {
+    "plate": "RAT 07K",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201426": {
+    "plate": "JAL 71W",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201427": {
+    "plate": "JAL 70N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201428": {
+    "plate": "FOS 55U",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201429": {
+    "plate": "BEN 93J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201430": {
+    "plate": "RXL 39H",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201431": {
+    "plate": "JAL 70M",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201432": {
+    "plate": "FMX 55B",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201433": {
+    "plate": "LRA 29U",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201434": {
+    "plate": "NHM 86P",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201435": {
+    "plate": "BTR 00N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201436": {
+    "plate": "CBU 49W",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201437": {
+    "plate": "XLX 32Y",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201438": {
+    "plate": "RAT 34R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201439": {
+    "plate": "KRA 34M",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201440": {
+    "plate": "BWL 28J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201441": {
+    "plate": "LFE 71L",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201442": {
+    "plate": "UFK 00C",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201443": {
+    "plate": "SFJ 57G",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201444": {
+    "plate": "TDD 41T",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201445": {
+    "plate": "NYW 32R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201446": {
+    "plate": "LOU 64F",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201447": {
+    "plate": "UBH 70C",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201448": {
+    "plate": "RSR 94G",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201449": {
+    "plate": "HSZ 67K",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201450": {
+    "plate": "NJA 45E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201451": {
+    "plate": "DXN 13M",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201452": {
+    "plate": "SJD 88R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201453": {
+    "plate": "GZY 73H",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201454": {
+    "plate": "JAM 81Z",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201455": {
+    "plate": "SHP 77T",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201456": {
+    "plate": "FXS 62H",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201457": {
+    "plate": "JWH 70C",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201458": {
+    "plate": "RCB 47K",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201459": {
+    "plate": "SPL 95A",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201460": {
+    "plate": "JJS 99E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201461": {
+    "plate": "JGK 06M",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201462": {
+    "plate": "NJA 45F",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201463": {
+    "plate": "UME 90B",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201464": {
+    "plate": "RWA 53R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201465": {
+    "plate": "PBR 00T",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201466": {
+    "plate": "AOM 65C",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201467": {
+    "plate": "FRA 35Z",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201468": {
+    "plate": "DRA 35L",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201469": {
+    "plate": "NLF 50B",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201470": {
+    "plate": "EEE 35W",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201471": {
+    "plate": "OTC 43J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201472": {
+    "plate": "ORR 00N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201473": {
+    "plate": "BSW 00N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201474": {
+    "plate": "OBP 50N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201475": {
+    "plate": "FFS 09U",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201476": {
+    "plate": "KOS 16M",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201477": {
+    "plate": "SZS 31J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201478": {
+    "plate": "EMN 99F",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201479": {
+    "plate": "NZP 49R",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201480": {
+    "plate": "MJP 08E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201481": {
+    "plate": "MZP 03J",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201482": {
+    "plate": "UPS 15B",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201483": {
+    "plate": "JZS 69E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201484": {
+    "plate": "WCU 37S",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201485": {
+    "plate": "XMU 49E",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201486": {
+    "plate": "ESU 51N",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002201487": {
+    "plate": "BFT 65A",
+    "model": "Solaris Urbino 15LE Electric",
+    "operator": "Nobina"
+  },
+  "9031012002202631": {
+    "plate": "PCK 85A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202632": {
+    "plate": "WEL 08Z",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202633": {
+    "plate": "YAJ 51X",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202634": {
+    "plate": "JFL 99G",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202635": {
+    "plate": "TFN 49F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202636": {
+    "plate": "ZZN 93S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202637": {
+    "plate": "MWB 42N",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202638": {
+    "plate": "AKF 31M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202639": {
+    "plate": "OCM 25A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202640": {
+    "plate": "STO 985",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202641": {
+    "plate": "LLP 93H",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202642": {
+    "plate": "EBR 05T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202643": {
+    "plate": "FBU 55W",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202644": {
+    "plate": "DAX 25D",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202645": {
+    "plate": "XOW 08U",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202646": {
+    "plate": "FFW 79M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202647": {
+    "plate": "DMY 35A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202648": {
+    "plate": "EUU 65W",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202649": {
+    "plate": "WBX 18Y",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202650": {
+    "plate": "JXX 10B",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202651": {
+    "plate": "UGU 08F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202652": {
+    "plate": "YWY 61X",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202653": {
+    "plate": "MWZ 93J",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202654": {
+    "plate": "ZAB 94T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202655": {
+    "plate": "BYB 14T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202656": {
+    "plate": "HSA 18S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202657": {
+    "plate": "OTC 44R",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202658": {
+    "plate": "GUP 01U",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002202659": {
+    "plate": "DCR 23S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002203001": {
+    "plate": "DJG 803",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203002": {
+    "plate": "EGL 295",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203003": {
+    "plate": "CNH 500",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203004": {
+    "plate": "RCK 913",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203005": {
+    "plate": "RMF 436",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203006": {
+    "plate": "CNK 920",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203007": {
+    "plate": "SWS 523",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203008": {
+    "plate": "SXA 328",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203009": {
+    "plate": "DKC 052",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203010": {
+    "plate": "DKC 066",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203011": {
+    "plate": "DKC 070",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203012": {
+    "plate": "DKC 073",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203013": {
+    "plate": "DKC 080",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203014": {
+    "plate": "DKB 708",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203015": {
+    "plate": "DKC 034",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002203021": {
+    "plate": "XPO 557",
+    "model": "Van Hool Astromega TDX27",
+    "operator": "Nobina"
+  },
+  "9031012002203022": {
+    "plate": "XPU 787",
+    "model": "Van Hool Astromega TDX27",
+    "operator": "Nobina"
+  },
+  "9031012002203023": {
+    "plate": "ALU 529",
+    "model": "Van Hool Astromega TDX27",
+    "operator": "Nobina"
+  },
+  "9031012002203024": {
+    "plate": "XRN 588",
+    "model": "Van Hool Astromega TDX27",
+    "operator": "Nobina"
+  },
+  "9031012002203025": {
+    "plate": "DUE 984",
+    "model": "Van Hool Astromega TDX27",
+    "operator": "Nobina"
+  },
+  "9031012002203188": {
+    "plate": "ERE 113",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203189": {
+    "plate": "ERE 118",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203190": {
+    "plate": "ERE 121",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203191": {
+    "plate": "ERE 135",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203208": {
+    "plate": "WBE 06U",
+    "model": "Van Hool Exqui.City CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203429": {
+    "plate": "EXB 902",
+    "model": "Volvo 8900 B8RLE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002203430": {
+    "plate": "EXB 904",
+    "model": "Volvo 8900 B8RLE 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002203436": {
+    "plate": "EXB 924",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203437": {
+    "plate": "EXB 926",
+    "model": "Volvo 8900 B8RLE 4x2",
+    "operator": "Nobina"
+  },
+  "9031012002203438": {
+    "plate": "EXK 036",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203439": {
+    "plate": "YAF 442",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203440": {
+    "plate": "YAF 446",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203441": {
+    "plate": "EXK 039",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203442": {
+    "plate": "YAF 447",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203443": {
+    "plate": "EXK 113",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203444": {
+    "plate": "YAF 567",
+    "model": "MB O530 Citaro LE C2",
+    "operator": "Nobina"
+  },
+  "9031012002203445": {
+    "plate": "YAK 216",
+    "model": "MB Citaro G C2",
+    "operator": "Nobina"
+  },
+  "9031012002203446": {
+    "plate": "YAK 220",
+    "model": "MB Citaro G C2",
+    "operator": "Nobina"
+  },
+  "9031012002203447": {
+    "plate": "YAK 225",
+    "model": "MB Citaro G C2",
+    "operator": "Nobina"
+  },
+  "9031012002203477": {
+    "plate": "YBH 891",
+    "model": "MB Citaro C2",
+    "operator": "Nobina"
+  },
+  "9031012002203478": {
+    "plate": "YBH 932",
+    "model": "MB Citaro C2",
+    "operator": "Nobina"
+  },
+  "9031012002203563": {
+    "plate": "YEG 729",
+    "model": "Volvo 8900LE",
+    "operator": "Nobina"
+  },
+  "9031012002203633": {
+    "plate": "DPX 651",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203634": {
+    "plate": "YAG 858",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203635": {
+    "plate": "XKR 839",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203636": {
+    "plate": "YAG 863",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203637": {
+    "plate": "ESA 174",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203638": {
+    "plate": "XLU 700",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203639": {
+    "plate": "XHR 358",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203640": {
+    "plate": "XJE 850",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203641": {
+    "plate": "DZY 543",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203642": {
+    "plate": "XJZ 068",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203643": {
+    "plate": "XJZ 823",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203644": {
+    "plate": "BXE 949",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203645": {
+    "plate": "XHL 602",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203646": {
+    "plate": "XHM 428",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203647": {
+    "plate": "XHR 312",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203648": {
+    "plate": "XHY 094",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203650": {
+    "plate": "XNB 443",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203651": {
+    "plate": "XNC 755",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203652": {
+    "plate": "XNJ 801",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203653": {
+    "plate": "XNT 290",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203654": {
+    "plate": "XDA 935",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203655": {
+    "plate": "AFT 817",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203656": {
+    "plate": "BUP 750",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203657": {
+    "plate": "WNE 519",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203658": {
+    "plate": "WNP 259",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203659": {
+    "plate": "XLK 531",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203660": {
+    "plate": "XLL 307",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203661": {
+    "plate": "XLN 008",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203662": {
+    "plate": "BXU 041",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203663": {
+    "plate": "XLT 494",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203664": {
+    "plate": "YAG 657",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203665": {
+    "plate": "XKG 575",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203666": {
+    "plate": "XKK 618",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203667": {
+    "plate": "XKM 990",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203668": {
+    "plate": "YAG 862",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203669": {
+    "plate": "XFX 057",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203670": {
+    "plate": "XGU 933",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203671": {
+    "plate": "BXB 226",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203672": {
+    "plate": "XHA 417",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203673": {
+    "plate": "UML 816",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203674": {
+    "plate": "WBT 849",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203681": {
+    "plate": "YHG 593",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203682": {
+    "plate": "YHG 598",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203683": {
+    "plate": "YHG 599",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203684": {
+    "plate": "YHG 604",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203685": {
+    "plate": "YHG 608",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203686": {
+    "plate": "YHG 614",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203687": {
+    "plate": "YHG 618",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203688": {
+    "plate": "YHG 623",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203689": {
+    "plate": "YHG 624",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203690": {
+    "plate": "YHG 628",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203691": {
+    "plate": "YHG 629",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203692": {
+    "plate": "YHG 633",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203693": {
+    "plate": "YHG 634",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203694": {
+    "plate": "YHG 639",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203695": {
+    "plate": "YHG 643",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203696": {
+    "plate": "YHG 644",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203697": {
+    "plate": "YHG 649",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203698": {
+    "plate": "YHG 653",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203699": {
+    "plate": "YHG 654",
+    "model": "MB Citaro C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203730": {
+    "plate": "YHG 658",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203731": {
+    "plate": "YHG 659",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203732": {
+    "plate": "YHG 663",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203733": {
+    "plate": "YHG 664",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203734": {
+    "plate": "YHG 668",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203735": {
+    "plate": "YHG 584",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203736": {
+    "plate": "YHG 569",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002203755": {
+    "plate": "WMN 159",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203756": {
+    "plate": "KXT 932",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203757": {
+    "plate": "RBM 865",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203758": {
+    "plate": "UAG 027",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203759": {
+    "plate": "UAG 877",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203760": {
+    "plate": "UAH 838",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203761": {
+    "plate": "DHF 938",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203762": {
+    "plate": "UBW 668",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203763": {
+    "plate": "UCG 443",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203764": {
+    "plate": "ZML 698",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203765": {
+    "plate": "UCJ 465",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203766": {
+    "plate": "CJT 998",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002203767": {
+    "plate": "XOO 194",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204026": {
+    "plate": "PHW 04J",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204027": {
+    "plate": "DJE 65A",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204028": {
+    "plate": "MPD 91A",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204029": {
+    "plate": "JJK 50N",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204030": {
+    "plate": "XCA 29U",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204031": {
+    "plate": "PBE 54S",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204032": {
+    "plate": "KKD 29S",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204033": {
+    "plate": "JZF 19G",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204034": {
+    "plate": "ODF 32E",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204035": {
+    "plate": "SJH 65S",
+    "model": "MB Citaro G C2 CNG",
+    "operator": "Nobina"
+  },
+  "9031012002204347": {
+    "plate": "RML 66R",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204348": {
+    "plate": "XWR 19F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204349": {
+    "plate": "JRC 19E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204350": {
+    "plate": "TBD 37J",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204351": {
+    "plate": "KZC 50P",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204352": {
+    "plate": "EHY 97G",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204353": {
+    "plate": "WLZ 49F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204354": {
+    "plate": "LYH 10P",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204355": {
+    "plate": "CMJ 33T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204356": {
+    "plate": "XNK 19K",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204357": {
+    "plate": "DDF 65A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204358": {
+    "plate": "MYM 32M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204359": {
+    "plate": "OAM 14T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204360": {
+    "plate": "ACN 13F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204361": {
+    "plate": "EPO 689",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204362": {
+    "plate": "EXP 05T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204363": {
+    "plate": "BES 01S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204364": {
+    "plate": "WZT 70M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204365": {
+    "plate": "WWU 50A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204366": {
+    "plate": "NRW 42E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204367": {
+    "plate": "DOX 50A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204368": {
+    "plate": "SGC 16K",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204369": {
+    "plate": "CJG 44U",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204370": {
+    "plate": "DLH 47R",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204371": {
+    "plate": "FMJ 06F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204372": {
+    "plate": "BPK 02E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204373": {
+    "plate": "KBH 79S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204374": {
+    "plate": "NSK 94T",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204375": {
+    "plate": "LLL 10C",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204376": {
+    "plate": "XWN 20A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204377": {
+    "plate": "JJP 01M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204378": {
+    "plate": "RAR 01E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204379": {
+    "plate": "COB 15A",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204380": {
+    "plate": "KNC 99S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204382": {
+    "plate": "ZJB 12H",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204383": {
+    "plate": "NCU 03S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204384": {
+    "plate": "WKU 49L",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204385": {
+    "plate": "GZX 79W",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204386": {
+    "plate": "TUY 97Z",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204387": {
+    "plate": "OLZ 14H",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204388": {
+    "plate": "YGZ 09S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204389": {
+    "plate": "WXB 60C",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204390": {
+    "plate": "WPC 60N",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204391": {
+    "plate": "KOD 79F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204392": {
+    "plate": "NCE 01M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204393": {
+    "plate": "YKF 83E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204394": {
+    "plate": "WCG 78W",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204395": {
+    "plate": "YCE 20L",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204396": {
+    "plate": "DRG 37E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204397": {
+    "plate": "TAH 48M",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204398": {
+    "plate": "SFF 27G",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204399": {
+    "plate": "DBG 33L",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204400": {
+    "plate": "DPF 57E",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204401": {
+    "plate": "PJG 74K",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204402": {
+    "plate": "BOH 73K",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204403": {
+    "plate": "HGH 08S",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204404": {
+    "plate": "KLJ 29L",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204405": {
+    "plate": "HOL 69F",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204406": {
+    "plate": "ZCM 20D",
+    "model": "Volvo 7900EA",
+    "operator": "Nobina"
+  },
+  "9031012002204407": {
+    "plate": "BYK 94X",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204408": {
+    "plate": "UOJ 28U",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204409": {
+    "plate": "JRP 70D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204410": {
+    "plate": "PMP 02H",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204411": {
+    "plate": "JRW 40A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204412": {
+    "plate": "SAL 45B",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204413": {
+    "plate": "KNE 29H",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204414": {
+    "plate": "HBJ 07J",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204415": {
+    "plate": "XDB 30A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204416": {
+    "plate": "ENH 65L",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204417": {
+    "plate": "LXL 90L",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204418": {
+    "plate": "BEO 696",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204419": {
+    "plate": "HMD 67F",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204420": {
+    "plate": "HAG 81F",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204421": {
+    "plate": "OCH 84W",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204422": {
+    "plate": "GCJ 79T",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204423": {
+    "plate": "NDM 11T",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204424": {
+    "plate": "JGD 30A",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204425": {
+    "plate": "HKE 19H",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204426": {
+    "plate": "SSE 45D",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204427": {
+    "plate": "KHF 30B",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204428": {
+    "plate": "ARH 03W",
+    "model": "MAN Lion's City 12E",
+    "operator": "Nobina"
+  },
+  "9031012002204429": {
+    "plate": "NOR 12S",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204430": {
+    "plate": "OYU 54W",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204431": {
+    "plate": "JAL 78T",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204432": {
+    "plate": "GKM 49E",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204433": {
+    "plate": "CUO 824",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204435": {
+    "plate": "MKS 93J",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204436": {
+    "plate": "ZAU 72F",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204437": {
+    "plate": "HDX 28R",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204438": {
+    "plate": "FCU 45T",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204440": {
+    "plate": "SWZ 16J",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204441": {
+    "plate": "LXZ 90B",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204442": {
+    "plate": "ARD 73Y",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204443": {
+    "plate": "UCE 69H",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204444": {
+    "plate": "MWD 91B",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204445": {
+    "plate": "ZGE 31S",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204446": {
+    "plate": "NLE 01N",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204447": {
+    "plate": "RUT 06F",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204448": {
+    "plate": "UEW 70B",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204449": {
+    "plate": "SJW 04S",
+    "model": "Van Hool Exqui.City Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204603": {
+    "plate": "FMA 70C",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204604": {
+    "plate": "DRA 25B",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204605": {
+    "plate": "XXC 50N",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204606": {
+    "plate": "NDA 03S",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204607": {
+    "plate": "YPD 10D",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204608": {
+    "plate": "JGC 40N",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204609": {
+    "plate": "GNF 17T",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204610": {
+    "plate": "GPE 88K",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204611": {
+    "plate": "NKD 73Z",
+    "model": "Volvo 7900 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204910": {
+    "plate": "TDJ 05A",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204911": {
+    "plate": "XBA 48G",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204912": {
+    "plate": "OZF 34W",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204913": {
+    "plate": "JHF 15S",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204914": {
+    "plate": "WEE 20M",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204915": {
+    "plate": "HTL 30S",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204916": {
+    "plate": "CLF 03K",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204917": {
+    "plate": "FNW 62H",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204918": {
+    "plate": "JAN 77H",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204919": {
+    "plate": "URT 63F",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204920": {
+    "plate": "RAY 05B",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204921": {
+    "plate": "KFJ 64R",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204922": {
+    "plate": "HLG 11E",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204923": {
+    "plate": "AHC 29K",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204924": {
+    "plate": "TMD 79G",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204925": {
+    "plate": "RCC 85A",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204926": {
+    "plate": "REC 77L",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002204927": {
+    "plate": "JAP 30C",
+    "model": "Solaris Urbino 18 Electric",
+    "operator": "Nobina"
+  },
+  "9031012002206001": {
+    "plate": "UTP 17E",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002206002": {
+    "plate": "YRX 30A",
+    "model": "Van Hool Exqui.City Hybrid",
+    "operator": "Nobina"
+  },
+  "9031012002207275": {
+    "plate": "STW 232",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207277": {
+    "plate": "SPR 145",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207278": {
+    "plate": "SPR 286",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207279": {
+    "plate": "DFM 300",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207282": {
+    "plate": "STS 076",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207286": {
+    "plate": "SPP 088",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207287": {
+    "plate": "XYB 741",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207288": {
+    "plate": "SPE 598",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207294": {
+    "plate": "SUF 916",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207296": {
+    "plate": "XYC 791",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207297": {
+    "plate": "EFX 363",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207298": {
+    "plate": "AHO 364",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207465": {
+    "plate": "DJD 831",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207466": {
+    "plate": "DJD 838",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207467": {
+    "plate": "DJD 839",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207468": {
+    "plate": "DJD 842",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207469": {
+    "plate": "DJD 843",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207470": {
+    "plate": "DJD 853",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207471": {
+    "plate": "DJB 793",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207472": {
+    "plate": "DJB 826",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207473": {
+    "plate": "DJB 828",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207474": {
+    "plate": "DJB 849",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207475": {
+    "plate": "DJB 853",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207476": {
+    "plate": "DJB 869",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207477": {
+    "plate": "DJC 478",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207478": {
+    "plate": "DJC 485",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207479": {
+    "plate": "DJC 486",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207480": {
+    "plate": "DJC 495",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207482": {
+    "plate": "RCH 796",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207484": {
+    "plate": "WTU 242",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207485": {
+    "plate": "RCS 214",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207486": {
+    "plate": "SOJ 193",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207487": {
+    "plate": "USU 901",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207488": {
+    "plate": "RCW 325",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207489": {
+    "plate": "RDA 934",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207490": {
+    "plate": "CDU 191",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207491": {
+    "plate": "FGS 208",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207492": {
+    "plate": "DJP 029",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207493": {
+    "plate": "DJP 039",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207494": {
+    "plate": "EGN 568",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207495": {
+    "plate": "DJP 046",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207497": {
+    "plate": "DJP 055",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207498": {
+    "plate": "DJO 873",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207499": {
+    "plate": "DJO 878",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207500": {
+    "plate": "DJO 886",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207501": {
+    "plate": "DJO 900",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207502": {
+    "plate": "DJO 929",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207503": {
+    "plate": "DJO 942",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207504": {
+    "plate": "RXF 718",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207505": {
+    "plate": "RXH 358",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207506": {
+    "plate": "RXK 040",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207507": {
+    "plate": "RXL 298",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207508": {
+    "plate": "RXN 376",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207509": {
+    "plate": "RXP 052",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207510": {
+    "plate": "RWJ 367",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207511": {
+    "plate": "RWM 910",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207512": {
+    "plate": "DFJ 737",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207513": {
+    "plate": "RWO 682",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207514": {
+    "plate": "RWP 886",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207515": {
+    "plate": "RWU 742",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207516": {
+    "plate": "RXA 922",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207517": {
+    "plate": "RXB 769",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207518": {
+    "plate": "RXC 136",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207519": {
+    "plate": "RXD 178",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207520": {
+    "plate": "RXE 172",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207521": {
+    "plate": "DKK 083",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207522": {
+    "plate": "DKK 087",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207523": {
+    "plate": "DKK 101",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207524": {
+    "plate": "DKK 103",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207529": {
+    "plate": "DKK 068",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207530": {
+    "plate": "DKK 073",
+    "model": "Scania OmniLink II CNG 6x2",
+    "operator": "Nobina"
+  },
+  "9031012002207683": {
+    "plate": "UJK 716",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207684": {
+    "plate": "UJN 354",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207685": {
+    "plate": "UJR 212",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207750": {
+    "plate": "DSR 556",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207751": {
+    "plate": "DSR 557",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207752": {
+    "plate": "DSR 562",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207753": {
+    "plate": "DSR 563",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207754": {
+    "plate": "DSR 572",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207755": {
+    "plate": "DSR 575",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207756": {
+    "plate": "EHA 695",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207757": {
+    "plate": "DSR 585",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207758": {
+    "plate": "DSR 593",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207759": {
+    "plate": "DSR 596",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207760": {
+    "plate": "DST 516",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207761": {
+    "plate": "DST 522",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207762": {
+    "plate": "DSR 168",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207763": {
+    "plate": "DSR 172",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207764": {
+    "plate": "DSR 177",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207765": {
+    "plate": "DSR 188",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207766": {
+    "plate": "DSR 190",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207767": {
+    "plate": "DSR 197",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207768": {
+    "plate": "DSR 143",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207769": {
+    "plate": "DYK 914",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207930": {
+    "plate": "EHW 620",
+    "model": "MB Citaro C2 LE",
+    "operator": "Nobina"
+  },
+  "9031012002207931": {
+    "plate": "EHW 662",
+    "model": "MB Citaro C2 LE",
+    "operator": "Nobina"
+  },
+  "9031012002207932": {
+    "plate": "EHW 661",
+    "model": "MB Citaro C2 LE",
+    "operator": "Nobina"
+  },
+  "9031012002207943": {
+    "plate": "XUN 665",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207944": {
+    "plate": "URE 876",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207945": {
+    "plate": "XWE 884",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207946": {
+    "plate": "USE 173",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207947": {
+    "plate": "JDZ 713",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207948": {
+    "plate": "ROB 877",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207949": {
+    "plate": "SZB 382",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207950": {
+    "plate": "EPD 170",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207970": {
+    "plate": "TRZ 598",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207971": {
+    "plate": "CFR 450",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207972": {
+    "plate": "TSG 055",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207973": {
+    "plate": "RDW 802",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207974": {
+    "plate": "RDX 073",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207975": {
+    "plate": "DCX 704",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207976": {
+    "plate": "LPC 878",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207977": {
+    "plate": "GJE 652",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207978": {
+    "plate": "XXZ 509",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207979": {
+    "plate": "GNF 811",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207980": {
+    "plate": "TTT 832",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207981": {
+    "plate": "EMJ 106",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207982": {
+    "plate": "EMJ 109",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207996": {
+    "plate": "RCX 790",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002207997": {
+    "plate": "EMJ 117",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Nobina"
+  },
+  "9031012002208898": {
+    "operator": "Nobina"
+  },
+  "9031012002209007": {
+    "plate": "GJA 04X",
+    "model": "Iveco Rosero First CNG",
+    "operator": "Go Ahead Sverige"
+  },
+  "9031012002209008": {
+    "plate": "DFX 14L",
+    "model": "Iveco Rosero First CNG",
+    "operator": "Go Ahead Sverige"
+  },
+  "9031012002209009": {
+    "plate": "KCY 09R",
+    "model": "Iveco Rosero First CNG",
+    "operator": "Go Ahead Sverige"
+  },
+  "9031012002209010": {
+    "plate": "SKX 68S",
+    "model": "Iveco Rosero First CNG",
+    "operator": "Go Ahead Sverige"
+  },
+  "9031012002209011": {
+    "plate": "CNW 86T",
+    "model": "Iveco Rosero First CNG",
+    "operator": "Go Ahead Sverige"
+  },
+  "9031012002400499": {
+    "plate": "LJJ 754",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev",
+    "altId": "0499"
+  },
+  "9031012002400500": {
+    "plate": "BBJ 924",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev",
+    "altId": "0500"
+  },
+  "9031012002400501": {
+    "plate": "JKN 915",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev",
+    "altId": "0501"
+  },
+  "9031012002400502": {
+    "plate": "PST 674",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev",
+    "altId": "0502"
+  },
+  "9031012002400503": {
+    "plate": "SWN 349",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev",
+    "altId": "0503"
+  },
+  "9031012002400517": {
+    "plate": "LXJ 925",
+    "model": "Scania OmniExpress 340 6x2",
+    "operator": "Transdev",
+    "altId": "0517"
+  },
+  "9031012002400518": {
+    "plate": "KWT 901",
+    "model": "Scania OmniExpress 340 6x2",
+    "operator": "Transdev",
+    "altId": "0518"
+  },
+  "9031012002401232": {
+    "plate": "EFX 042",
+    "model": "Solaris Urbino 12LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002402850": {
+    "plate": "YDL 215",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402851": {
+    "plate": "YDL 216",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402852": {
+    "plate": "YDL 220",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402853": {
+    "plate": "YDL 221",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402854": {
+    "plate": "YDL 225",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402855": {
+    "plate": "YDL 196",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402856": {
+    "plate": "YDL 201",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402857": {
+    "plate": "YDL 205",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402858": {
+    "plate": "YDL 206",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402859": {
+    "plate": "YDL 211",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402860": {
+    "plate": "FAE 916",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402861": {
+    "plate": "FAE 917",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402862": {
+    "plate": "FAE 938",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402863": {
+    "plate": "YDL 111",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402864": {
+    "plate": "YDL 115",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402865": {
+    "plate": "FAE 945",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402866": {
+    "plate": "YDL 150",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402867": {
+    "plate": "YDL 155",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402868": {
+    "plate": "YDL 161",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402869": {
+    "plate": "FAF 026",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402870": {
+    "plate": "YDL 226",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402871": {
+    "plate": "FAF 068",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402872": {
+    "plate": "FAF 077",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402873": {
+    "plate": "RWO 196",
+    "model": "VanHool Astromega TDX29",
+    "operator": "Transdev"
+  },
+  "9031012002402880": {
+    "plate": "YDH 373",
+    "model": "Scania Citywide LE 4x2",
+    "operator": "Transdev"
+  },
+  "9031012002403130": {
+    "plate": "YCX 473",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403131": {
+    "plate": "EZM 807",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403132": {
+    "plate": "EZU 330",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403133": {
+    "plate": "YDD 603",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403134": {
+    "plate": "FAD 987",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403135": {
+    "plate": "EZU 225",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403136": {
+    "plate": "YDD 528",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403137": {
+    "plate": "YCX 483",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403138": {
+    "plate": "EZU 216",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403139": {
+    "plate": "EZM 817",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403140": {
+    "plate": "EZU 235",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403141": {
+    "plate": "YDD 598",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403142": {
+    "plate": "YCX 478",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403143": {
+    "plate": "EZM 815",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403144": {
+    "plate": "YDD 599",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403145": {
+    "plate": "EZU 255",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403146": {
+    "plate": "YCX 482",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403147": {
+    "plate": "YDB 926",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403148": {
+    "plate": "EZS 396",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403149": {
+    "plate": "EZT 157",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403150": {
+    "plate": "YDB 927",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403151": {
+    "plate": "EZU 357",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403152": {
+    "plate": "YDB 921",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403153": {
+    "plate": "YDB 931",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403154": {
+    "plate": "YDD 604",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403155": {
+    "plate": "YDD 619",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403156": {
+    "plate": "EZU 356",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403157": {
+    "plate": "YDD 623",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403158": {
+    "plate": "EZU 350",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403159": {
+    "plate": "YDC 747",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403160": {
+    "plate": "EZU 390",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403161": {
+    "plate": "EZS 420",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403162": {
+    "plate": "EZS 406",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403163": {
+    "plate": "YDB 932",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403164": {
+    "plate": "EZS 430",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403165": {
+    "plate": "YDC 753",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403166": {
+    "plate": "EZU 377",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403167": {
+    "plate": "EZU 376",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403168": {
+    "plate": "YDD 639",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403169": {
+    "plate": "YDC 757",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403170": {
+    "plate": "YDD 634",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403171": {
+    "plate": "YDD 638",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403172": {
+    "plate": "YDD 584",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403173": {
+    "plate": "YDD 579",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403174": {
+    "plate": "YDD 583",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403175": {
+    "plate": "YDC 752",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403176": {
+    "plate": "YDD 589",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403177": {
+    "plate": "EZU 306",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403178": {
+    "plate": "YDD 663",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403179": {
+    "plate": "YDD 659",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403180": {
+    "plate": "YDD 653",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403181": {
+    "plate": "YDD 648",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403182": {
+    "plate": "EZU 408",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403183": {
+    "plate": "EZU 416",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403184": {
+    "plate": "YDD 654",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403185": {
+    "plate": "YDD 649",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403186": {
+    "plate": "YDB 936",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403187": {
+    "plate": "SPP 00B",
+    "model": "Scania CW Suburban LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403188": {
+    "plate": "DSE 25A",
+    "model": "Scania CW Suburban LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403189": {
+    "plate": "SLU 96F",
+    "model": "Scania CW Suburban LE 6x2",
+    "operator": "Transdev"
+  },
+  "9031012002403244": {
+    "plate": "BJJ 32S",
+    "model": "BYD K9UB",
+    "operator": "Transdev"
+  },
+  "9031012002403245": {
+    "plate": "JAZ 09F",
+    "model": "BYD K9UB",
+    "operator": "Transdev"
+  },
+  "9031012002403246": {
+    "plate": "HUG 80P",
+    "model": "BYD K9UB",
+    "operator": "Transdev"
+  },
+  "9031012002403247": {
+    "plate": "NNN 11N",
+    "model": "BYD K9UB",
+    "operator": "Transdev"
+  },
+  "9031012002406112": {
+    "plate": "RPE 451",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002406159": {
+    "plate": "CDU 314",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002406160": {
+    "plate": "EFA 439",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002406181": {
+    "plate": "RPN 931",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002406203": {
+    "plate": "CJB 169",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012002406204": {
+    "plate": "CJB 330",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "Transdev"
+  },
+  "9031012005300001": {
+    "plate": "BZN 65C",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0001"
+  },
+  "9031012005300002": {
+    "plate": "DBB 24H",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0002"
+  },
+  "9031012005300003": {
+    "plate": "TJB 70A",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0003"
+  },
+  "9031012005300004": {
+    "plate": "EPT 61D",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0004"
+  },
+  "9031012005300005": {
+    "plate": "GSE 67R",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0005"
+  },
+  "9031012005300006": {
+    "plate": "RAM 86F",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0006"
+  },
+  "9031012005300007": {
+    "plate": "GAP 19E",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0007"
+  },
+  "9031012005300008": {
+    "plate": "WAS 32G",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0008"
+  },
+  "9031012005300009": {
+    "plate": "DBS 50A",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0009"
+  },
+  "9031012005300010": {
+    "plate": "FHP 00X",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0010"
+  },
+  "9031012005300011": {
+    "plate": "FOX 63R",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0011"
+  },
+  "9031012005300012": {
+    "plate": "RBZ 56X",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0012"
+  },
+  "9031012005300013": {
+    "plate": "LDC 37E",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0013"
+  },
+  "9031012005300014": {
+    "plate": "YZB 96R",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0014"
+  },
+  "9031012005300015": {
+    "plate": "BTL 66G",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0015"
+  },
+  "9031012005300016": {
+    "plate": "RAM 70F",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0016"
+  },
+  "9031012005300017": {
+    "plate": "LRA 23M",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0017"
+  },
+  "9031012005300018": {
+    "plate": "REU 84R",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0018"
+  },
+  "9031012005300019": {
+    "plate": "FHJ 10A",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0019"
+  },
+  "9031012005300020": {
+    "plate": "EJW 61R",
+    "model": "Solaris Urbino 15 LE electric",
+    "operator": "VR",
+    "altId": "0020"
+  },
+  "9031012005300200": {
+    "plate": "NCW 03Y",
+    "model": "Solaris Urbino 12 LE electric",
+    "operator": "VR",
+    "altId": "0200"
+  },
+  "9031012005300201": {
+    "plate": "LLM 28L",
+    "model": "Solaris Urbino 12 LE electric",
+    "operator": "VR",
+    "altId": "0201"
+  },
+  "9031012005300202": {
+    "plate": "PDR 03W",
+    "model": "Solaris Urbino 12 LE electric",
+    "operator": "VR",
+    "altId": "0202"
+  },
+  "9031012005301001": {
+    "plate": "JSC 19G",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301002": {
+    "plate": "XPB 39U",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301003": {
+    "plate": "GAB 98J",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301004": {
+    "plate": "ZZF 831",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301005": {
+    "plate": "MTG 02P",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301006": {
+    "plate": "JMG 18F",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301007": {
+    "plate": "RRJ 46X",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301008": {
+    "plate": "SMK 96J",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301009": {
+    "plate": "SNM 65E",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301010": {
+    "plate": "DXL 25D",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301011": {
+    "plate": "TBL 37S",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301012": {
+    "plate": "EJN 05W",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301013": {
+    "plate": "FOP 55J",
+    "model": "VDL Citea SLFA-181 Electric",
+    "operator": "VR"
+  },
+  "9031012005301231": {
+    "plate": "RET 076",
+    "model": "Solaris Urbino 12LE CNG 4x2",
+    "operator": "VR"
+  },
+  "9031012005301304": {
+    "plate": "TKD 166",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301305": {
+    "plate": "TKH 106",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301306": {
+    "plate": "TKJ 760",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301307": {
+    "plate": "XTO 774",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301308": {
+    "plate": "YDJ 988",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301309": {
+    "plate": "FAC 806",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301310": {
+    "plate": "FAC 807",
+    "model": "Scania Citywide LE CNG",
+    "operator": "VR"
+  },
+  "9031012005301311": {
+    "plate": "XHT 92E",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301866": {
+    "plate": "FRM 73L",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301867": {
+    "plate": "BBN 13R",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301868": {
+    "plate": "XGK 95M",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301869": {
+    "plate": "WFK 20C",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301870": {
+    "plate": "UWW 90B",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301871": {
+    "plate": "RWA 26W",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301872": {
+    "plate": "BSW 92L",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301873": {
+    "plate": "EUW 44K",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301874": {
+    "plate": "KOW 80P",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301875": {
+    "plate": "JAG 12E",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301876": {
+    "plate": "EFW 00W",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301877": {
+    "plate": "MCW 02P",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301879": {
+    "plate": "HWJ 00M",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301880": {
+    "plate": "WAJ 45C",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301881": {
+    "plate": "FHK 72R",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301882": {
+    "plate": "RAH 67F",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301883": {
+    "plate": "LBJ 74R",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301884": {
+    "plate": "DMJ 00D",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301885": {
+    "plate": "WAJ 53Z",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301886": {
+    "plate": "ELJ 00Z",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301887": {
+    "plate": "MJA 16S",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301888": {
+    "plate": "OHJ 00C",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301889": {
+    "plate": "GEN 66T",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301890": {
+    "plate": "RAH 724",
+    "model": "Scania Citywide II LE CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005301991": {
+    "plate": "ZXE 600",
+    "model": "Scania Citywide II LE CNG 4x2",
+    "operator": "VR"
+  },
+  "9031012005301992": {
+    "plate": "MWA 21D",
+    "model": "Scania Citywide II LE CNG 4x2",
+    "operator": "VR"
+  },
+  "9031012005302001": {
+    "plate": "CHC 54H",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302002": {
+    "plate": "TNG 68M",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302003": {
+    "plate": "NAR 13W",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302004": {
+    "plate": "YRX 20A",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302005": {
+    "plate": "XLN 09E",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302006": {
+    "plate": "HUS 77M",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302007": {
+    "plate": "ROU 05A",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302008": {
+    "plate": "TEZ 27W",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302009": {
+    "plate": "KAD 30H",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302010": {
+    "plate": "FGK 58U",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302011": {
+    "plate": "FDP 00C",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302012": {
+    "plate": "ECF 37F",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302013": {
+    "plate": "SWO 994",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302014": {
+    "plate": "HKS 70A",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302015": {
+    "plate": "HBE 99F",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302016": {
+    "plate": "BJP 00A",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302017": {
+    "plate": "CAH 33J",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302018": {
+    "plate": "BTP 00D",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302019": {
+    "plate": "SJB 26J",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302020": {
+    "plate": "HLG 38F",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302021": {
+    "plate": "KYP 99R",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302022": {
+    "plate": "KKA 19E",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302023": {
+    "plate": "ERL 34M",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302024": {
+    "plate": "OBR 54H",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302025": {
+    "plate": "YXZ 09F",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302026": {
+    "plate": "FOD 66U",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302027": {
+    "plate": "XLA 40N",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302028": {
+    "plate": "FNG 59H",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302029": {
+    "plate": "WHK 78M",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302030": {
+    "plate": "WKK 80H",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302031": {
+    "plate": "GDT 68J",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302032": {
+    "plate": "HFZ 67J",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302033": {
+    "plate": "WYF 40B",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302034": {
+    "plate": "FDD 78L",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302035": {
+    "plate": "CCJ 54W",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302036": {
+    "plate": "KEL 50D",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302037": {
+    "plate": "ZJG 20N",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302038": {
+    "plate": "TWR 07J",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302039": {
+    "plate": "FXF 45T",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302040": {
+    "plate": "LTJ 83L",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302041": {
+    "plate": "BZR 95A",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302042": {
+    "plate": "EOA 55L",
+    "model": "MB O530 Citaro C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302101": {
+    "plate": "NGP 00A",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302102": {
+    "plate": "OHF 44R",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302103": {
+    "plate": "ALH 31U",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302104": {
+    "plate": "COP 45N",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302105": {
+    "plate": "KKX 50C",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302106": {
+    "plate": "LTM 51S",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302107": {
+    "plate": "XPS 81S",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302108": {
+    "plate": "UNZ 77H",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302109": {
+    "plate": "NJD 63H",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302110": {
+    "plate": "HZJ 49G",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302111": {
+    "plate": "LYL 41L",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302112": {
+    "plate": "LYD 62H",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302113": {
+    "plate": "ZYS 834",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302114": {
+    "plate": "HEC 98E",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302115": {
+    "plate": "FCE 45X",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302116": {
+    "plate": "OZZ 14F",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302117": {
+    "plate": "JNX 79G",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302118": {
+    "plate": "WCK 08W",
+    "model": "MB O530G Citaro G C2 CNG",
+    "operator": "VR"
+  },
+  "9031012005302594": {
+    "plate": "DEX 406",
+    "model": "Solaris Urbino 15LE CNG",
+    "operator": "VR"
+  },
+  "9031012005306300": {
+    "plate": "CDM 04E",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306301": {
+    "plate": "ZGL 41R",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306302": {
+    "plate": "UUL 70B",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306303": {
+    "plate": "PCN 25R",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306304": {
+    "plate": "WKM 88R",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306305": {
+    "plate": "PHP 25L",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306306": {
+    "plate": "HWP 80P",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306307": {
+    "plate": "RFN 44G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306308": {
+    "plate": "YOG 20H",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306309": {
+    "plate": "ZJF 94G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306310": {
+    "plate": "CLO 958",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306311": {
+    "plate": "MMR 93K",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306312": {
+    "plate": "GPH 46G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306313": {
+    "plate": "MBH 92H",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306314": {
+    "plate": "PJK 85B",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306315": {
+    "plate": "NZK 33E",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306316": {
+    "plate": "CFG 25M",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306317": {
+    "plate": "EKJ 47G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306318": {
+    "plate": "PDD 74J",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306319": {
+    "plate": "TEL 57F",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306320": {
+    "plate": "TZL 56H",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306321": {
+    "plate": "GEN 47F",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306322": {
+    "plate": "NWN 94G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306323": {
+    "plate": "COR 02M",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306324": {
+    "plate": "GZD 28K",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306325": {
+    "plate": "JPE 70A",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306326": {
+    "plate": "JYD 79F",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306327": {
+    "plate": "AOP 42S",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306328": {
+    "plate": "JOC 19G",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306329": {
+    "plate": "SLB 26E",
+    "model": "Scania CW LE Suburban CNG 6x2",
+    "operator": "VR"
+  },
+  "9031012005306668": {
+    "plate": "BXK 852",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306669": {
+    "plate": "BXK 856",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306670": {
+    "plate": "BXK 867",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306671": {
+    "plate": "BXK 885",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306672": {
+    "plate": "BXK 895",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306673": {
+    "plate": "BXK 916",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306674": {
+    "plate": "BXK 925",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306675": {
+    "plate": "BXH 275",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306676": {
+    "plate": "BXH 282",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306677": {
+    "plate": "BXH 283",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306678": {
+    "plate": "CEJ 315",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306679": {
+    "plate": "BXH 297",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306680": {
+    "plate": "BXH 302",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306681": {
+    "plate": "BXH 305",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306682": {
+    "plate": "BXH 603",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306683": {
+    "plate": "BXH 616",
+    "model": "MAN Lion's City A21 CNG",
+    "operator": "VR"
+  },
+  "9031012005306700": {
+    "plate": "TMB 928",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306701": {
+    "plate": "TME 721",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306702": {
+    "plate": "EKH 730",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306703": {
+    "plate": "TNL 172",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306704": {
+    "plate": "TNP 190",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306705": {
+    "plate": "TNY 061",
+    "model": "Scania Citywide LF 4x2",
+    "operator": "VR"
+  },
+  "9031012005306803": {
+    "plate": "SGP 904",
+    "model": "Scania Citywide LE 6x2",
+    "operator": "VR"
+  },
+  "9031012012211706": {
+    "operator": "Ersättningsbuss"
+  },
+  "9031012081201242": {
+    "operator": "VR"
+  },
+  "9031012081201290": {
+    "operator": "VR"
+  },
+  "9031012081201291": {
+    "operator": "VR"
+  },
+  "9031012081401439": {
+    "operator": "VR"
+  },
+  "9031012081401481": {
+    "operator": "VR"
+  },
+  "9031012081501503": {
+    "operator": "VR"
+  },
+  "9031012081501506": {
+    "operator": "VR"
+  },
+  "9031012081501525": {
+    "operator": "VR"
+  },
+  "9031012081501531": {
+    "operator": "VR"
+  },
+  "9031012081601631": {
+    "operator": "VR"
+  },
+  "9031012081601654": {
+    "operator": "VR"
+  },
+  "9031012081701740": {
+    "operator": "VR"
+  },
+  "9031012081701783": {
+    "operator": "VR"
+  },
+  "9031012081701791": {
+    "operator": "VR"
+  },
+  "9031012081801831": {
+    "operator": "VR"
+  },
+  "9031012081801839": {
+    "operator": "VR"
+  },
+  "9031012082401580": {
+    "operator": "VR"
+  }
+}

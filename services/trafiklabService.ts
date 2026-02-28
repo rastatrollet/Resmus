@@ -12,6 +12,9 @@ const fetchWithCors = async (url: string, options: RequestInit = {}) => {
     return fetch(proxyUrl, options);
 };
 
+// TripUpdate cache per operator (30s TTL)
+const tripUpdateCache: Record<string, { ts: number; data: any[] }> = {};
+
 export interface VehiclePosition {
     id: string;
     line: string;
@@ -35,55 +38,54 @@ export interface VehiclePosition {
 }
 
 
-const inferOperatorFromId = (id?: string): string | null => {
-    if (!id) return null;
+const inferOperatorFromId = (id?: string | null): string | null => {
+    const v = String(id || '');
+    if (!v) return null;
 
-    // SL – must check specific sub-prefixes BEFORE generic 9031
-    // 9011 = SL bus, 9031001 = SL Waxholmsbolaget ferries + some buses
-    if (id.startsWith('9011') || id.startsWith('1082') || id.startsWith('1065')) return 'sl';
-    if (id.startsWith('9031001')) return 'sl'; // SL GID prefix (NOT Skåne)
+    // 1. National GID/NetEx prefixes (9011 or 9031)
+    // Map specific authority codes
+    if (v.startsWith('9011001') || v.startsWith('9031001')) return 'sl';
+    if (v.startsWith('9011003') || v.startsWith('9031003')) return 'ul';
+    if (v.startsWith('9011004') || v.startsWith('9031004')) return 'sormland';
+    if (v.startsWith('9011005') || v.startsWith('9031005')) return 'otraf';
+    if (v.startsWith('9011006') || v.startsWith('9031006')) return 'jlt';
+    if (v.startsWith('9011007') || v.startsWith('9031007')) return 'krono';
+    if (v.startsWith('9011008') || v.startsWith('9031008')) return 'klt';
+    if (v.startsWith('9011009') || v.startsWith('9031009')) return 'gotland';
+    if (v.startsWith('9011010') || v.startsWith('9031010')) return 'blekinge';
+    if (v.startsWith('9011012') || v.startsWith('9031012')) return 'skane';
+    if (v.startsWith('9011013') || v.startsWith('9031013')) return 'halland';
+    if (v.startsWith('9011014') || v.startsWith('9031014')) return 'vasttrafik';
+    if (v.startsWith('9011017') || v.startsWith('9031017')) return 'varm';
+    if (v.startsWith('9011018') || v.startsWith('9031018')) return 'orebro';
+    if (v.startsWith('9011019') || v.startsWith('9031019')) return 'vastmanland';
+    if (v.startsWith('9011020') || v.startsWith('9031020')) return 'dt';
+    if (v.startsWith('9011021') || v.startsWith('9031021')) return 'xt';
+    if (v.startsWith('9011022') || v.startsWith('9031022')) return 'dintur';
+    if (v.startsWith('9011023') || v.startsWith('9031023')) return 'jamtland';
+    if (v.startsWith('9011024') || v.startsWith('9031024')) return 'vasterbotten';
+    if (v.startsWith('9011025') || v.startsWith('9031025')) return 'norrbotten';
 
-    // Skånetrafiken (9024 bus, 9024002 Pågatågen, 9031002 Öresundstågstrafiken etc.)
-    if (id.startsWith('9024') || id.startsWith('9031002') || id.startsWith('9031003')) return 'skane';
+    // 2. Specific Authority Prefixes (Older or Proprietary)
+    if (v.startsWith('1082') || v.startsWith('1065')) return 'sl';
+    if (v.startsWith('9024')) return 'skane';
+    if (v.startsWith('9025')) return 'vasttrafik';
+    if (v.startsWith('9027')) return 'orebro';
+    if (v.startsWith('9013')) return 'vastmanland';
+    if (v.startsWith('9021')) return 'otraf';
+    if (v.startsWith('9012')) return 'ul';
+    if (v.startsWith('9023')) return 'dt';
+    if (v.startsWith('9022')) return 'varm';
+    if (v.startsWith('9016')) return 'sormland';
+    if (v.startsWith('9032')) return 'krono';
+    if (v.startsWith('9020')) return 'jlt';
+    if (v.startsWith('9019')) return 'klt';
+    if (v.startsWith('9026') || v.startsWith('9018')) return 'halland';
+    if (v.startsWith('9017')) return 'blekinge';
+    if (v.startsWith('9014')) return 'xt';
 
-    // Örebro Län
-    if (id.startsWith('9027')) return 'orebro';
-
-    // Västmanland (VL)
-    if (id.startsWith('9013')) return 'vastmanland';
-
-    // Östgötatrafiken
-    if (id.startsWith('9021')) return 'otraf';
-
-    // UL
-    if (id.startsWith('9012')) return 'ul';
-
-    // Dalatrafik
-    if (id.startsWith('9023')) return 'dt';
-
-    // Värmland
-    if (id.startsWith('9022')) return 'varm';
-
-    // Sörmland
-    if (id.startsWith('9016')) return 'sormland';
-
-    // Kronoberg
-    if (id.startsWith('9032')) return 'krono';
-
-    // Jönköping
-    if (id.startsWith('9020')) return 'jlt';
-
-    // Kalmar
-    if (id.startsWith('9019')) return 'klt';
-
-    // Halland
-    if (id.startsWith('9026') || id.startsWith('9018')) return 'halland';
-
-    // Blekinge
-    if (id.startsWith('9017')) return 'blekinge';
-
-    // X-Trafik
-    if (id.startsWith('9014')) return 'xt';
+    // 3. Last fallback
+    if (v.startsWith('9011') || v.startsWith('9031')) return v.substring(4, 7).endsWith('001') ? 'sl' : null;
 
     return null;
 }
@@ -217,30 +219,99 @@ const normalizeText = (v?: string | null): string => String(v || '').trim();
 const looksLikeLineCode = (value?: string | null): boolean => {
     const v = normalizeText(value);
     if (!v) return false;
-    // Swedish bus/tram line numbers: 1–3 digits, optionally followed by ONE letter
-    // e.g. "4", "12", "100", "14A", "3X"
-    // Pure 4-digit numbers like "0470", "4360", "3664" are VEHICLE HARDWARE IDs, NOT line codes!
-    if (/^\d{1,3}[A-Z]?$/i.test(v)) return true;
+    // Swedish transit line numbers: 1–4 digits, optionally followed by ONE letter
+    // e.g. "4", "12", "100", "160", "2850", "14A", "3X"
+    if (/^\d{1,4}[A-Z]?$/i.test(v)) return true;
     // Alphanumeric codes starting with letters (e.g. "E20", "4X", "RED", "T14")
-    if (/^[A-Z]{1,3}\d{1,3}[A-Z]?$/i.test(v)) return true;
+    if (/^[A-Z]{1,3}\d{1,4}[A-Z]?$/i.test(v)) return true;
     // Pure letter codes (e.g. "RED", "BLÅ", "GUL")
     if (/^[A-Z]{1,6}$/i.test(v)) return true;
     // 4-digit numbers are NEVER line codes in Swedish transit — always vehicle IDs
     return false;
 };
 
-const pickLineDisplay = (routeId?: string, vehicleLabel?: string): string => {
+const pickLineDisplay = (routeId?: string, vehicleLabel?: string, tripId?: string): string => {
     const rid = normalizeText(routeId);
     const label = normalizeText(vehicleLabel);
+    const tid = normalizeText(tripId);
 
+    // Priority 1: vehicleLabel if it looks like a line code
     if (looksLikeLineCode(label) && !/^\d{5,}$/.test(label)) return label;
+    // Priority 2: routeId if it looks like a line code
     if (looksLikeLineCode(rid) && !/^\d{5,}$/.test(rid)) return rid;
 
-    // National 16-digit route ID format (e.g., 9021014001500000)
-    // The line number is located at index 7 to 11 (zero-padded 4-digits)
-    if (rid && /^\d{16}$/.test(rid)) {
-        const lineFragment = rid.substring(7, 11).replace(/^0+/, '');
-        if (lineFragment) return lineFragment;
+    // Helper: try extracting from a long numeric ID (13-16 digits)
+    // Swedish national format: digits 7-11 are the zero-padded line number
+    const tryLongNumeric = (id: string): string | null => {
+        if (/^\d{13,22}$/.test(id)) {
+            // Swedish national format: digits 8-11 (index 7 to 11) are the zero-padded line code
+            const raw = id.substring(7, 11);
+            const cleaned = raw.replace(/^0+/, '');
+
+            // For JLT/Örebro, the cleaned version is usually the public line number (e.g. '126' from '0126')
+            // But we try the clean one first as it's the most common display format
+            if (cleaned && looksLikeLineCode(cleaned)) return cleaned;
+            if (raw && looksLikeLineCode(raw)) return raw;
+        }
+        return null;
+    };
+
+    // Helper: try extracting from colon-separated ID
+    const tryColonSeparated = (id: string): string | null => {
+        if (!id.includes(':')) return null;
+        const parts = id.split(':');
+        const lineIdx = parts.findIndex(p => p.toLowerCase() === 'line');
+        if (lineIdx >= 0 && parts[lineIdx + 1]) {
+            const candidate = parts[lineIdx + 1].replace(/^0+/, '');
+            if (candidate && looksLikeLineCode(candidate)) return candidate;
+        }
+        const last = parts[parts.length - 1].replace(/^0+/, '');
+        if (last && looksLikeLineCode(last)) return last;
+        return null;
+    };
+
+    // Helper: try extracting from underscore/dash separated
+    // Common patterns: "9031006_28_20260228" or "Line_28" or "28_1_Fri"
+    const tryDelimiterSeparated = (id: string): string | null => {
+        if (!id.includes('_') && !id.includes('-')) return null;
+        const parts = id.split(/[_\-]+/);
+        // Find the first segment that looks like a line code (1-3 digits, optionally with letter)
+        for (const part of parts) {
+            const clean = part.replace(/^0+/, '');
+            if (clean && looksLikeLineCode(clean) && !/^\d{4,}$/.test(clean)) {
+                return clean;
+            }
+        }
+        return null;
+    };
+
+    // Try routeId with all strategies
+    if (rid) {
+        const fromLong = tryLongNumeric(rid);
+        if (fromLong) return fromLong;
+        const fromColon = tryColonSeparated(rid);
+        if (fromColon) return fromColon;
+        const fromDelim = tryDelimiterSeparated(rid);
+        if (fromDelim) return fromDelim;
+    }
+
+    // Try tripId with all strategies
+    if (tid) {
+        const fromLong = tryLongNumeric(tid);
+        if (fromLong) return fromLong;
+        const fromColon = tryColonSeparated(tid);
+        if (fromColon) return fromColon;
+        const fromDelim = tryDelimiterSeparated(tid);
+        if (fromDelim) return fromDelim;
+    }
+
+    // Last resort: scan routeId for any embedded 1-3 digit sequence
+    // This catches formats like "route28" or "R28" etc.
+    if (rid) {
+        const match = rid.match(/(?:^|[^0-9])(\d{1,3})(?:[^0-9]|$)/);
+        if (match && match[1] && match[1] !== '0') {
+            return match[1];
+        }
     }
 
     return '?';
@@ -266,10 +337,11 @@ const getOperatorsForBbox = (bbox?: VehicleBBox): string[] => {
 
 const buildVehicleFeedUrl = (operatorId: string): string => {
     const path = 'gtfs-rt/' + operatorId + '/VehiclePositions.pb';
+    const ts = Date.now();
     if (import.meta.env.DEV) {
-        return '/trafiklab-proxy/' + path + '?key=' + API_KEYS.TRAFIKLAB_API_KEY;
+        return `/trafiklab-proxy/${path}?key=${API_KEYS.TRAFIKLAB_API_KEY}&_t=${ts}`;
     }
-    return 'https://opendata.samtrafiken.se/' + path + '?key=' + API_KEYS.TRAFIKLAB_API_KEY;
+    return `https://opendata.samtrafiken.se/${path}?key=${API_KEYS.TRAFIKLAB_API_KEY}&_t=${ts}`;
 };
 
 const fetchVehicleFeed = async (operatorId: string): Promise<Response> => {
@@ -319,7 +391,24 @@ const parseVehicleEntities = (
         const routeId = v.trip?.routeId ?? undefined;
         const vehicleLabel = v.vehicle?.label ?? undefined;
         const vehicleId = v.vehicle?.id || entity.id;
-        const line = pickLineDisplay(routeId, vehicleLabel);
+
+        // NEW: Fill missing tripId from TripUpdates cache if available
+        let finalTripId = tripId;
+        if (!finalTripId && vehicleId && sourceOperatorId !== 'sweden') {
+            const cacheKey = `tu_${sourceOperatorId}`;
+            const tuCache = (tripUpdateCache as any)[cacheKey]?.data;
+            if (tuCache) {
+                const match = tuCache.find((m: any) => m.vehicleId === vehicleId);
+                if (match) finalTripId = match.tripId;
+            }
+        }
+
+        const line = pickLineDisplay(routeId, vehicleLabel, finalTripId);
+
+        // Debug: log vehicles with unresolvable line numbers
+        if (line === '?' && (routeId || tripId)) {
+            console.debug(`[pickLine ?] routeId=${routeId} label=${vehicleLabel} tripId=${tripId} op=${sourceOperatorId}`);
+        }
 
         const statusEnum = v.currentStatus;
         let currentStatus: string | undefined;
@@ -368,7 +457,7 @@ const parseVehicleEntities = (
                 String(vehicleId)
             ),
             operator: effectiveOperator,
-            tripId,
+            tripId: finalTripId,
             routeId,
             vehicleLabel,
             currentStatus,
@@ -452,9 +541,81 @@ export const TrafiklabService = {
             return deduped;
         }
 
+        // Proactively refresh TripUpdates in background for regional operators
+        // to help fill missing tripId -> line mapping in VehiclePositions
+        if (operatorId !== 'sweden' && operatorId !== 'entur') {
+            const cacheKey = `tu_${operatorId}`;
+            const stale = !tripUpdateCache[cacheKey] || (Date.now() - tripUpdateCache[cacheKey].ts > 60000);
+            if (stale) {
+                // Fire and forget
+                TrafiklabService.getTripUpdate(operatorId, 'sync-only').catch(() => { });
+            }
+        }
+
         const vehicles = await fetchSingleOperatorVehicles(operatorId, operatorId, bbox);
         console.log('[Trafiklab] Returning ' + vehicles.length + ' vehicles for ' + operatorId);
         return vehicles;
+    },
+
+    /**
+     * Fetch TripUpdates for an operator and find the matching trip.
+     * Returns delay (seconds) and next stop info.
+     * Cached per operator for 30s to avoid burning API quota.
+     */
+    getTripUpdate: async (operatorId: string, tripId: string): Promise<{ delay: number | null; nextStopId: string | null; nextStopSequence: number | null } | null> => {
+        if (!tripId || !API_KEYS.TRAFIKLAB_API_KEY) return null;
+
+        const cacheKey = `tu_${operatorId}`;
+        const now = Date.now();
+
+        // Check cache (30s TTL)
+        if (tripUpdateCache[cacheKey] && now - tripUpdateCache[cacheKey].ts < 30000) {
+            const cached = tripUpdateCache[cacheKey].data;
+            const match = cached.find((e: any) => e.tripId === tripId);
+            return match || null;
+        }
+
+        try {
+            const path = 'gtfs-rt/' + operatorId + '/TripUpdates.pb';
+            let url: string;
+            if (import.meta.env.DEV) {
+                url = '/trafiklab-proxy/' + path + '?key=' + API_KEYS.TRAFIKLAB_API_KEY;
+            } else {
+                url = 'https://opendata.samtrafiken.se/' + path + '?key=' + API_KEYS.TRAFIKLAB_API_KEY;
+            }
+
+            const res = await fetch(url, {
+                headers: { Accept: 'application/octet-stream,application/x-protobuf,*/*' }
+            });
+            if (!res.ok) return null;
+
+            const data = await decodeFeed(res);
+            const entities = data?.entity || [];
+
+            // Parse all trip updates into a lightweight array
+            const updates = entities.map((entity: any) => {
+                const tu = entity.tripUpdate;
+                if (!tu?.trip?.tripId) return null;
+                const stops = tu.stopTimeUpdate || [];
+                const firstStop = stops[0]; // next upcoming stop
+                return {
+                    tripId: tu.trip.tripId,
+                    vehicleId: tu.vehicle?.id || null, // Capture vehicle mapping
+                    delay: firstStop?.arrival?.delay ?? firstStop?.departure?.delay ?? tu.delay ?? null,
+                    nextStopId: firstStop?.stopId ?? null,
+                    nextStopSequence: firstStop?.stopSequence ?? null,
+                };
+            }).filter(Boolean);
+
+            // Cache
+            tripUpdateCache[cacheKey] = { ts: now, data: updates };
+
+            const match = updates.find((e: any) => e.tripId === tripId);
+            return match || null;
+        } catch (e) {
+            console.warn('[Trafiklab] TripUpdates fetch failed for ' + operatorId, e);
+            return null;
+        }
     },
 
     getDepartures: async (stopId: string): Promise<any[]> => {

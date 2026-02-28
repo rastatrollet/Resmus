@@ -6,6 +6,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TrafiklabService } from '../services/trafiklabService';
 import { GtfsShapeService, VehicleRoutePayload } from '../services/gtfsShapeService';
+import { LiveLineResolver } from '../services/liveLineResolver';
+import { resolveStopName } from '../services/stopNameResolver';
 import { TRAFIKLAB_OPERATORS } from '../services/config';
 import jltVehicles from '../src/jlt-vehicles.json';
 import slVehicles from '../src/sl-vehicles.json';
@@ -13,7 +15,7 @@ import skaneVehicles from '../src/skane-vehicles.json';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBus, faTrain, faTram, faChevronDown, faLocationArrow, faXmark, faLayerGroup, faExpand, faCompress, faShip, faMoon, faSun, faSpinner, faSearch } from '@fortawesome/free-solid-svg-icons';
 
-const REFRESH_INTERVAL = 5000; // 5 seconds – snappier updates
+const REFRESH_INTERVAL = 2000; // 2 seconds – real-time vehicle positions
 
 // ── Icon cache: keyed by "MODE|color|bearingBucket|line"
 // ── Modern 2026 Icon System ──────────────────────────────────────────────────
@@ -129,6 +131,53 @@ const createRouteStub = (lat: number, lng: number, bearing: number): [number, nu
     ];
 };
 
+// ── Helper: Build instant route from sibling vehicles on the same routeId ──────
+// Instead of waiting for NeTEx to download, we use ALL vehicles currently on the
+// same route to reconstruct an approximate path. Sorted by stopSequence if available,
+// otherwise by geographic proximity (greedy nearest-neighbor).
+const buildSiblingRoute = (selected: any, allVehicles: any[]): [number, number][] => {
+    if (!selected.routeId && !selected.line) return [];
+
+    // Find siblings: same routeId or same line+operator
+    const siblings = allVehicles.filter(v => {
+        if (v.id === selected.id) return false;
+        if (selected.routeId && v.routeId === selected.routeId) return true;
+        if (selected.line && selected.line !== '?' && v.line === selected.line && v.operator === selected.operator) return true;
+        return false;
+    });
+
+    if (siblings.length < 1) return [];
+
+    // Include the selected vehicle itself
+    const all = [selected, ...siblings];
+
+    // Try sorting by stopSequence first
+    const withSeq = all.filter(v => v.stopSequence != null);
+    if (withSeq.length >= 2) {
+        withSeq.sort((a, b) => (a.stopSequence || 0) - (b.stopSequence || 0));
+        return withSeq.map(v => [v.lat, v.lng] as [number, number]);
+    }
+
+    // Fallback: greedy nearest-neighbor sort to create a path
+    const coords = all.map(v => ({ lat: v.lat, lng: v.lng }));
+    const ordered: { lat: number; lng: number }[] = [coords[0]];
+    const remaining = new Set(coords.slice(1));
+
+    while (remaining.size > 0) {
+        const last = ordered[ordered.length - 1];
+        let closest: { lat: number; lng: number } | null = null;
+        let bestDist = Infinity;
+        for (const c of remaining) {
+            const d = (c.lat - last.lat) ** 2 + (c.lng - last.lng) ** 2;
+            if (d < bestDist) { bestDist = d; closest = c; }
+        }
+        if (closest) { ordered.push(closest); remaining.delete(closest); }
+        else break;
+    }
+
+    return ordered.map(c => [c.lat, c.lng] as [number, number]);
+};
+
 const SUPPORTED_STATIC_OPERATORS = new Set([
     'sl', 'ul', 'skane', 'otraf', 'jlt', 'krono', 'klt', 'gotland',
     'varm', 'orebro', 'vastmanland', 'dt', 'xt', 'dintur', 'halland', 'blekinge',
@@ -139,32 +188,33 @@ const inferOperatorFromRtId = (id?: string | null): string | null => {
     const v = String(id || '');
     if (!v) return null;
 
-    // 1. Strict National GID check (9011 XXX)
-    if (v.startsWith('9011001')) return 'sl';
-    if (v.startsWith('9011003')) return 'ul';
-    if (v.startsWith('9011004')) return 'sormland';
-    if (v.startsWith('9011005')) return 'otraf';
-    if (v.startsWith('9011006')) return 'jlt';
-    if (v.startsWith('9011007')) return 'krono';
-    if (v.startsWith('9011008')) return 'klt';
-    if (v.startsWith('9011009')) return 'gotland';
-    if (v.startsWith('9011010')) return 'blekinge';
-    if (v.startsWith('9011012')) return 'skane';
-    if (v.startsWith('9011013')) return 'halland';
-    if (v.startsWith('9011014')) return 'vasttrafik';
-    if (v.startsWith('9011017')) return 'varm';
-    if (v.startsWith('9011018')) return 'orebro';
-    if (v.startsWith('9011019')) return 'vastmanland';
-    if (v.startsWith('9011020')) return 'dt';
-    if (v.startsWith('9011021')) return 'xt';
-    if (v.startsWith('9011022')) return 'dintur';
-    if (v.startsWith('9011023')) return 'jamtland';
-    if (v.startsWith('9011024')) return 'vasterbotten';
-    if (v.startsWith('9011025')) return 'norrbotten';
+    // 1. National GID/NetEx prefixes (9011XXX or 9031XXX)
+    // Authority codes: 001=SL, 012=Skåne, 005=Otraf, 006=JLT, 018=Örebro, 014=Vt, 003=UL...
+    if (v.startsWith('9011001') || v.startsWith('9031001')) return 'sl';
+    if (v.startsWith('9011003') || v.startsWith('9031003')) return 'ul';
+    if (v.startsWith('9011004') || v.startsWith('9031004')) return 'sormland';
+    if (v.startsWith('9011005') || v.startsWith('9031005')) return 'otraf';
+    if (v.startsWith('9011006') || v.startsWith('9031006')) return 'jlt';
+    if (v.startsWith('9011007') || v.startsWith('9031007')) return 'krono';
+    if (v.startsWith('9011008') || v.startsWith('9031008')) return 'klt';
+    if (v.startsWith('9011009') || v.startsWith('9031009')) return 'gotland';
+    if (v.startsWith('9011010') || v.startsWith('9031010')) return 'blekinge';
+    if (v.startsWith('9011012') || v.startsWith('9031012')) return 'skane';
+    if (v.startsWith('9011013') || v.startsWith('9031013')) return 'halland';
+    if (v.startsWith('9011014') || v.startsWith('9031014')) return 'vasttrafik';
+    if (v.startsWith('9011017') || v.startsWith('9031017')) return 'varm';
+    if (v.startsWith('9011018') || v.startsWith('9031018')) return 'orebro';
+    if (v.startsWith('9011019') || v.startsWith('9031019')) return 'vastmanland';
+    if (v.startsWith('9011020') || v.startsWith('9031020')) return 'dt';
+    if (v.startsWith('9011021') || v.startsWith('9031021')) return 'xt';
+    if (v.startsWith('9011022') || v.startsWith('9031022')) return 'dintur';
+    if (v.startsWith('9011023') || v.startsWith('9031023')) return 'jamtland';
+    if (v.startsWith('9011024') || v.startsWith('9031024')) return 'vasterbotten';
+    if (v.startsWith('9011025') || v.startsWith('9031025')) return 'norrbotten';
 
-    // 2. Older / Proprietary operator prefixes
-    if (v.startsWith('1082') || v.startsWith('1065') || v.startsWith('9031001')) return 'sl';
-    if (v.startsWith('9024') || v.startsWith('9031002') || v.startsWith('9031003')) return 'skane';
+    // 2. Specific Authority Prefixes
+    if (v.startsWith('1082') || v.startsWith('1065')) return 'sl';
+    if (v.startsWith('9024')) return 'skane';
     if (v.startsWith('9025')) return 'vasttrafik';
     if (v.startsWith('9027')) return 'orebro';
     if (v.startsWith('9013')) return 'vastmanland';
@@ -181,7 +231,7 @@ const inferOperatorFromRtId = (id?: string | null): string | null => {
     if (v.startsWith('9014')) return 'xt';
 
     // 3. Last fallback
-    if (v.startsWith('9011')) return 'sl';
+    if (v.startsWith('9011') || v.startsWith('9031')) return v.substring(4, 7).endsWith('001') ? 'sl' : null;
     return null;
 };
 
@@ -287,7 +337,7 @@ const extractActualDestination = (value?: string | null): string | null => {
 const isUselessDestination = (dest?: string | null, line?: string | null): boolean => {
     if (!dest) return true;
     const d = dest.trim().toLowerCase();
-    if (d === '?' || d === 'null' || d === 'undefined' || d === 'okänd destination') return true;
+    if (d === '?' || d === 'null' || d === 'undefined' || d === 'okänd destination' || d === 'omnibuslinjen' || d === 'region') return true;
     // Trip IDs often look like long numbers or have many segments with colons
     if (d.length >= 7 && (/^\d+$/.test(d) || (d.match(/:/g) || []).length >= 2)) return true;
     if (line && d === line.trim().toLowerCase()) return true;
@@ -312,7 +362,8 @@ const formatCompactPanel = (
     gtfsLoading: boolean,
     hasRoute: boolean,
     defaultColor: string,
-    lineColor?: string
+    lineColor?: string,
+    delaySeconds?: number | null
 ): CompactPanel => {
     const lineFinal = gtfsLoading ? (displayLine || v.line || '?') : (displayLine || v.line || '?');
 
@@ -422,6 +473,19 @@ const formatCompactPanel = (
         }
     }
 
+    // Delay status from TripUpdates
+    if (delaySeconds != null) {
+        if (delaySeconds > 60) {
+            const mins = Math.round(delaySeconds / 60);
+            chips.push({ label: 'TURSTATUS', value: `⚠️ ${mins} min sen` });
+        } else if (delaySeconds < -60) {
+            const mins = Math.abs(Math.round(delaySeconds / 60));
+            chips.push({ label: 'TURSTATUS', value: `⏩ ${mins} min tidig` });
+        } else {
+            chips.push({ label: 'TURSTATUS', value: '✅ I tid' });
+        }
+    }
+
     return {
         title: title,
         subtitle: title === 'EJ I TRAFIK' ? 'Ej linjesatt' : next,
@@ -429,6 +493,120 @@ const formatCompactPanel = (
         lineColor: lineColor || defaultColor,
         chips
     };
+};
+
+// ── Vehicle Info Popup – renders above vehicle icon on the map ──────────────
+const VehicleInfoPopup = ({ vehicle, panel, numColor, nextStopDisplay, nextPlatform, gtfsLoading, onClose, mapRef }: {
+    vehicle: any;
+    panel: CompactPanel;
+    numColor: string;
+    nextStopDisplay: string | null;
+    nextPlatform: string | null;
+    gtfsLoading: boolean;
+    onClose: () => void;
+    mapRef: L.Map | null;
+}) => {
+    const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+
+    useEffect(() => {
+        if (!mapRef || !vehicle) return;
+
+        const updatePosition = () => {
+            const point = mapRef.latLngToContainerPoint([vehicle.lat, vehicle.lng]);
+            setPos({ x: point.x, y: point.y });
+        };
+
+        updatePosition();
+        mapRef.on('move zoom moveend zoomend', updatePosition);
+        return () => {
+            mapRef.off('move zoom moveend zoomend', updatePosition);
+        };
+    }, [mapRef, vehicle?.lat, vehicle?.lng]);
+
+    if (!pos) return null;
+
+    // Position the panel centered horizontally above the icon, with a 45px upward offset
+    const panelWidth = 300;
+    const left = pos.x - panelWidth / 2;
+    const top = pos.y - 45; // Position above the icon
+
+    return (
+        <div
+            className="absolute z-[500] pointer-events-none"
+            style={{
+                left: `${left}px`,
+                top: `${top}px`,
+                width: `${panelWidth}px`,
+                transform: 'translateY(-100%)',
+                transition: 'left 0.3s ease, top 0.3s ease',
+            }}
+        >
+            <div className="pointer-events-auto relative overflow-hidden rounded-2xl shadow-lg dark:shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] border border-slate-200/60 dark:border-white/10 backdrop-blur-2xl bg-white/95 dark:bg-[#0f172a]/95 ring-1 ring-black/5 p-3">
+                <div className="flex flex-col relative z-10 w-full">
+                    <div className="flex items-center gap-2.5 w-full relative pr-7">
+                        <div
+                            className="h-[34px] min-w-[44px] px-2 rounded-lg flex items-center justify-center font-black text-lg leading-none shadow-sm shrink-0 border border-white/20"
+                            style={{ backgroundColor: panel.lineColor, color: numColor }}
+                        >
+                            {panel.lineNumber}
+                        </div>
+                        <div className="font-extrabold text-slate-800 dark:text-white text-[15px] leading-tight flex-1 min-w-0 pr-3 break-words whitespace-normal">
+                            {panel.title}
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="absolute top-1/2 -translate-y-1/2 -right-0.5 w-6 h-6 shrink-0 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-all active:scale-90"
+                        >
+                            <FontAwesomeIcon icon={faXmark} className="text-sm" />
+                        </button>
+                    </div>
+
+                    <div className="mt-2 flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-[12px] font-semibold w-full pr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <span className="truncate">{panel.subtitle}</span>
+                        </div>
+                        {nextStopDisplay && (
+                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-medium pl-3">
+                                <span>📍</span>
+                                <span className="truncate">
+                                    {nextStopDisplay}
+                                    {nextPlatform ? ` · Läge ${nextPlatform}` : ''}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800 my-2" />
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        {gtfsLoading ? (
+                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0">
+                                <FontAwesomeIcon icon={faSpinner} className="animate-spin text-sky-500 text-xs" />
+                                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Hämtar</span>
+                            </div>
+                        ) : (
+                            panel.chips.map((chip, i) => (
+                                <div key={i} className="flex flex-col shrink-0">
+                                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{chip.label}</span>
+                                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-200 tracking-tight flex items-center gap-1 mt-0.5">
+                                        {chip.label.toLowerCase() === 'operatör' && (
+                                            <span className="w-3 h-3 rounded-sm flex items-center justify-center grayscale opacity-80 text-[10px]">🏢</span>
+                                        )}
+                                        {chip.value}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+            {/* Small arrow pointing down to the vehicle */}
+            <div className="flex justify-center -mt-[1px]">
+                <div className="w-3 h-3 bg-white/95 dark:bg-[#0f172a]/95 border-r border-b border-slate-200/60 dark:border-white/10 rotate-45 -translate-y-1.5" />
+            </div>
+        </div>
+    );
 };
 
 // ── Memoized Vehicle Marker
@@ -581,6 +759,9 @@ const MapEvents = ({ setVehicles, setStops, setParkings, setDisruptions, selecte
                 );
                 setVehicles(vehicleData || []);
 
+                // Feed LiveLineResolver for real-time destination tracking
+                if (vehicleData) LiveLineResolver.feedVehicles(vehicleData);
+
                 // Fetch stops (no zoom limit, "gör de ändå!")
                 if (zoom > 12) {
                     const opArray = ['sl', 'skane', 'ul', 'otraf', 'jlt', 'krono', 'klt', 'gotland', 'varm', 'orebro', 'vastmanland', 'dt', 'xt', 'dintur', 'halland'];
@@ -648,6 +829,13 @@ const MapEvents = ({ setVehicles, setStops, setParkings, setDisruptions, selecte
     return null;
 };
 
+// ── Map Ref Capture – stores the Leaflet map instance for use outside MapContainer ──
+const MapRefCapture = ({ setMapRef }: { setMapRef: (map: L.Map) => void }) => {
+    const map = useMap();
+    useEffect(() => { setMapRef(map); }, [map, setMapRef]);
+    return null;
+};
+
 // ── Main LiveMap Component
 export const LiveMap = () => {
     const { regionId } = useParams<{ regionId?: string }>();
@@ -667,7 +855,7 @@ export const LiveMap = () => {
 
     const [zoom, setZoom] = useState<number>(13);
     const [activeFilters, setActiveFilters] = useState<string[]>(['BUS', 'TRAM', 'METRO', 'TRAIN', 'FERRY']);
-    const [hideDepot, setHideDepot] = useState(false);
+    const [hideDepot, setHideDepot] = useState(true); // Default: visa bara fordon i trafik
     const [showLabels, setShowLabels] = useState(false); // Toggle for showing vehicle IDs
     const [showLayers, setShowLayers] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -677,13 +865,16 @@ export const LiveMap = () => {
     const [journeyPath, setJourneyPath] = useState<[number, number][]>([]);
     const [journeyColorState, setJourneyColorState] = useState<string>('#0ea5e9');
     const [journeyStops, setJourneyStops] = useState<{ coords: { lat: number, lng: number }, name: string, time?: string, platformCode?: string }[]>([]);
-    const [networkShapes, setNetworkShapes] = useState<Record<string, { points: [number, number][][], color: string }>>({});
+    const [networkShapes, setNetworkShapes] = useState<Record<string, { points: [number, number][][], color: string, mode: string, publicCode: string }>>({});
     const [isNetworkLoading, setIsNetworkLoading] = useState(false);
     const [gtfsPayload, setGtfsPayload] = useState<VehicleRoutePayload | null>(null);
     const [gtfsLoading, setGtfsLoading] = useState(false);
     const [nextStopCache, setNextStopCache] = useState<Record<string, { name: string, time?: string }>>({});
     const [mapMode, setMapMode] = useState<'light' | 'dark' | 'satellite' | 'hybrid'>('light'); // Kartläge
     const [searchQuery, setSearchQuery] = useState<string>(''); // Sökning på internummer
+    const [mapRef, setMapRef] = useState<L.Map | null>(null);
+    const [tripDelay, setTripDelay] = useState<number | null>(null);
+    const [resolvedNextStop, setResolvedNextStop] = useState<string | null>(null);
 
     const [gtfsCounter, setGtfsCounter] = useState(0);
 
@@ -832,11 +1023,61 @@ export const LiveMap = () => {
 
     const handleSelectVehicle = async (v: any) => {
         setSelectedVehicle(v);
-        // Optimistic stub: Draw projected path immediately
-        setJourneyPath(createRouteStub(v.lat, v.lng, v.bearing ?? 0));
         setJourneyStops([]);
         setGtfsPayload(null);
         setGtfsLoading(false);
+        setTripDelay(null);
+        setResolvedNextStop(null);
+
+        // ── Fetch TripUpdates for delay info + next stop ──
+        if (v.tripId && v.operator) {
+            TrafiklabService.getTripUpdate(v.operator, v.tripId).then(async tu => {
+                if (tu) {
+                    if (tu.delay != null) setTripDelay(tu.delay);
+                    // Resolve next stop name
+                    if (tu.nextStopId) {
+                        const name = await resolveStopName(tu.nextStopId);
+                        if (name) setResolvedNextStop(name);
+                    }
+                }
+            }).catch(() => { });
+        }
+
+        // Also resolve from vehicle's own stopId
+        if (v.stopId) {
+            resolveStopName(v.stopId).then(name => {
+                if (name) setResolvedNextStop(prev => prev || name);
+            }).catch(() => { });
+        }
+
+        // ── Instant full route from network shapes ──
+        // Try to find the full network shape for this line (already pre-loaded)
+        const lineCode = v.line || '?';
+        let foundNetworkRoute = false;
+        if (lineCode !== '?' && Object.keys(networkShapes).length > 0) {
+            // Find matching shape by publicCode
+            const matchingShape = Object.values(networkShapes).find(
+                s => s.publicCode === lineCode
+            );
+            if (matchingShape && matchingShape.points.length > 0) {
+                // Concatenate ALL segments for the full route
+                const allCoords = matchingShape.points.flatMap(seg => seg);
+                if (allCoords.length >= 2) {
+                    setJourneyPath(allCoords);
+                    foundNetworkRoute = true;
+                }
+            }
+        }
+
+        if (!foundNetworkRoute) {
+            // Fallback: reconstruct from sibling vehicles
+            const siblingPath = buildSiblingRoute(v, vehicles);
+            if (siblingPath.length >= 2) {
+                setJourneyPath(siblingPath);
+            } else {
+                setJourneyPath(createRouteStub(v.lat, v.lng, v.bearing ?? 0));
+            }
+        }
 
         // ── Path A: Västtrafik V4 logic removed ──
         // Users requested total decoupling from Västtrafik API for the map service.
@@ -949,6 +1190,8 @@ export const LiveMap = () => {
                     }
                     maxZoom={mapMode === 'satellite' || mapMode === 'hybrid' ? 18 : 20}
                 />
+
+                <MapRefCapture setMapRef={setMapRef} />
 
                 <MapEvents
                     setVehicles={setVehicles}
@@ -1077,19 +1320,15 @@ export const LiveMap = () => {
                         // Depot filter - improved logic
                         if (!hideDepot) return true;
 
-                        const destText = (v.dest || '').toLowerCase();
-                        const lineText = (v.line || '').toLowerCase();
+                        // Ett förnuftigt och säkert depåfilter som inte döljer alla fordon:
+                        // Har fordonet ett 'tripId' vet vi att det är ute och kör i schemalagd trafik.
+                        if (v.tripId) return true;
 
-                        // Mark as depot if destination explicitly indicates it
-                        const isDepot = /ej i trafik|depå|inställd|ej linjesatt|tomkörning|parkeringsplats|garage|verkstad|lager/.test(destText);
+                        // Har den en definierad linje som inte bara är "?" eller tom, visar vi den också.
+                        if (v.line && v.line !== '?') return true;
 
-                        // Don't show if it's explicitly a depot
-                        if (isDepot) return false;
-
-                        // Don't show if it has no line and no destination info
-                        if ((!v.line || v.line === '?') && (!v.dest || v.dest === '?')) return false;
-
-                        return true;
+                        // I övriga fall antar vi att det är ett fordon "ur trafik" (depå).
+                        return false;
                     })
                     .filter(v => {
                         // Search filter by internal number (internummer)
@@ -1109,8 +1348,19 @@ export const LiveMap = () => {
                     .map(v => {
                         const opCandidates = getOperatorCandidates(v, selectedOperator);
                         // Resolve line info synchronously (fast) using cached routes/trips
-                        // This handles cases where we only have tripId, or routeId is a long string
-                        const info = opCandidates.map(op => GtfsShapeService.getLineInfo(op, v.tripId, v.routeId)).find(Boolean);
+                        const netexInfo = opCandidates.map(op => GtfsShapeService.getLineInfo(op, v.tripId, v.routeId)).find(Boolean);
+
+                        // Instant fallback: LiveLineResolver (hardcoded colors + SL API)
+                        const liveInfo = !netexInfo ? LiveLineResolver.resolve(v.operator || selectedOperator || 'sl', v.line || '?') : null;
+                        const info = netexInfo || (liveInfo ? {
+                            line: liveInfo.line,
+                            longName: liveInfo.longName,
+                            headsign: undefined as string | undefined,
+                            color: liveInfo.color,
+                            textColor: liveInfo.textColor,
+                            routeType: liveInfo.mode === 'METRO' ? 1 : liveInfo.mode === 'TRAM' ? 0 : liveInfo.mode === 'TRAIN' ? 2 : liveInfo.mode === 'FERRY' ? 4 : 3,
+                        } : null);
+
                         const likelyTrain = isLikelyTrainVehicle(v, info?.routeType);
 
                         let resolvedLine = info?.line || v.line;
@@ -1125,7 +1375,6 @@ export const LiveMap = () => {
                         if (showLabels) {
                             let rawId = getRawVehicleId(v);
                             if (rawId && rawId !== 'unknown') {
-                                // Extract the last 4 characters
                                 resolvedLine = rawId.slice(-4);
                             } else {
                                 resolvedLine = 'ID?';
@@ -1156,21 +1405,43 @@ export const LiveMap = () => {
                     })}
 
                 {/* Network Shapes Layer (Base network) */}
-                {Object.entries(networkShapes).map(([lineId, data]) => (
-                    data.points.map((coords, idx) => (
-                        <Polyline
-                            key={`net-${lineId}-${idx}`}
-                            positions={coords}
-                            pathOptions={{
-                                color: data.color,
-                                weight: zoom > 14 ? 3 : 2,
-                                opacity: zoom > 13 ? 0.35 : 0.2,
-                                lineJoin: 'round',
-                                interactive: false
-                            }}
-                        />
-                    ))
-                ))}
+                {Object.entries(networkShapes)
+                    .sort(([, a], [, b]) => {
+                        const aRail = ['metro', 'tram', 'rail'].includes(a.mode) ? 1 : 0;
+                        const bRail = ['metro', 'tram', 'rail'].includes(b.mode) ? 1 : 0;
+                        return aRail - bRail;
+                    })
+                    .map(([lineId, data]) => {
+                        const isRail = ['metro', 'tram', 'rail'].includes(data.mode);
+                        const drawOutline = isRail && zoom > 12;
+
+                        return data.points.map((coords, idx) => (
+                            <React.Fragment key={`net-${lineId}-${idx}`}>
+                                {drawOutline && (
+                                    <Polyline
+                                        positions={coords}
+                                        pathOptions={{
+                                            color: isDark ? '#1e293b' : '#ffffff', // better outline color matching user's image style
+                                            weight: zoom > 14 ? 8 : 5,
+                                            opacity: 1.0,
+                                            lineJoin: 'round',
+                                            interactive: false
+                                        }}
+                                    />
+                                )}
+                                <Polyline
+                                    positions={coords}
+                                    pathOptions={{
+                                        color: data.color,
+                                        weight: isRail ? (zoom > 14 ? 5 : 3) : (zoom > 14 ? 3 : 2),
+                                        opacity: isRail ? 1.0 : (zoom > 13 ? 0.35 : 0.2),
+                                        lineJoin: 'round',
+                                        interactive: false
+                                    }}
+                                />
+                            </React.Fragment>
+                        ));
+                    })}
 
                 {/* Disruptions */}
                 {disruptions.map(d =>
@@ -1200,6 +1471,7 @@ export const LiveMap = () => {
             </MapContainer>
 
             {/* ── Selected Vehicle Popup (map-anchored above marker) ── */}
+            {/* This renders as an overlay on the map container, positioned above the vehicle */}
             {selectedVehicle && (() => {
                 const opCandidates = getOperatorCandidates(selectedVehicle, selectedOperator);
                 const routeInfo = gtfsPayload?.routeInfo;
@@ -1226,18 +1498,59 @@ export const LiveMap = () => {
                     || routeInfo?.longName
                     || null;
 
-                const displayColor = routeInfo?.color || journeyColor;
+                const displayColor = routeInfo?.color || syncInfo?.color || journeyColor;
                 const finalDest = displayDest || null;
 
+                // ── Next stop resolution (multiple sources) ──
+                let nextStopDisplay: string | null = null;
+                let nextPlatform: string | null = null;
+
+                // Priority 1: GTFS payload (from NeTEx resolve)
+                if (gtfsPayload?.nextStopName) {
+                    nextStopDisplay = gtfsPayload.nextStopName;
+                    nextPlatform = gtfsPayload.nextStopPlatform || null;
+                }
+                // Priority 2: Cached next stop
+                if (!nextStopDisplay && cachedNextStopName) {
+                    nextStopDisplay = cachedNextStopName;
+                }
+                // Priority 2.5: Resolved from stopId via ResRobot API
+                if (!nextStopDisplay && resolvedNextStop) {
+                    nextStopDisplay = resolvedNextStop;
+                }
+                // Priority 3: Journey stops + vehicle position → find nearest upcoming stop
+                if (!nextStopDisplay && journeyStops.length > 0 && selectedVehicle.lat) {
+                    let bestDist = Infinity;
+                    let bestIdx = -1;
+                    for (let i = 0; i < journeyStops.length; i++) {
+                        const s = journeyStops[i];
+                        const d = (s.coords.lat - selectedVehicle.lat) ** 2 + (s.coords.lng - selectedVehicle.lng) ** 2;
+                        if (d < bestDist) { bestDist = d; bestIdx = i; }
+                    }
+                    const nextIdx = Math.min(bestIdx + 1, journeyStops.length - 1);
+                    if (nextIdx >= 0) {
+                        nextStopDisplay = journeyStops[nextIdx].name;
+                        nextPlatform = journeyStops[nextIdx].platformCode || null;
+                    }
+                }
+                // Priority 4: stopId as fallback (show raw ID)
+                if (!nextStopDisplay && selectedVehicle.stopId) {
+                    nextStopDisplay = `Hållplats ${selectedVehicle.stopId}`;
+                }
+
+                // Find the live version of selected vehicle (updated lat/lng from latest fetch)
+                const liveVehicle = vehicles.find(vv => vv.id === selectedVehicle.id) || selectedVehicle;
+
                 const panel = formatCompactPanel(
-                    selectedVehicle,
+                    liveVehicle,
                     displayLine,
                     finalDest,
-                    gtfsPayload?.nextStopName || cachedNextStopName || null,
+                    nextStopDisplay,
                     gtfsLoading,
                     journeyPath.length > 2,
                     journeyColor,
-                    displayColor
+                    displayColor,
+                    tripDelay // delaySeconds from TripUpdates
                 );
 
                 const hex = panel.lineColor;
@@ -1248,59 +1561,16 @@ export const LiveMap = () => {
                 }
 
                 return (
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[400] pointer-events-none w-full max-w-[340px] px-4">
-                        <div className="pointer-events-auto relative overflow-hidden rounded-[1.5rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/60 dark:border-white/10 backdrop-blur-3xl bg-white dark:bg-[#0f172a] ring-1 ring-black/5 mx-auto p-5">
-                            <div className="flex flex-col relative z-10 w-full">
-                                <div className="flex items-center gap-3 w-full relative pr-8">
-                                    <div
-                                        className="h-[36px] min-w-[48px] px-2 rounded-xl flex items-center justify-center font-black text-xl leading-none shadow-md shrink-0 border border-white/20"
-                                        style={{ backgroundColor: panel.lineColor, color: numColor }}
-                                    >
-                                        {panel.lineNumber}
-                                    </div>
-                                    <div className="font-extrabold text-slate-800 dark:text-white text-[18px] leading-tight flex-1 min-w-0 pr-4 break-words whitespace-normal">
-                                        {panel.title}
-                                    </div>
-                                    <button
-                                        onClick={() => { setSelectedVehicle(null); setJourneyPath([]); }}
-                                        className="absolute top-1/2 -translate-y-1/2 -right-2 w-8 h-8 shrink-0 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-all active:scale-90"
-                                    >
-                                        <FontAwesomeIcon icon={faXmark} className="text-lg" />
-                                    </button>
-                                </div>
-
-                                <div className="mt-4 flex flex-col gap-2">
-                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-[14px] font-semibold w-full truncate pr-4">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                                        {panel.subtitle}
-                                    </div>
-                                </div>
-
-                                <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800 my-4" />
-
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 pb-1">
-                                    {gtfsLoading ? (
-                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0">
-                                            <FontAwesomeIcon icon={faSpinner} className="animate-spin text-sky-500 text-sm" />
-                                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Hämtar rutt</span>
-                                        </div>
-                                    ) : (
-                                        panel.chips.map((chip, i) => (
-                                            <div key={i} className="flex flex-col shrink-0">
-                                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{chip.label}</span>
-                                                <div className="text-[14px] font-bold text-slate-800 dark:text-slate-200 tracking-tight flex items-center gap-1.5 mt-0.5">
-                                                    {chip.label.toLowerCase() === 'operatör' && (
-                                                        <span className="w-4 h-4 rounded-[4px] flex items-center justify-center grayscale opacity-80">🏢</span>
-                                                    )}
-                                                    {chip.value}
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <VehicleInfoPopup
+                        vehicle={liveVehicle}
+                        panel={panel}
+                        numColor={numColor}
+                        nextStopDisplay={nextStopDisplay}
+                        nextPlatform={nextPlatform}
+                        gtfsLoading={gtfsLoading}
+                        onClose={() => { setSelectedVehicle(null); setJourneyPath([]); }}
+                        mapRef={mapRef}
+                    />
                 );
             })()}
 
@@ -1412,12 +1682,12 @@ export const LiveMap = () => {
                                     className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] bg-slate-400 ${hideDepot ? 'opacity-100' : 'opacity-30 grayscale'} transition-all`}>
-                                            🏭
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] ${hideDepot ? 'bg-green-500' : 'bg-slate-400 opacity-30 grayscale'} transition-all`}>
+                                            ✅
                                         </div>
                                         <div className="text-left">
-                                            <span className={`font-bold text-xs block ${hideDepot ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Dölj depåfordon</span>
-                                            <span className="text-[9px] text-slate-400">Fordon utan aktiv linje</span>
+                                            <span className={`font-bold text-xs block ${hideDepot ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Visa i trafik</span>
+                                            <span className="text-[9px] text-slate-400">Dölj fordon utan aktiv linje</span>
                                         </div>
                                     </div>
                                     <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${hideDepot ? 'bg-green-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
