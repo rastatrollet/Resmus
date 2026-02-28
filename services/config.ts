@@ -3,9 +3,11 @@ export const API_KEYS = {
   // Västtrafik Planera Resa v4 (Client Credentials Base64)
   VASTTRAFIK_AUTH: "bG9kZ1FVSGxjOTVzZFlsQTBmazZWQjluYWVrYTpTcDdXUDJKY2xaTGpHRDVYV190azhpbUVkTWNh",
   // Trafiklab GTFS Regional Realtime Key
-  TRAFIKLAB_API_KEY: "b6cb9ecb1b5e4a6cb0349f3130214702",
-  // Trafiklab GTFS Regional Static Key
+  TRAFIKLAB_API_KEY: "600ef54ef3234bd1880624c148baa8f7",
+  // Trafiklab GTFS Regional Static Key (kept as fallback)
   TRAFIKLAB_STATIC_KEY: "07e9c042923d42cf8ec3189056c7ea60",
+  // Trafiklab NeTEx Regional Static Key (Resmus2 project – 11/50 requests used)
+  NETEX_STATIC_KEY: "ca21d237580b40cb8302c02de9735b84",
   // ResRobot v2.1
   RESROBOT_API_KEY: "d1adb079-6671-4598-a6b5-8b66a871b11b",
   // Trafikverket API (Tåg)
@@ -30,8 +32,7 @@ export const API_URLS = {
 };
 
 export const TRAFIKLAB_OPERATORS = [
-  { id: 'vt', name: 'Västra Götaland (Västtrafik)', lat: 57.7089, lng: 11.9746 },
-  { id: 'sweden', name: 'Hela Sverige (Samlat)', lat: 62.0, lng: 15.0 }, // Aggregated
+  { id: 'sweden', name: 'Hela Sverige (Samlat)', lat: 62.0, lng: 15.0 }, // Aggregerad feed
   { id: 'sl', name: 'Stockholm (SL)', lat: 59.3293, lng: 18.0686 },
   { id: 'ul', name: 'Uppsala (UL)', lat: 59.8586, lng: 17.6389 },
   { id: 'otraf', name: 'Östergötland', lat: 58.4108, lng: 15.6214 }, // & Occupancy
@@ -46,6 +47,8 @@ export const TRAFIKLAB_OPERATORS = [
   { id: 'dt', name: 'Dalarna', lat: 60.6067, lng: 15.6355 },
   { id: 'xt', name: 'Gävleborg (X-trafik)', lat: 60.6749, lng: 17.1413 },
   { id: 'dintur', name: 'Västernorrland (Din Tur)', lat: 62.3908, lng: 17.3069 },
+  { id: 'halland', name: 'Halland', lat: 56.6744, lng: 12.8568 },
+  { id: 'entur', name: '🇳🇴 Norge (Entur)', lat: 59.9139, lng: 10.7522 },
 ];
 
 

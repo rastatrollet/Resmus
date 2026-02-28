@@ -26,6 +26,18 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/trafiklab-proxy/, ''),
         secure: false
       },
+      '/trafiklab-static-proxy': {
+        target: 'https://opendata.samtrafiken.se',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/trafiklab-static-proxy/, '/gtfs'),
+        secure: false
+      },
+      '/netex-static-proxy': {
+        target: 'https://opendata.samtrafiken.se',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/netex-static-proxy/, '/netex'),
+        secure: false
+      },
       '/trafikverket-api': {
         target: 'https://api.trafikinfo.trafikverket.se',
         changeOrigin: true,

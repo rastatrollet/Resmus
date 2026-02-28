@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock, faSliders, faTriangleExclamation, faBus, faExpand, faCompress, faStar, faGlobe, faTrophy, faList, faCog, faSearch, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faSliders, faTriangleExclamation, faBus, faExpand, faCompress, faStar, faGlobe, faTrophy, faList, faCog, faSearch, faExclamationTriangle, faMap } from '@fortawesome/free-solid-svg-icons';
 import { DigitalClock } from './components/DigitalClock';
 import { DeparturesBoard } from './components/DeparturesBoard';
 import { TripPlanner } from './components/TripPlanner';
@@ -99,6 +99,7 @@ const AppContent = () => {
           <nav className="space-y-3 flex-1">
             {[
               { to: "/", icon: faClock, label: "Avgångar" },
+              { to: "/map", icon: faMap, label: "Karta" },
               // { to: "/favorites", icon: faStar, label: "Favoriter" },
               { to: "/disruptions", icon: faTriangleExclamation, label: "Störningar" },
               { to: "/settings", icon: faSliders, label: "Inställningar" }
@@ -161,7 +162,7 @@ const AppContent = () => {
         </header>
 
         {/* Header - Desktop Only - Search Bar Location */}
-        <header className="hidden md:flex flex-none h-24 items-center justify-between px-12 z-40">
+        <header className={`hidden ${location.pathname === '/map' ? 'md:hidden' : 'md:flex'} flex-none h-24 items-center justify-between px-12 z-40`}>
           <div>
             <h2 className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter drop-shadow-sm leading-none mb-1">
               {(() => {
@@ -188,9 +189,9 @@ const AppContent = () => {
         </header>
 
         {/* Content Body */}
-        <main className={`flex-1 relative overflow-hidden w-full transition-all duration-500 ease-out ${isFullscreen ? 'p-0' : 'md:p-8 md:pt-0'}`}>
+        <main className={`flex-1 relative overflow-hidden w-full transition-all duration-500 ease-out ${isFullscreen || location.pathname === '/map' ? 'p-0' : 'md:p-8 md:pt-0'}`}>
           <div className={`h-full w-full mx-auto bg-white/40 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:shadow-black/50 relative flex flex-col overflow-hidden transition-all duration-500 border border-white/20 dark:border-white/10
-                    ${isFullscreen
+                    ${isFullscreen || location.pathname === '/map'
               ? 'max-w-none rounded-none border-none'
               : 'w-full md:rounded-[3rem]'
             }
@@ -214,7 +215,7 @@ const AppContent = () => {
                 </div>
               } />
 
-              <Route path="/map" element={<div className="h-full animate-in fade-in zoom-in-95 duration-300"><LiveMap /></div>} />
+              <Route path="/map/:regionId?" element={<div className="h-full animate-in fade-in zoom-in-95 duration-300"><LiveMap /></div>} />
 
 
 
@@ -244,6 +245,7 @@ const AppContent = () => {
             {[
               { to: "/", icon: faClock, label: "Avgångar" },
               { to: "/search", icon: faSearch, label: "Sök Resa" }, // Added Search per request
+              { to: "/map", icon: faMap, label: "Karta" },
               { to: "/disruptions", icon: faTriangleExclamation, label: "Störningar" }, // Changed Label to "Störningar" to match header, removed "Info"
               { to: "/settings", icon: faSliders, label: "Mer" }
             ].map(({ to, icon, label }) => (

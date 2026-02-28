@@ -381,7 +381,13 @@ export const TrafficDisruptions: React.FC = () => {
     const [showFilter, setShowFilter] = useState(false);
 
     const activeDisruptions = disruptions.filter(d => {
-        if (filter === 'ALL') return true;
+        if (filter === 'ALL') {
+            const limit = Date.now() - 24 * 60 * 60 * 1000;
+            const t1 = d.updatedTime ? new Date(d.updatedTime).getTime() : 0;
+            const t2 = d.startTime ? new Date(d.startTime).getTime() : 0;
+            // Keep if either updated or started in the last 24 hours
+            return Math.max(t1, t2) >= limit;
+        }
         return d.type === filter;
     });
 

@@ -1,268 +1,1047 @@
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, CircleMarker } from 'react-leaflet';
 import { AnimatedMarker } from './AnimatedMarker';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { TransitService } from '../services/transitService';
+import { TrafiklabService } from '../services/trafiklabService';
+import { GtfsShapeService, VehicleRoutePayload } from '../services/gtfsShapeService';
 import { TRAFIKLAB_OPERATORS } from '../services/config';
+import jltVehicles from '../src/jlt-vehicles.json';
+import slVehicles from '../src/sl-vehicles.json';
+import skaneVehicles from '../src/skane-vehicles.json';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBus, faTrain, faTram, faMap, faChevronDown, faLocationArrow, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { renderToString } from 'react-dom/server';
+import { faBus, faTrain, faTram, faChevronDown, faLocationArrow, faXmark, faLayerGroup, faExpand, faCompress, faShip, faMoon, faSun, faSpinner, faSearch } from '@fortawesome/free-solid-svg-icons';
 
-// ... (existing imports)
+const REFRESH_INTERVAL = 5000; // 5 seconds – snappier updates
 
-// ... (existing MapEvents component but updated props)
-const MapEvents = ({ setVehicles, setStops, setParkings, setDisruptions, selectedOperator }: { setVehicles: (v: any[]) => void, setStops: (s: any[]) => void, setParkings: (p: any[]) => void, setDisruptions: (d: any[]) => void, selectedOperator?: string }) => {
-    const map = useMap();
+// ── Icon cache: keyed by "MODE|color|bearingBucket|line"
+// ── Modern 2026 Icon System ──────────────────────────────────────────────────
+// Vector-based, crisp, glass-morphic markers with distinct shapes per mode.
 
-    // Fly to fleet region when operator changes
-    useEffect(() => {
-        if (selectedOperator) {
-            setVehicles([]); // Clear old vehicles immediately
-            const op = TRAFIKLAB_OPERATORS.find(o => o.id === selectedOperator);
-            if (op && op.lat && op.lng) {
-                // Fly to the region
-                map.setView([op.lat, op.lng], 9);
-            }
+const iconCache = new Map<string, L.DivIcon>();
+const buildIconHTML = (line: string, rotation: number, mode: string, color: string, operator?: string): string => {
+    const bgColor = color || '#0ea5e9';
+    let vehicleShape = '';
+    const op = (operator || '').toLowerCase();
+
+    if (mode === 'FERRY') {
+        vehicleShape = [
+            `<path d="M 24 2 C 32 10 36 22 36 38 A 12 4 0 0 1 12 38 C 12 22 16 10 24 2 Z" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+            `<rect x="20" y="16" width="8" height="12" rx="2" fill="#1e293b" opacity="0.8"/>`,
+            `<path d="M 16 30 L 32 30 L 30 36 L 18 36 Z" fill="#1e293b" opacity="0.5"/>`,
+        ].join('');
+    } else if (mode === 'TRAIN') {
+        if (op === 'sl') {
+            // SL Pendeltåg – rektangulär med röd accent och tydliga hjälstavar
+            vehicleShape = [
+                `<rect x="12" y="3" width="24" height="42" rx="6" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+                `<rect x="12" y="3" width="24" height="10" rx="4" fill="#ec619f" opacity="0.9"/>`,
+                `<circle cx="18" cy="41" r="4" fill="#1e293b" opacity="0.85"/>`,
+                `<circle cx="30" cy="41" r="4" fill="#1e293b" opacity="0.85"/>`,
+                `<rect x="14" y="18" width="20" height="3" rx="1" fill="#ffffff" opacity="0.4"/>`,
+            ].join('');
+        } else {
+            vehicleShape = [
+                `<rect x="14" y="4" width="20" height="40" rx="4" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+                `<path d="M 16 10 C 16 6 32 6 32 10 L 30 16 L 18 16 Z" fill="#1e293b" opacity="0.85"/>`,
+                `<circle cx="19" cy="40" r="3" fill="#1e293b" opacity="0.8"/>`,
+                `<circle cx="29" cy="40" r="3" fill="#1e293b" opacity="0.8"/>`,
+                `<rect x="16" y="22" width="16" height="3" rx="1" fill="#ffffff" opacity="0.3"/>`,
+            ].join('');
         }
-    }, [selectedOperator, map]);
-
-    const fetchMapData = async () => {
-        const bounds = map.getBounds();
-        const minLat = bounds.getSouth();
-        const minLng = bounds.getWest();
-        const maxLat = bounds.getNorth();
-        const maxLng = bounds.getEast();
-        const zoom = map.getZoom();
-
-        // 1. Fetch Vehicles
-        if (zoom > 8) { // Allow slightly wider zoom for regional operators
-            const vehicleData = await TransitService.getVehiclePositions(minLat, minLng, maxLat, maxLng, selectedOperator);
-            setVehicles(vehicleData);
+    } else if (mode === 'METRO') {
+        if (op === 'sl') {
+            // SL Tunnelbana – sexhörning med T-emblem
+            vehicleShape = [
+                `<polygon points="24,2 38,11 38,37 24,46 10,37 10,11" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+                `<text x="24" y="30" text-anchor="middle" font-size="18" font-weight="900" fill="#ffffff" font-family="system-ui">T</text>`,
+            ].join('');
+        } else {
+            vehicleShape = [
+                `<rect x="13" y="3" width="22" height="42" rx="4" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+                `<path d="M 15 9 C 15 5 33 5 33 9 L 32 13 L 16 13 Z" fill="#1e293b" opacity="0.8"/>`,
+                `<path d="M 15 39 C 15 43 33 43 33 39 L 32 36 L 16 36 Z" fill="#1e293b" opacity="0.8"/>`,
+                `<rect x="15" y="22" width="18" height="3" rx="1" fill="#ffffff" opacity="0.25"/>`,
+            ].join('');
         }
+    } else if (mode === 'TRAM') {
+        vehicleShape = [
+            `<rect x="13" y="3" width="22" height="42" rx="4" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+            `<path d="M 15 9 C 15 5 33 5 33 9 L 32 13 L 16 13 Z" fill="#1e293b" opacity="0.8"/>`,
+            `<path d="M 15 39 C 15 43 33 43 33 39 L 32 36 L 16 36 Z" fill="#1e293b" opacity="0.8"/>`,
+            `<rect x="15" y="22" width="18" height="3" rx="1" fill="#ffffff" opacity="0.25"/>`,
+        ].join('');
+    } else {
+        // BUS – standard
+        vehicleShape = [
+            `<rect x="11" y="5" width="26" height="38" rx="5" fill="${bgColor}" stroke="#ffffff" stroke-width="1.5"/>`,
+            `<path d="M 13 11 C 13 7 35 7 35 11 L 34 15 L 14 15 Z" fill="#1e293b" opacity="0.85"/>`,
+            `<rect x="15" y="39" width="18" height="2" rx="1" fill="#1e293b" opacity="0.7"/>`,
+            `<rect x="8" y="9" width="3" height="5" rx="1.5" fill="${bgColor}" stroke="#ffffff" stroke-width="1"/>`,
+            `<rect x="37" y="9" width="3" height="5" rx="1.5" fill="${bgColor}" stroke="#ffffff" stroke-width="1"/>`,
+        ].join('');
+    }
 
-        // 2. Fetch Disruptions (Trafikverket) - Fetch globally or for area
-        // Since we have coords now, we can optimize or just fetch all
-        try {
-            // Fetching all for now as the API doesn't filter by bbox easily
-            const disruptions = await TransitService.getTrafikverketDisruptions();
-            setDisruptions(disruptions);
-        } catch (e) {
-            console.error("Failed to fetch map disruptions", e);
-        }
+    return [
+        `<div style="width:48px;height:48px;position:relative;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0px 3px 6px rgba(0,0,0,0.35));transform:translate3d(0,0,0);">`,
+        `<div style="position:absolute;inset:0;transform:rotate(${rotation}deg);will-change:transform;display:flex;align-items:center;justify-content:center;">`,
+        `<svg viewBox="0 0 48 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg">${vehicleShape}</svg>`,
+        `</div>`,
+        `<div style="position:absolute;z-index:10;display:flex;align-items:center;justify-content:center;width:100%;height:100%;pointer-events:none;">`,
+        `<span style="font-size:11px;font-weight:900;color:#1e293b;background-color:rgba(255,255,255,0.95);padding:2px 5px;border-radius:5px;font-family:system-ui,sans-serif;letter-spacing:-0.5px;box-shadow:0 1px 3px rgba(0,0,0,0.3);border:1px solid rgba(0,0,0,0.1);line-height:1;white-space:nowrap;">${line}</span>`,
+        `</div>`,
+        `</div>`,
+    ].join('');
+};
 
-        // ... (rest of function)
-    };
 
-    useEffect(() => {
-        fetchMapData();
-        const interval = setInterval(fetchMapData, REFRESH_INTERVAL);
-        map.on('moveend', fetchMapData);
-        return () => {
-            clearInterval(interval);
-            map.off('moveend', fetchMapData);
-        };
-    }, [map, selectedOperator]); // Re-fetch when operator changes
+const getIcon = (line: string, bearing: number, mode: string, color: string, operator?: string): L.DivIcon => {
+    const bucket = Math.round(bearing / 5) * 5;
+    const key = `${mode}|${color}|${bucket}|${line}|${operator || ''}`;
+    if (iconCache.has(key)) return iconCache.get(key)!;
+    const icon = L.divIcon({
+        html: buildIconHTML(line, bucket, mode, color, operator),
+        className: '',
+        iconSize: [48, 48],
+        iconAnchor: [24, 24],
+    });
+    iconCache.set(key, icon);
+    return icon;
+};
 
+
+// ── Helper: Create Optimistic Route Stub (75m - short enough to look valid on curves)
+const createRouteStub = (lat: number, lng: number, bearing: number): [number, number][] => {
+    if (!bearing) return [];
+    const R = 6378137; // Earth Radius
+    const d = 75; // 75m stub (reduced from 300m)
+    const brng = (bearing * Math.PI) / 180;
+    const lat1 = (lat * Math.PI) / 180;
+    const lon1 = (lng * Math.PI) / 180;
+
+    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(brng));
+    const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
+
+    return [
+        [lat, lng],
+        [(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI]
+    ];
+};
+
+const SUPPORTED_STATIC_OPERATORS = new Set([
+    'sl', 'ul', 'skane', 'otraf', 'jlt', 'krono', 'klt', 'gotland',
+    'varm', 'orebro', 'vastmanland', 'dt', 'xt', 'dintur', 'halland', 'blekinge',
+    'sormland', 'jamtland', 'vasterbotten', 'norrbotten'
+]);
+
+const inferOperatorFromRtId = (id?: string | null): string | null => {
+    const v = String(id || '');
+    if (!v) return null;
+
+    // 1. Strict National GID check (9011 XXX)
+    if (v.startsWith('9011001')) return 'sl';
+    if (v.startsWith('9011003')) return 'ul';
+    if (v.startsWith('9011004')) return 'sormland';
+    if (v.startsWith('9011005')) return 'otraf';
+    if (v.startsWith('9011006')) return 'jlt';
+    if (v.startsWith('9011007')) return 'krono';
+    if (v.startsWith('9011008')) return 'klt';
+    if (v.startsWith('9011009')) return 'gotland';
+    if (v.startsWith('9011010')) return 'blekinge';
+    if (v.startsWith('9011012')) return 'skane';
+    if (v.startsWith('9011013')) return 'halland';
+    if (v.startsWith('9011014')) return 'vasttrafik';
+    if (v.startsWith('9011017')) return 'varm';
+    if (v.startsWith('9011018')) return 'orebro';
+    if (v.startsWith('9011019')) return 'vastmanland';
+    if (v.startsWith('9011020')) return 'dt';
+    if (v.startsWith('9011021')) return 'xt';
+    if (v.startsWith('9011022')) return 'dintur';
+    if (v.startsWith('9011023')) return 'jamtland';
+    if (v.startsWith('9011024')) return 'vasterbotten';
+    if (v.startsWith('9011025')) return 'norrbotten';
+
+    // 2. Older / Proprietary operator prefixes
+    if (v.startsWith('1082') || v.startsWith('1065') || v.startsWith('9031001')) return 'sl';
+    if (v.startsWith('9024') || v.startsWith('9031002') || v.startsWith('9031003')) return 'skane';
+    if (v.startsWith('9025')) return 'vasttrafik';
+    if (v.startsWith('9027')) return 'orebro';
+    if (v.startsWith('9013')) return 'vastmanland';
+    if (v.startsWith('9021')) return 'otraf';
+    if (v.startsWith('9012')) return 'ul';
+    if (v.startsWith('9023')) return 'dt';
+    if (v.startsWith('9022')) return 'varm';
+    if (v.startsWith('9016')) return 'sormland';
+    if (v.startsWith('9032')) return 'krono';
+    if (v.startsWith('9020')) return 'jlt';
+    if (v.startsWith('9019')) return 'klt';
+    if (v.startsWith('9026') || v.startsWith('9018')) return 'halland';
+    if (v.startsWith('9017')) return 'blekinge';
+    if (v.startsWith('9014')) return 'xt';
+
+    // 3. Last fallback
+    if (v.startsWith('9011')) return 'sl';
     return null;
 };
 
-const REFRESH_INTERVAL = 15000; // 15 seconds
+const getOperatorCandidates = (v: any, selectedOperator: string): string[] => {
+    const out = new Set<string>();
+    const raw = String(v?.operator || '').toLowerCase();
+    if (SUPPORTED_STATIC_OPERATORS.has(raw)) out.add(raw);
+    const inferred = inferOperatorFromRtId(v?.tripId) || inferOperatorFromRtId(v?.routeId) || inferOperatorFromRtId(v?.id);
+    if (inferred && SUPPORTED_STATIC_OPERATORS.has(inferred)) out.add(inferred);
+    if (selectedOperator && SUPPORTED_STATIC_OPERATORS.has(selectedOperator)) out.add(selectedOperator);
+    if (out.size === 0) out.add('sl');
+    return Array.from(out);
+};
 
-const VehicleMarker = ({ v, onSelect }: { v: any, onSelect: (v: any) => void }) => {
-    // Custom DIV Icon for Vehicles
-    const createIcon = (line: string, bearing: number, type?: string, colorBg: string = '') => {
-        const isTram = type?.toUpperCase() === 'TRAM';
+const getRawVehicleId = (v: any): string => {
+    return String(v?.vehicleLabel || String(v?.id || '').replace(/^(tl-|vt-|veh-)/, '') || '').trim();
+};
 
-        // Premium Colors
-        // Tram: Teal/Turquoise gradient
-        // Bus: Sky/Blue gradient
-        const bgClass = isTram
-            ? 'bg-gradient-to-br from-teal-500 to-teal-700'
-            : 'bg-gradient-to-br from-sky-500 to-sky-700';
+type ExternalVehicleDetails = {
+    plate?: string;
+    model?: string;
+    operator?: string;
+    alternativeId?: string;
+};
 
-        const html = renderToString(
-            <div className="relative w-9 h-9 flex items-center justify-center filter drop-shadow-md transition-transform duration-300">
-                {/* Main Badge */}
-                <div
-                    className={`absolute w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-black border-2 border-white/95 shadow-sm z-20 ${bgClass}`}
-                >
-                    <span className="drop-shadow-sm">{line}</span>
-                </div>
+const getVehicleLookupCandidates = (v: any): string[] => {
+    const out = new Set<string>();
+    const add = (value: any) => {
+        const raw = String(value ?? '').trim();
+        if (!raw) return;
+        out.add(raw);
+        const cleaned = raw.replace(/^(tl-|vt-|veh-)/, '');
+        if (cleaned) out.add(cleaned);
+    };
 
-                {/* Direction Pointer */}
-                <div
-                    className="absolute w-full h-full z-10"
-                    style={{ transform: `rotate(${bearing}deg)` }}
-                >
-                    {/* Sharp Arrow Tip on Edge */}
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 drop-shadow-sm">
-                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 0L12 8H0L6 0Z" className={isTram ? 'fill-teal-600' : 'fill-sky-600'} />
-                        </svg>
-                    </div>
-                </div>
-            </div>
+    add(v?.vehicleLabel);
+    add(v?.id);
+    add(v?.vehicleId);
+    add(getRawVehicleId(v));
+    return Array.from(out);
+};
+
+const normalizeExternalVehicleData = (src: any): ExternalVehicleDetails | null => {
+    if (!src || typeof src !== 'object') return null;
+    return {
+        plate: String(src.plate ?? src.licensePlate ?? src.licencePlate ?? '').trim() || undefined,
+        model: String(src.model ?? src.vehicleModel ?? '').trim() || undefined,
+        operator: String(src.operator ?? src.agency ?? '').trim() || undefined,
+        alternativeId: String(src.alternativeId ?? src.altId ?? src.alternative_id ?? '').trim() || undefined,
+    };
+};
+
+const findExternalVehicleData = (v: any): ExternalVehicleDetails | null => {
+    const sources = [jltVehicles as any, slVehicles as any, skaneVehicles as any];
+    for (const candidate of getVehicleLookupCandidates(v)) {
+        for (const source of sources) {
+            const normalized = normalizeExternalVehicleData(source?.[candidate]);
+            if (normalized && (normalized.plate || normalized.model || normalized.operator || normalized.alternativeId)) {
+                return normalized;
+            }
+        }
+    }
+    return null;
+};
+
+const getTrainNumberFromVehicleId = (v: any): string | null => {
+    const digits = getRawVehicleId(v).replace(/\D/g, '');
+    return digits.length >= 4 ? digits.slice(-4) : null;
+};
+
+const isLikelyTrainVehicle = (v: any, routeType?: number): boolean => {
+    // Only classify as train based on GTFS static route_type (resolved by GtfsShapeService)
+    // or explicit transportMode field. NO speed checks, NO operator/id prefix heuristics.
+    // These heuristics cause misclassification (buses as trains, wrong icons, vehicle IDs as line labels).
+    // Värmlandstrafik specific hardcoded train IDs
+    const rawId = getRawVehicleId(v);
+    const varmTrains = ['1414', '1415', '1416', '1420', '1421', '9048', '9049', '9050', '9066', '9067', '9081', '9082', '9083'];
+    if (varmTrains.includes(rawId)) return true;
+
+    if (routeType === 2 || routeType === 109) return true;  // Rail / Suburban Rail
+    if (String(v?.transportMode || '').toUpperCase() === 'TRAIN') return true;
+    return false;
+};
+
+const extractActualDestination = (value?: string | null): string | null => {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+
+    const clean = raw
+        .replace(/^mot\s+/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const parts = clean
+        .split(/\s*(?:->|=>|--|[-–—]|\/|\||•|>|»)\s*/g)
+        .map(p => p.trim())
+        .filter(Boolean);
+
+    if (parts.length >= 2) return parts[parts.length - 1];
+    return clean;
+};
+
+const isUselessDestination = (dest?: string | null, line?: string | null): boolean => {
+    if (!dest) return true;
+    const d = dest.trim().toLowerCase();
+    if (d === '?' || d === 'null' || d === 'undefined' || d === 'okänd destination') return true;
+    // Trip IDs often look like long numbers or have many segments with colons
+    if (d.length >= 7 && (/^\d+$/.test(d) || (d.match(/:/g) || []).length >= 2)) return true;
+    if (line && d === line.trim().toLowerCase()) return true;
+    return false;
+};
+
+// ── Compact Glass Panel Model
+interface Chip { label: string; value: string; color?: string; }
+interface CompactPanel {
+    title: string;         // "Mot DESTINATION"
+    subtitle: string;      // "Nästa: ..."
+    lineNumber: string;
+    lineColor: string;
+    chips: Chip[];
+}
+
+const formatCompactPanel = (
+    v: any,
+    displayLine: string | null,
+    displayDest: string | null,
+    nextStopName: string | null,
+    gtfsLoading: boolean,
+    hasRoute: boolean,
+    defaultColor: string,
+    lineColor?: string
+): CompactPanel => {
+    const lineFinal = gtfsLoading ? (displayLine || v.line || '?') : (displayLine || v.line || '?');
+
+    let dest = extractActualDestination(displayDest || v.dest || '') || '';
+
+    // Prevent showing duplicated line as destination (e.g. "Mot 28", "Mot Linje 28").
+    const normalizeLineToken = (value: string | null | undefined): string => {
+        return String(value || '')
+            .toLowerCase()
+            .replace(/^linje\s+/i, '')
+            .replace(/^line\s+/i, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+    const normDest = normalizeLineToken(dest);
+    const normLineFinal = normalizeLineToken(lineFinal);
+    const normVehicleLine = normalizeLineToken(v.line);
+    if (
+        !normDest ||
+        normDest === '?' ||
+        normDest === normLineFinal ||
+        normDest === normVehicleLine
+    ) {
+        dest = '';
+    }
+
+    let title = '';
+
+    // "EJ I TRAFIK" logic: Only if destination explicitly matches patterns, or no line AND no dest.
+    const isExplicitlyNotInService = dest && /Ej i trafik|Depå|Inställd|Ej linjesatt|Tomkörning/i.test(dest);
+
+    if (isExplicitlyNotInService || (lineFinal === '?' && (!dest || dest === '?'))) {
+        title = 'EJ I TRAFIK';
+    } else if (!dest || dest === '?') {
+        // Better fallback hierarchy when destination is missing:
+        // next stop -> line label -> unknown.
+        if (nextStopName) {
+            title = `Mot ${nextStopName}`;
+        } else if (lineFinal && lineFinal !== '?') {
+            title = `Linje ${lineFinal}`;
+        } else {
+            title = 'Okänd destination';
+        }
+    } else {
+        title = `Mot ${dest}`;
+    }
+
+    // Clean up next stop formatting
+    let next = 'Ej angiven hållplats';
+    if (nextStopName) {
+        next = `Nästa: ${nextStopName}`;
+    } else if (v.stopId) {
+        next = `Hållplats-ID: ${v.stopId}`;
+    }
+
+    const chips: Chip[] = [];
+
+    // Speed
+    if (v.speed !== undefined && v.speed !== null) {
+        chips.push({ label: 'hastighet', value: `${Math.round(v.speed)} km/h` });
+    } else {
+        chips.push({ label: 'hastighet', value: `0 km/h` });
+    }
+
+    let rawId = getRawVehicleId(v);
+    let operatorName = v.operator;
+    const externalVehicleData = findExternalVehicleData(v);
+
+    if (rawId && rawId !== 'unknown') {
+        chips.push({ label: 'fordons-id', value: String(rawId) });
+        if (isLikelyTrainVehicle(v)) {
+            const trainNo = getTrainNumberFromVehicleId(v);
+            if (trainNo) chips.push({ label: 'TÅGNR', value: trainNo });
+        }
+    }
+
+    if (externalVehicleData) {
+        if (externalVehicleData.plate) chips.push({ label: 'REG', value: externalVehicleData.plate });
+        if (externalVehicleData.model) chips.push({ label: 'FORDON', value: externalVehicleData.model });
+        if (externalVehicleData.alternativeId) chips.push({ label: 'ALT-ID', value: externalVehicleData.alternativeId });
+        if (externalVehicleData.operator) operatorName = externalVehicleData.operator;
+    }
+
+    // Fallback known names for common codes
+    const nameMap: Record<string, string> = {
+        'sl': 'SL', 'vasttrafik': 'Västtrafik', 'skane': 'Skånetrafiken',
+        'ul': 'UL', 'otraf': 'Östgötatrafiken', 'jlt': 'JLT',
+        'klt': 'KLT', 'varm': 'Värmlandstrafik', 'orebro': 'Länstrafiken Örebro',
+        'xt': 'X-trafik', 'dt': 'Dalatrafik', 'halland': 'Hallandstrafiken'
+    };
+
+    if (operatorName && operatorName !== 'sweden') {
+        const operatorKey = String(operatorName).toLowerCase().trim();
+        const niceOp = nameMap[operatorKey] || String(operatorName).trim();
+        chips.push({ label: 'OPERATÖR', value: niceOp });
+    }
+
+    // Track stationary / stale vehicles (> 30 minutes without a position update)
+    if (v.timestamp) {
+        const timeDiffSeconds = (Date.now() / 1000) - v.timestamp;
+        if (timeDiffSeconds > 1800) { // 30 mins
+            const date = new Date(v.timestamp * 1000);
+            chips.push({
+                label: 'senast uppdaterad',
+                value: date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+            });
+        }
+    }
+
+    return {
+        title: title,
+        subtitle: title === 'EJ I TRAFIK' ? 'Ej linjesatt' : next,
+        lineNumber: lineFinal,
+        lineColor: lineColor || defaultColor,
+        chips
+    };
+};
+
+// ── Memoized Vehicle Marker
+const VehicleMarker = React.memo(({ v, onSelect, simpleMode, showLabels, lineOverride, titleOverride, colorOverride, typeOverride, nextStop }:
+    { v: any, onSelect: (v: any) => void, simpleMode: boolean, showLabels: boolean, lineOverride?: string, titleOverride?: string, colorOverride?: string, typeOverride?: number, nextStop?: { name: string, time?: string } }) => {
+    // Determine label: either line number (resolved) or just '?'
+    let lineLabel = lineOverride || v.line || '?';
+
+    const rawDest = v.dest || '';
+    const isExplicitlyNotInService = /Ej i trafik|Depå|Inställd|Ej linjesatt|Tomkörning/i.test(rawDest);
+
+    // Hide line numbers if standing still/not in service
+    if (isExplicitlyNotInService || lineLabel === '?') {
+        lineLabel = '-';
+    }
+
+    // Resolve mode based on typeOverride (GTFS route_type) or fallback
+    let mode = v.transportMode ?? 'BUS'; // 1 = Metro, handled below via mapService transportMode map or direct typeOverride
+    if (typeOverride !== undefined) {
+        switch (typeOverride) {
+            case 0: mode = 'TRAM'; break;
+            case 1: mode = 'METRO'; break;
+            case 2:
+            case 109: mode = 'TRAIN'; break;
+            case 3:
+            case 700: mode = 'BUS'; break;
+            case 4:
+            case 1000: mode = 'FERRY'; break;
+        }
+    }
+
+    const color = colorOverride || v.bgColor || (mode === 'TRAM' || mode === 'METRO' ? '#14b8a6' : mode === 'TRAIN' ? '#d946ef' : '#0ea5e9');
+
+    // For simple mode (dots), keep it fast
+    if (simpleMode) {
+        return (
+            <CircleMarker
+                center={[v.lat, v.lng]}
+                radius={3}
+                pathOptions={{ fillColor: color, color: '#fff', weight: 1, opacity: 0.8, fillOpacity: 1 }}
+                eventHandlers={{ click: () => onSelect(v) }}
+            >
+                {titleOverride && <Popup>{titleOverride}</Popup>}
+            </CircleMarker>
         );
-
-        return L.divIcon({
-            html: html,
-            className: 'bg-transparent',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
-        });
     }
 
     return (
         <AnimatedMarker
             position={[v.lat, v.lng]}
-            icon={createIcon(v.line, v.bearing || 0, v.transportMode)}
-            eventHandlers={{
-                click: () => onSelect(v)
-            }}
-        >
-
-        </AnimatedMarker>
+            icon={getIcon(lineLabel, v.bearing ?? 0, mode, color, v.operator)}
+            eventHandlers={{ click: () => onSelect(v) }}
+            title={titleOverride || `Linje ${lineLabel}`}
+            speed={v.speed}
+            bearing={v.bearing ?? 0}
+        />
     );
+}, (prev, next) =>
+    prev.v.id === next.v.id &&
+    prev.v.lat === next.v.lat &&
+    prev.v.lng === next.v.lng &&
+    prev.v.bearing === next.v.bearing &&
+    prev.simpleMode === next.simpleMode &&
+    prev.lineOverride === next.lineOverride &&
+    prev.titleOverride === next.titleOverride &&
+    prev.colorOverride === next.colorOverride &&
+    prev.nextStop?.name === next.nextStop?.name
+);
+
+// ── Map Events Controller
+import { MapService } from '../services/mapService';
+
+// ── Map Events Controller
+const MapEvents = ({ setVehicles, setStops, setParkings, setDisruptions, selectedOperator, setZoom, setIsLoading }: {
+    setVehicles: (v: any[]) => void,
+    setStops: (s: any[]) => void,
+    setParkings: (p: any[]) => void,
+    setDisruptions: (d: any[]) => void,
+    selectedOperator?: string,
+    setZoom: (z: number) => void,
+    setIsLoading: (l: boolean) => void
+}) => {
+    const map = useMap();
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const fetchCountRef = useRef(0);
+
+    useEffect(() => {
+        if (selectedOperator) {
+            setVehicles([]);
+            const op = TRAFIKLAB_OPERATORS.find(o => o.id === selectedOperator);
+            if (op && op.lat && op.lng) map.setView([op.lat, op.lng], 9);
+        }
+    }, [selectedOperator, map]);
+
+    // ── Smart Regional Preloading ──────────────────────────────────────────────
+    // Automatically load NeTEx static data for the region in view so line badges + destinations appear.
+    useEffect(() => {
+        const checkRegion = () => {
+            const center = map.getCenter();
+            const lat = center.lat;
+            const lng = center.lng;
+
+            // Trigger preload for operator whose region covers the map center
+            if (lat > 58.7 && lat < 60.3 && lng > 17.0 && lng < 19.5) GtfsShapeService.preload('sl');
+            if (lat > 59.2 && lat < 60.7 && lng > 16.9 && lng < 18.2) GtfsShapeService.preload('ul');
+            if (lat > 55.2 && lat < 56.5 && lng > 12.4 && lng < 14.6) GtfsShapeService.preload('skane');
+            if (lat > 57.0 && lat < 58.5 && lng > 11.5 && lng < 13.5) GtfsShapeService.preload('vasttrafik');
+            if (lat > 57.1 && lat < 58.2 && lng > 13.5 && lng < 15.6) GtfsShapeService.preload('jlt');       // Jönköping ← SAKNADES!
+            if (lat > 57.7 && lat < 58.9 && lng > 14.5 && lng < 16.9) GtfsShapeService.preload('otraf');     // Östergötland
+            if (lat > 58.6 && lat < 60.2 && lng > 14.1 && lng < 15.9) GtfsShapeService.preload('orebro');
+            if (lat > 59.1 && lat < 60.3 && lng > 15.4 && lng < 17.5) GtfsShapeService.preload('vastmanland');
+            if (lat > 59.0 && lat < 61.0 && lng > 12.0 && lng < 14.3) GtfsShapeService.preload('varm');
+            if (lat > 60.0 && lat < 62.3 && lng > 13.0 && lng < 16.8) GtfsShapeService.preload('dt');
+            if (lat > 60.2 && lat < 62.3 && lng > 16.0 && lng < 17.8) GtfsShapeService.preload('xt');
+            if (lat > 56.3 && lat < 57.6 && lng > 11.8 && lng < 13.5) GtfsShapeService.preload('halland');
+            if (lat > 56.4 && lat < 57.2 && lng > 13.5 && lng < 15.6) GtfsShapeService.preload('krono');     // Kronoberg
+            if (lat > 56.2 && lat < 58.0 && lng > 15.5 && lng < 17.2) GtfsShapeService.preload('klt');       // Kalmar
+            if (lat > 58.6 && lat < 59.6 && lng > 15.8 && lng < 17.6) GtfsShapeService.preload('sormland');
+            if (lat > 56.0 && lat < 56.5 && lng > 14.5 && lng < 16.0) GtfsShapeService.preload('blekinge');
+            if (lat > 62.0 && lat < 64.0 && lng > 16.0 && lng < 19.5) GtfsShapeService.preload('dintur');
+        };
+
+        map.on('moveend', checkRegion);
+        checkRegion(); // Initial check on mount
+
+        return () => {
+            map.off('moveend', checkRegion);
+        };
+    }, [map]);
+
+    // ── Preload NeTEx when operator is explicitly selected from dropdown ─────────
+    useEffect(() => {
+        if (selectedOperator && selectedOperator !== 'sweden') {
+            GtfsShapeService.preload(selectedOperator);
+        }
+    }, [selectedOperator]);
+
+    const fetchMapData = async () => {
+        setIsLoading(true);
+        const bounds = map.getBounds();
+        const zoom = map.getZoom();
+        setZoom(zoom);
+        fetchCountRef.current++;
+
+        try {
+            if (zoom > 8) {
+                // Use MapService
+                const vehicleData = await MapService.getVehiclePositions(
+                    bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast(), selectedOperator
+                );
+                setVehicles(vehicleData || []);
+
+                // Fetch stops (no zoom limit, "gör de ändå!")
+                if (zoom > 12) {
+                    const opArray = ['sl', 'skane', 'ul', 'otraf', 'jlt', 'krono', 'klt', 'gotland', 'varm', 'orebro', 'vastmanland', 'dt', 'xt', 'dintur', 'halland'];
+                    let allStops: any[] = [];
+                    for (const op of opArray) {
+                        if (GtfsShapeService.isLoaded(op)) {
+                            const opStops = GtfsShapeService.getAllStops(op, bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast());
+                            allStops = allStops.concat(opStops);
+                        }
+                    }
+
+                    if (allStops.length > 0) {
+                        setStops(allStops);
+                    } else if (zoom > 14) {
+                        // Fallback to Västtrafik API only if GTFS isn't preloaded yet and we are tightly zoomed
+                        const stopData = await MapService.getMapStopAreas(
+                            bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()
+                        );
+                        setStops(stopData || []);
+                    } else {
+                        setStops([]);
+                    }
+                } else {
+                    setStops([]);
+                }
+
+                // Parkings
+                /*
+                if (zoom > 13) {
+                     const parkingData = await MapService.getParkings(
+                         bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()
+                     );
+                     setParkings(parkingData || []);
+                }
+                */
+            }
+            // Disruptions only every ~60s (every 6th call)
+            if (fetchCountRef.current % 6 === 1) {
+                const disruptions = await MapService.getDisruptions();
+                setDisruptions(disruptions || []);
+            }
+        } catch (e) {
+            console.error('Map Data Fetch Error', e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const debouncedFetch = () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(fetchMapData, 150);
+    };
+
+    useEffect(() => {
+        fetchMapData();
+        const interval = setInterval(fetchMapData, REFRESH_INTERVAL);
+        map.on('moveend', debouncedFetch);
+        return () => {
+            clearInterval(interval);
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            map.off('moveend', debouncedFetch);
+        };
+    }, [map, selectedOperator]);
+
+    return null;
 };
 
+// ── Main LiveMap Component
 export const LiveMap = () => {
+    const { regionId } = useParams<{ regionId?: string }>();
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [stops, setStops] = useState<any[]>([]);
     const [parkings, setParkings] = useState<any[]>([]);
-    const [disruptions, setDisruptions] = useState<any[]>([]); // New State
+    const [disruptions, setDisruptions] = useState<any[]>([]);
     const [selectedParking, setSelectedParking] = useState<any | null>(null);
     const [parkingImage, setParkingImage] = useState<string | null>(null);
-    const [selectedOperator, setSelectedOperator] = useState<string>('sweden'); // Default to aggregated
+    const [selectedOperator, setSelectedOperator] = useState<string>(regionId || 'sweden');
 
-    // Route Selection State
+    useEffect(() => {
+        if (regionId && TRAFIKLAB_OPERATORS.some(o => o.id === regionId)) {
+            setSelectedOperator(regionId);
+        }
+    }, [regionId]);
+
+    const [zoom, setZoom] = useState<number>(13);
+    const [activeFilters, setActiveFilters] = useState<string[]>(['BUS', 'TRAM', 'METRO', 'TRAIN', 'FERRY']);
+    const [hideDepot, setHideDepot] = useState(false);
+    const [showLabels, setShowLabels] = useState(false); // Toggle for showing vehicle IDs
+    const [showLayers, setShowLayers] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
     const [journeyPath, setJourneyPath] = useState<[number, number][]>([]);
-    const [journeyStops, setJourneyStops] = useState<any[]>([]);
+    const [journeyColorState, setJourneyColorState] = useState<string>('#0ea5e9');
+    const [journeyStops, setJourneyStops] = useState<{ coords: { lat: number, lng: number }, name: string, time?: string, platformCode?: string }[]>([]);
+    const [networkShapes, setNetworkShapes] = useState<Record<string, { points: [number, number][][], color: string }>>({});
+    const [isNetworkLoading, setIsNetworkLoading] = useState(false);
+    const [gtfsPayload, setGtfsPayload] = useState<VehicleRoutePayload | null>(null);
+    const [gtfsLoading, setGtfsLoading] = useState(false);
+    const [nextStopCache, setNextStopCache] = useState<Record<string, { name: string, time?: string }>>({});
+    const [mapMode, setMapMode] = useState<'light' | 'dark' | 'satellite' | 'hybrid'>('light'); // Kartläge
+    const [searchQuery, setSearchQuery] = useState<string>(''); // Sökning på internummer
+
+    const [gtfsCounter, setGtfsCounter] = useState(0);
+
+    // Register progress callback to re-render when static data finishes indexing
+    useEffect(() => {
+        const handleProgress = () => {
+            setGtfsCounter(c => c + 1);
+        };
+        GtfsShapeService.onProgress(handleProgress);
+    }, []);
+
+    // ── Load Full Network Shapes ────────────────────────────────────────────────
+    useEffect(() => {
+        let active = true;
+        const loadNetwork = async () => {
+            if (!selectedOperator || selectedOperator === 'sweden') {
+                setNetworkShapes({});
+                return;
+            }
+
+            // Wait for static data to be indexed
+            let attempts = 0;
+            while (!GtfsShapeService.isLoaded(selectedOperator) && attempts < 20) {
+                await new Promise(r => setTimeout(r, 2000));
+                attempts++;
+                if (!active) return;
+            }
+
+            if (GtfsShapeService.isLoaded(selectedOperator)) {
+                setIsNetworkLoading(true);
+                try {
+                    const shapes = await GtfsShapeService.getAllNetworkShapes(selectedOperator);
+                    if (active) setNetworkShapes(shapes);
+                } catch (e) {
+                    console.error('[Network] Load failed', e);
+                } finally {
+                    if (active) setIsNetworkLoading(false);
+                }
+            }
+        };
+
+        loadNetwork();
+        return () => { active = false; };
+    }, [selectedOperator]);
+
+    // Sync dark mode with html class
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        });
+        observer.observe(document.documentElement, { attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+
+    const [gtfsRouteMaps, setGtfsRouteMaps] = useState<Record<string, Map<string, string>>>({});
+
+    // ── Aggressive GTFS Preloading & Route Map Fetching ────────────────────────
+    useEffect(() => {
+        if (vehicles.length === 0) return;
+
+        const operators = Array.from(new Set(
+            vehicles.flatMap(v => getOperatorCandidates(v, selectedOperator))
+        ));
+
+        // 1. Trigger preload (fire-and-forget, doesn't return a promise)
+        operators.forEach(op => {
+            GtfsShapeService.preload(op);
+        });
+
+        // 2. Poll for route maps (so line numbers appear ASAP)
+        const checkMaps = () => {
+            setGtfsRouteMaps(prev => {
+                const next = { ...prev };
+                let changed = false;
+                operators.forEach(op => {
+                    if (!next[op]) {
+                        const m = GtfsShapeService.getRouteMap(op);
+                        if (m && m.size > 0) {
+                            next[op] = m;
+                            changed = true;
+                        }
+                    }
+                });
+                return changed ? next : prev;
+            });
+        };
+
+        const poller = setInterval(checkMaps, 1000); // Check every second until loaded
+        checkMaps(); // Check immediately
+
+        return () => clearInterval(poller);
+    }, [vehicles, selectedOperator]); // Re-run when vehicle list or selected operator updates
+
+    // ── Fetch Next Stop for Vehicles (especially JLT) ────────────────────────────
+    useEffect(() => {
+        if (vehicles.length === 0) return;
+
+        // Prioritize JLT vehicles for next stop fetching
+        const jltVehicles = vehicles.filter(v => v.operator === 'jlt' && v.tripId);
+        const otherVehicles = vehicles.filter(v => v.operator !== 'jlt' && v.tripId && !v.nextStopName);
+
+        const vehiclesToFetch = [...jltVehicles, ...otherVehicles].slice(0, 15); // Limit to avoid too many requests
+
+        vehiclesToFetch.forEach(v => {
+            if (nextStopCache[v.tripId]) return; // Already cached
+
+            try {
+                // Get destination info from GTFS using tripId
+                const ops = getOperatorCandidates(v, selectedOperator);
+                const lineInfo = ops.map(op => GtfsShapeService.getLineInfo(op, v.tripId, v.routeId)).find(Boolean);
+
+                if (lineInfo && lineInfo.headsign) {
+                    setNextStopCache(prev => ({
+                        ...prev,
+                        [v.tripId]: {
+                            name: `Mot ${lineInfo.headsign}`,
+                            time: undefined
+                        }
+                    }));
+                }
+            } catch (err) {
+                console.warn(`[NextStop] Failed to fetch for ${v.tripId}`, err);
+            }
+        });
+    }, [vehicles, selectedOperator]); // Re-run when vehicles/operator changes
+
+    const toggleDark = () => {
+
+        const next = !document.documentElement.classList.contains('dark');
+        if (next) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+    };
+
+    const toggleFilter = (mode: string) => {
+        setActiveFilters(prev => prev.includes(mode) ? prev.filter(m => m !== mode) : [...prev, mode]);
+    };
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => setIsFullscreen(true));
+        } else {
+            document.exitFullscreen().then(() => setIsFullscreen(false));
+        }
+    };
 
     const handleSelectVehicle = async (v: any) => {
         setSelectedVehicle(v);
-        setJourneyPath([]); // Reset
+        // Optimistic stub: Draw projected path immediately
+        setJourneyPath(createRouteStub(v.lat, v.lng, v.bearing ?? 0));
+        setJourneyStops([]);
+        setGtfsPayload(null);
+        setGtfsLoading(false);
 
-        if (v.detailsReference) {
+        // ── Path A: Västtrafik V4 logic removed ──
+        // Users requested total decoupling from Västtrafik API for the map service.
+        // We now rely 100% on GTFS-RT + GTFS Static for shape and route info.
+
+
+        // ── Path B: GTFS-RT (tripId / routeId) → static GTFS shape + route info ─
+        if (v.tripId || v.routeId) {
+            setGtfsLoading(true);
             try {
-                const details = await TransitService.getJourneyDetails(v.detailsReference);
-                // Filter valid coordinates
-                const coords = details
-                    .filter((stop: any) => stop.coords && stop.coords.lat && stop.coords.lng)
-                    .map((stop: any) => [stop.coords.lat, stop.coords.lng] as [number, number]);
+                const ops = getOperatorCandidates(v, selectedOperator);
+                let bestPayload: VehicleRoutePayload | null = null;
+                let bestScore = -1;
 
-                if (coords.length > 0) {
-                    setJourneyPath(coords);
-                    setJourneyStops(details.filter((s: any) => s.coords && s.coords.lat));
+                for (const op of ops) {
+                    const payload = await GtfsShapeService.resolve(
+                        v.tripId,
+                        v.routeId,
+                        op,
+                        v.stopId,
+                        v.dest,
+                        v.stopSequence,
+                        v.lat,
+                        v.lng
+                    );
+                    const score =
+                        ((payload.shape?.coordinates?.length || 0) >= 2 ? 3 : 0) +
+                        (payload.destination ? 2 : 0) +
+                        (payload.line ? 1 : 0);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestPayload = payload;
+                    }
+                    if (score >= 6) break;
+                }
+
+                if (!bestPayload) return;
+                setGtfsPayload(bestPayload);
+
+                const stopCoords = (bestPayload.journeyStops || [])
+                    .filter((s: any) => typeof s.lat === 'number' && typeof s.lng === 'number')
+                    .map((s: any) => [s.lat, s.lng] as [number, number]);
+
+                if (bestPayload.shape && bestPayload.shape.coordinates.length >= 2) {
+                    setJourneyPath(bestPayload.shape.coordinates);
+                } else if (stopCoords.length >= 2) {
+                    setJourneyPath(stopCoords);
+                }
+
+                if (bestPayload.journeyStops) {
+                    setJourneyStops(bestPayload.journeyStops.map((s: any) => ({
+                        coords: { lat: s.lat, lng: s.lng },
+                        name: s.name,
+                        time: s.arrivalTime,
+                        platformCode: s.platformCode
+                    })));
+                }
+                if (bestPayload.resolutionNotes.length > 0) {
+                    console.log('[GtfsShape] Notes:', bestPayload.resolutionNotes);
                 }
             } catch (e) {
-                console.error("Failed to load journey path", e);
+                console.error('Failed to load GTFS shape', e);
+            } finally {
+                setGtfsLoading(false);
             }
         }
     };
 
-    // Fetch image when parking is selected
     useEffect(() => {
         if (selectedParking) {
-            setParkingImage(null); // Reset
-            // Try fetching camera 1 (some might have more, keeping simple)
-            TransitService.getParkingImage(selectedParking.id, 1).then(url => {
+            setParkingImage(null);
+            MapService.getParkingImage(selectedParking.id, 1).then(url => {
                 if (url) setParkingImage(url);
             });
         }
     }, [selectedParking]);
 
-    // Default to Gothenburg
     const position: [number, number] = [57.70887, 11.97456];
-
-    // PROD DISABLE - Feature Coming Soon
-    if (import.meta.env.PROD) {
-        return (
-            <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-950 relative z-0">
-                <div className="text-center p-8 max-w-md mx-auto">
-                    <div className="w-24 h-24 bg-sky-100 dark:bg-sky-900/30 text-sky-500 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-sky-500/10 animate-in zoom-in-50 duration-500">
-                        <FontAwesomeIcon icon={faMap} className="text-5xl animate-pulse" />
-                    </div>
-                    <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">Kartan kommer snart</h2>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Vi slipar på de sista detaljerna. Håll utkik!</p>
-
-                    <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-800/50 rounded-full text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        Under utveckling
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // Prefer GTFS route_color if available, else fall back to mode color
+    const journeyColor = gtfsPayload?.routeInfo?.color
+        || (selectedVehicle?.transportMode === 'TRAM' ? '#14b8a6'
+            : selectedVehicle?.transportMode === 'TRAIN' ? '#d946ef'
+                : selectedVehicle?.transportMode === 'FERRY' ? '#6366f1'
+                    : '#0ea5e9');
 
     return (
-        <div className="w-full h-[100dvh] md:h-full relative z-0">
-            <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+        <div className="w-full h-[100dvh] md:h-full relative z-0 bg-slate-100 dark:bg-slate-900">
+            <MapContainer
+                center={position}
+                zoom={13}
+                style={{ height: '100%', width: '100%' }}
+                zoomControl={false}
+                preferCanvas={true}
+            >
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    key={`${mapMode}-${isDark ? 'dark' : 'light'}`}
+                    url={
+                        mapMode === 'satellite'
+                            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                            : mapMode === 'hybrid'
+                                ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                                : isDark
+                                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+                    }
+                    attribution={
+                        mapMode === 'satellite' || mapMode === 'hybrid'
+                            ? '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    }
+                    maxZoom={mapMode === 'satellite' || mapMode === 'hybrid' ? 18 : 20}
                 />
 
-                <MapEvents setVehicles={setVehicles} setStops={setStops} setParkings={setParkings} setDisruptions={setDisruptions} />
+                <MapEvents
+                    setVehicles={setVehicles}
+                    setStops={setStops}
+                    setParkings={setParkings}
+                    setDisruptions={setDisruptions}
+                    selectedOperator={selectedOperator}
+                    setZoom={setZoom}
+                    setIsLoading={setIsLoading}
+                />
 
-                {/* Render Journey Path */}
+                {/* Journey Path */}
                 {journeyPath.length > 0 && (
                     <>
                         <Polyline
                             positions={journeyPath}
-                            pathOptions={{
-                                color: selectedVehicle?.transportMode === 'TRAM' ? '#0d9488' : '#0ea5e9',
-                                weight: 5,
-                                opacity: 0.8
-                            }}
+                            pathOptions={{ color: journeyColor, weight: 5, opacity: 0.65, lineCap: 'round' }}
                         />
-                        {journeyStops.map((stop, idx) => (
-                            <Marker
-                                key={`journey-stop-${idx}`}
-                                position={[stop.coords.lat, stop.coords.lng]}
-                                icon={L.divIcon({
-                                    className: 'bg-transparent',
-                                    html: `<div class="w-2.5 h-2.5 bg-white border-2 border-${selectedVehicle?.transportMode === 'TRAM' ? 'teal-600' : 'sky-500'} rounded-full shadow-sm"></div>`,
-                                    iconSize: [10, 10],
-                                    iconAnchor: [5, 5]
-                                })}
+                        {journeyStops.map((stop: any, idx: number) => (
+                            <CircleMarker
+                                key={`js-${idx}`}
+                                center={[stop.coords.lat, stop.coords.lng]}
+                                radius={4}
+                                pathOptions={{ fillColor: '#fff', color: journeyColor, weight: 2, fillOpacity: 1 }}
                             >
-                                <Popup>
-                                    <div className="font-bold text-xs">{stop.name}</div>
-                                    <div className="text-xs text-slate-500">{stop.time}</div>
+                                <Popup closeButton={false}>
+                                    <div className="text-center font-sans">
+                                        <div className="font-bold text-xs">
+                                            {stop.name} {stop.platformCode ? `(Läge ${stop.platformCode})` : ''}
+                                        </div>
+                                        <div className="text-[10px] text-slate-500">{stop.time}</div>
+                                    </div>
                                 </Popup>
-                            </Marker>
+                            </CircleMarker>
                         ))}
                     </>
                 )}
 
-                {/* Render Stops */}
-                {stops.map(s => (
-                    <Marker
-                        key={s.id}
-                        position={[s.lat, s.lng]}
-                        icon={L.divIcon({
-                            className: 'bg-transparent',
-                            html: `<div class="w-3 h-3 bg-white border-2 border-slate-400 rounded-full shadow-sm"></div>`,
-                            iconSize: [12, 12],
-                            iconAnchor: [6, 6]
-                        })}
-                    >
-                        <Popup>
-                            <div className="font-sans text-sm font-bold text-slate-700">{s.name}</div>
-                        </Popup>
-                    </Marker>
-                ))}
 
-                {/* Render Parkings */}
+                {/* Stops - Improved with platform information */}
+                {stops.map(s => {
+                    // Extract platform info from stop name (e.g., "Station A", "Stop - C", "Hub 1")
+                    const platformMatch = (s.name || '').match(/\s+([A-E]|[1-9]\d*)(?:\s|$)|[-–—]\s*([A-E]|[1-9]\d*)(?:\s|$)/i);
+                    const platform = platformMatch ? (platformMatch[1] || platformMatch[2]) : null;
+
+                    // Platform colors
+                    const platformColors: Record<string, string> = {
+                        'A': '#3b82f6', // blue
+                        'B': '#ef4444', // red
+                        'C': '#10b981', // green
+                        'D': '#f59e0b', // amber
+                        'E': '#8b5cf6', // purple
+                    };
+
+                    const platformColor = platform && platformColors[platform.toUpperCase()]
+                        ? platformColors[platform.toUpperCase()]
+                        : platform ? '#6366f1' : '#94a3b8'; // indigo for numbers, slate for no platform
+
+                    // Show larger icons at higher zoom levels
+                    const size = zoom > 15 ? 28 : zoom > 14 ? 24 : 16;
+                    const fontSize = zoom > 15 ? '11px' : zoom > 14 ? '9px' : '7px';
+
+                    const icon = L.divIcon({
+                        className: 'bg-transparent',
+                        html: platform && zoom > 13
+                            ? `<div style="width:${size}px; height:${size}px; background:${platformColor}; border:2px solid white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:${fontSize}; font-weight:900; color:white; box-shadow:0 2px 4px rgba(0,0,0,0.3);">${platform}</div>`
+                            : `<div class="w-3 h-3 bg-white border-2 transition-all" style="border-color:${platformColor};box-shadow:0 2px 4px rgba(0,0,0,0.2);border-radius:50%;"></div>`,
+                        iconSize: [size, size],
+                        iconAnchor: [size / 2, size / 2]
+                    });
+
+                    return (
+                        <Marker
+                            key={s.id}
+                            position={[s.lat, s.lng]}
+                            icon={icon}
+                        >
+                            <Popup>
+                                <div className="font-sans text-xs font-bold text-slate-700">
+                                    <div>{s.name}</div>
+                                    {platform && <div className="text-[10px] text-slate-500 mt-1">Plattform: <span style={{ color: platformColor }} className="font-bold">{platform}</span></div>}
+                                </div>
+                            </Popup>
+                        </Marker>
+                    );
+                })}
+
+                {/* Parkings */}
                 {parkings.map(p => (
                     <Marker
-                        key={`parking-${p.id}`}
+                        key={`p-${p.id}`}
                         position={[p.lat, p.lng]}
-                        eventHandlers={{
-                            click: () => setSelectedParking(p)
-                        }}
+                        eventHandlers={{ click: () => setSelectedParking(p) }}
                         icon={L.divIcon({
                             className: 'bg-transparent',
                             html: `<div class="w-8 h-8 bg-blue-600 rounded-lg shadow-md border-2 border-white flex items-center justify-center text-white font-bold text-sm">P</div>`,
@@ -273,40 +1052,135 @@ export const LiveMap = () => {
                         <Popup>
                             <div className="font-sans w-48">
                                 <h3 className="font-bold text-sm mb-1">{p.name}</h3>
-                                {selectedParking?.id === p.id && (
-                                    <div className="mt-2">
-                                        {parkingImage ? (
-                                            <div className="rounded overflow-hidden mb-2 relative aspect-video bg-slate-100">
-                                                <img src={parkingImage} alt="Kamera" className="w-full h-full object-cover" />
-                                                <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] px-1 rounded">LIVE</div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-xs text-slate-400 italic mb-2">Laddar kamerabild...</div>
-                                        )}
+                                {selectedParking?.id === p.id && parkingImage && (
+                                    <div className="rounded overflow-hidden mb-2 relative aspect-video bg-slate-100">
+                                        <img src={parkingImage} alt="Kamera" className="w-full h-full object-cover" />
+                                        <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] px-1 rounded">LIVE</div>
                                     </div>
                                 )}
-                                <div className="text-xs text-slate-500">
-                                    <span className="font-semibold">Platser:</span> {p.capacity || '?'}
-                                </div>
+                                <div className="text-xs text-slate-500"><span className="font-semibold">Platser:</span> {p.capacity || '?'}</div>
                             </div>
                         </Popup>
                     </Marker>
                 ))}
 
-                {/* Render Vehicles */}
-                {vehicles.map(v => (
-                    <VehicleMarker key={v.id} v={v} onSelect={handleSelectVehicle} />
+                {/* Vehicles */}
+                {vehicles
+                    .filter(v => {
+                        // Security check: Validate GPS coordinates to prevent off-map vehicles
+                        // Valid Swedish coordinates are roughly: lat 54-70, lng 10-25
+                        const isValidCoord = v.lat >= 54 && v.lat <= 71 && v.lng >= 9 && v.lng <= 25;
+                        return isValidCoord;
+                    })
+                    .filter(v => activeFilters.includes(v.transportMode || 'BUS'))
+                    .filter(v => {
+                        // Depot filter - improved logic
+                        if (!hideDepot) return true;
+
+                        const destText = (v.dest || '').toLowerCase();
+                        const lineText = (v.line || '').toLowerCase();
+
+                        // Mark as depot if destination explicitly indicates it
+                        const isDepot = /ej i trafik|depå|inställd|ej linjesatt|tomkörning|parkeringsplats|garage|verkstad|lager/.test(destText);
+
+                        // Don't show if it's explicitly a depot
+                        if (isDepot) return false;
+
+                        // Don't show if it has no line and no destination info
+                        if ((!v.line || v.line === '?') && (!v.dest || v.dest === '?')) return false;
+
+                        return true;
+                    })
+                    .filter(v => {
+                        // Search filter by internal number (internummer)
+                        if (!searchQuery.trim()) return true;
+
+                        const query = searchQuery.toLowerCase().trim();
+                        let rawId = v.vehicleLabel || String(v.id || '').replace(/^(tl-|vt-|veh-)/, '');
+
+                        // Search in: vehicle ID, line number, operator
+                        return (
+                            rawId.toLowerCase().includes(query) ||
+                            (v.line && v.line.toLowerCase().includes(query)) ||
+                            (v.operator && v.operator.toLowerCase().includes(query)) ||
+                            (v.dest && v.dest.toLowerCase().includes(query))
+                        );
+                    })
+                    .map(v => {
+                        const opCandidates = getOperatorCandidates(v, selectedOperator);
+                        // Resolve line info synchronously (fast) using cached routes/trips
+                        // This handles cases where we only have tripId, or routeId is a long string
+                        const info = opCandidates.map(op => GtfsShapeService.getLineInfo(op, v.tripId, v.routeId)).find(Boolean);
+                        const likelyTrain = isLikelyTrainVehicle(v, info?.routeType);
+
+                        let resolvedLine = info?.line || v.line;
+                        if (!showLabels && likelyTrain) {
+                            const trainNo = getTrainNumberFromVehicleId(v);
+                            if (trainNo && (!resolvedLine || resolvedLine === '?' || /^[0-9]{8,}$/.test(String(resolvedLine)))) {
+                                resolvedLine = trainNo;
+                            }
+                        }
+
+                        // User toggle: display last 4 digits of hardware ID instead of line number
+                        if (showLabels) {
+                            let rawId = getRawVehicleId(v);
+                            if (rawId && rawId !== 'unknown') {
+                                // Extract the last 4 characters
+                                resolvedLine = rawId.slice(-4);
+                            } else {
+                                resolvedLine = 'ID?';
+                            }
+                        }
+
+                        // Strict priority fallback: realtime > static > route_long_name > route_short_name
+                        const resolvedHeadsign =
+                            (!isUselessDestination(v.dest, v.line) ? v.dest : null) ||
+                            info?.headsign ||
+                            info?.longName ||
+                            (resolvedLine && resolvedLine !== '?' ? `${likelyTrain ? 'Tåg' : 'Linje'} ${resolvedLine}` : null);
+
+                        return (
+                            <VehicleMarker
+                                key={v.id}
+                                v={v}
+                                onSelect={handleSelectVehicle}
+                                simpleMode={vehicles.length > 200 || zoom < 13}
+                                showLabels={showLabels}
+                                lineOverride={resolvedLine}
+                                titleOverride={resolvedHeadsign}
+                                colorOverride={info?.color}
+                                typeOverride={info?.routeType ?? (likelyTrain ? 2 : undefined)}
+                                nextStop={v.tripId ? nextStopCache[v.tripId] : undefined}
+                            />
+                        );
+                    })}
+
+                {/* Network Shapes Layer (Base network) */}
+                {Object.entries(networkShapes).map(([lineId, data]) => (
+                    data.points.map((coords, idx) => (
+                        <Polyline
+                            key={`net-${lineId}-${idx}`}
+                            positions={coords}
+                            pathOptions={{
+                                color: data.color,
+                                weight: zoom > 14 ? 3 : 2,
+                                opacity: zoom > 13 ? 0.35 : 0.2,
+                                lineJoin: 'round',
+                                interactive: false
+                            }}
+                        />
+                    ))
                 ))}
 
-                {/* Render Disruptions */}
-                {disruptions.map(d => (
-                    d.coordinates && d.coordinates.length > 0 && d.coordinates.map((coord: any, idx: number) => (
+                {/* Disruptions */}
+                {disruptions.map(d =>
+                    d.coordinates?.length > 0 && d.coordinates.map((coord: any, idx: number) => (
                         <Marker
-                            key={`disruption-${d.id}-${idx}`}
+                            key={`dis-${d.id}-${idx}`}
                             position={[coord.lat, coord.lng]}
                             icon={L.divIcon({
                                 className: 'bg-transparent',
-                                html: `<div class="w-8 h-8 bg-amber-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center text-white animate-pulse"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></div>`,
+                                html: `<div class="w-8 h-8 bg-amber-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center text-white animate-pulse"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></div>`,
                                 iconSize: [32, 32],
                                 iconAnchor: [16, 32]
                             })}
@@ -322,95 +1196,300 @@ export const LiveMap = () => {
                             </Popup>
                         </Marker>
                     ))
-                ))}
+                )}
             </MapContainer>
 
-            {/* Selected Journey Card */}
-            {selectedVehicle && (
-                <div className="absolute bottom-20 left-4 right-4 z-[400] md:left-auto md:w-80 md:right-4 md:bottom-6 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-slate-200/60 animate-in slide-in-from-bottom-4 fade-in duration-300 pb-safe">
-                    <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md ${selectedVehicle.transportMode === 'TRAM' ? 'bg-teal-600' : 'bg-sky-500'}`}>
-                                {selectedVehicle.transportMode === 'TRAM' ? <FontAwesomeIcon icon={faTram} className="text-xl" /> : <FontAwesomeIcon icon={faBus} className="text-xl" />}
-                            </div>
-                            <div>
-                                <h3 className="font-black text-lg text-slate-800 leading-none">Linje {selectedVehicle.line}</h3>
-                                <div className="text-xs font-bold text-slate-500 mt-0.5">{selectedVehicle.transportMode === 'TRAM' ? 'Spårvagn' : 'Buss'} mot Destination</div>
+            {/* ── Selected Vehicle Popup (map-anchored above marker) ── */}
+            {selectedVehicle && (() => {
+                const opCandidates = getOperatorCandidates(selectedVehicle, selectedOperator);
+                const routeInfo = gtfsPayload?.routeInfo;
+                const syncInfo = opCandidates.map(op => GtfsShapeService.getLineInfo(op, selectedVehicle.tripId, selectedVehicle.routeId)).find(Boolean);
+                const routeType = routeInfo?.routeType ?? syncInfo?.routeType;
+                const likelyTrain = isLikelyTrainVehicle(selectedVehicle, routeType);
+
+                const trainNo = getTrainNumberFromVehicleId(selectedVehicle);
+                const displayLine =
+                    gtfsPayload?.line ||
+                    routeInfo?.shortName ||
+                    ((likelyTrain && trainNo) ? trainNo : (selectedVehicle.line || null));
+
+                const cachedNextStopRaw = selectedVehicle.tripId ? (nextStopCache[selectedVehicle.tripId]?.name || null) : null;
+                const cachedHeadsign = cachedNextStopRaw?.match(/^Mot\s+(.+)$/i)?.[1] || null;
+                const cachedNextStopName = cachedHeadsign ? null : cachedNextStopRaw;
+
+                const displayDest = gtfsPayload?.destination
+                    || gtfsPayload?.tripHeadsign
+                    || selectedVehicle.dest
+                    || cachedHeadsign
+                    || syncInfo?.headsign
+                    || syncInfo?.longName
+                    || routeInfo?.longName
+                    || null;
+
+                const displayColor = routeInfo?.color || journeyColor;
+                const finalDest = displayDest || null;
+
+                const panel = formatCompactPanel(
+                    selectedVehicle,
+                    displayLine,
+                    finalDest,
+                    gtfsPayload?.nextStopName || cachedNextStopName || null,
+                    gtfsLoading,
+                    journeyPath.length > 2,
+                    journeyColor,
+                    displayColor
+                );
+
+                const hex = panel.lineColor;
+                let numColor = '#ffffff';
+                if (hex && hex.startsWith('#') && hex.length === 7) {
+                    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+                    numColor = ((r * 299 + g * 587 + b * 114) / 1000 >= 128) ? '#1e293b' : '#ffffff';
+                }
+
+                return (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[400] pointer-events-none w-full max-w-[340px] px-4">
+                        <div className="pointer-events-auto relative overflow-hidden rounded-[1.5rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/60 dark:border-white/10 backdrop-blur-3xl bg-white dark:bg-[#0f172a] ring-1 ring-black/5 mx-auto p-5">
+                            <div className="flex flex-col relative z-10 w-full">
+                                <div className="flex items-center gap-3 w-full relative pr-8">
+                                    <div
+                                        className="h-[36px] min-w-[48px] px-2 rounded-xl flex items-center justify-center font-black text-xl leading-none shadow-md shrink-0 border border-white/20"
+                                        style={{ backgroundColor: panel.lineColor, color: numColor }}
+                                    >
+                                        {panel.lineNumber}
+                                    </div>
+                                    <div className="font-extrabold text-slate-800 dark:text-white text-[18px] leading-tight flex-1 min-w-0 pr-4 break-words whitespace-normal">
+                                        {panel.title}
+                                    </div>
+                                    <button
+                                        onClick={() => { setSelectedVehicle(null); setJourneyPath([]); }}
+                                        className="absolute top-1/2 -translate-y-1/2 -right-2 w-8 h-8 shrink-0 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-all active:scale-90"
+                                    >
+                                        <FontAwesomeIcon icon={faXmark} className="text-lg" />
+                                    </button>
+                                </div>
+
+                                <div className="mt-4 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-[14px] font-semibold w-full truncate pr-4">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                        {panel.subtitle}
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800 my-4" />
+
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 pb-1">
+                                    {gtfsLoading ? (
+                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0">
+                                            <FontAwesomeIcon icon={faSpinner} className="animate-spin text-sky-500 text-sm" />
+                                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Hämtar rutt</span>
+                                        </div>
+                                    ) : (
+                                        panel.chips.map((chip, i) => (
+                                            <div key={i} className="flex flex-col shrink-0">
+                                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{chip.label}</span>
+                                                <div className="text-[14px] font-bold text-slate-800 dark:text-slate-200 tracking-tight flex items-center gap-1.5 mt-0.5">
+                                                    {chip.label.toLowerCase() === 'operatör' && (
+                                                        <span className="w-4 h-4 rounded-[4px] flex items-center justify-center grayscale opacity-80">🏢</span>
+                                                    )}
+                                                    {chip.value}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <button onClick={() => { setSelectedVehicle(null); setJourneyPath([]); setJourneyStops([]); }} className="p-1 rounded-full hover:bg-slate-100 text-slate-400">
-                            <span className="sr-only">Stäng</span>
-                            <FontAwesomeIcon icon={faXmark} className="text-lg" />
-                        </button>
                     </div>
+                );
+            })()}
 
-                    <div className="space-y-3">
-                        {/* Route Info */}
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nästa Hållplats</span>
-                                {selectedVehicle.delay && (
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${selectedVehicle.delay > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                        {selectedVehicle.delay > 0 ? `+${selectedVehicle.delay} min` : 'I tid'}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="font-bold text-slate-700 text-sm flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-slate-400"></div>
-                                {selectedVehicle.nextStop || "Okänd hållplats"}
-                            </div>
-                        </div>
 
-                        {/* Journey Stats */}
-                        <div className="grid grid-cols-1 gap-2">
-                            <div className="p-2 bg-slate-50 rounded-lg text-center border border-slate-100">
-                                <div className="text-[9px] font-bold text-slate-400 uppercase">Hållplatser</div>
-                                <div className="font-black text-slate-700">{journeyStops.length > 0 ? journeyStops.length : '-'} <span className="text-[10px] font-medium text-slate-400">kvar</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* ── Compact Top Control Bar ── */}
+            <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2 pointer-events-none">
 
-            {/* Top Right Controls */}
-            <div
-                className="absolute top-4 right-4 z-[1000] flex flex-col gap-2 items-end"
-                style={{ top: 'max(1rem, env(safe-area-inset-top) + 1rem)' }}
-            >
-
-                {/* Operator Selector */}
-                <div className="bg-white/95 backdrop-blur-sm p-1 rounded-xl shadow-lg border border-slate-200/60 max-w-[200px]">
-                    <div className="relative">
-                        <select
-                            value={selectedOperator}
-                            onChange={(e) => {
-                                setSelectedOperator(e.target.value);
-                                // Optional: Fly to operator region if selected? 
-                                // Implementing "flyTo" would require moving map logic up or exposing it.
-                                // For now just changing the filter.
-                            }}
-                            className="w-full pl-3 pr-8 py-2 bg-transparent text-xs font-bold text-slate-700 outline-none appearance-none cursor-pointer"
+                {/* Search box */}
+                <div className="pointer-events-auto flex items-center gap-1.5 h-9 px-3 rounded-full shadow-lg border border-white/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 max-w-[180px]">
+                    <FontAwesomeIcon icon={faSearch} className="text-slate-400 text-xs" />
+                    <input
+                        type="text"
+                        placeholder="Sök internr..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="bg-transparent font-semibold text-slate-800 dark:text-white text-xs outline-none placeholder-slate-400 dark:placeholder-slate-500 min-w-0 flex-1"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                         >
-                            {TRAFIKLAB_OPERATORS.map(op => (
-                                <option key={op.id} value={op.id}>{op.name}</option>
-                            ))}
-                        </select>
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
-                        </div>
-                    </div>
+                            <FontAwesomeIcon icon={faXmark} className="text-xs" />
+                        </button>
+                    )}
                 </div>
 
-                {/* Live Count Badge */}
-                <div className="bg-white/90 backdrop-blur p-2 rounded-xl shadow-lg border border-slate-100 flex flex-col gap-1 items-center self-end">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Live</div>
-                    <div className="flex items-center gap-1.5 text-sky-600">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
-                        </span>
-                        <span className="text-xs font-bold">{vehicles.length} fordon</span>
+                {/* Operator pill */}
+                <div className="pointer-events-auto flex items-center gap-1.5 h-9 px-2 rounded-full shadow-lg border border-white/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80">
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0">
+                        <FontAwesomeIcon icon={faLocationArrow} className={`text-white text-[8px] ${isLoading ? 'animate-spin' : ''}`} />
                     </div>
+                    <select
+                        value={selectedOperator}
+                        onChange={(e) => setSelectedOperator(e.target.value)}
+                        className="bg-transparent font-bold text-slate-800 dark:text-white text-xs outline-none appearance-none cursor-pointer max-w-[130px]"
+                    >
+                        {TRAFIKLAB_OPERATORS.map(op => (
+                            <option key={op.id} value={op.id} className="text-slate-800">{op.name}</option>
+                        ))}
+                    </select>
+                    <FontAwesomeIcon icon={faChevronDown} className="text-slate-400 text-[9px] pointer-events-none -ml-1" />
+                </div>
+
+                {/* Vehicle count pill */}
+                <div className="pointer-events-none hidden md:flex items-center h-9 px-3 rounded-full shadow-lg border border-white/20 backdrop-blur-xl bg-gradient-to-r from-sky-500 to-blue-600">
+                    <span className="font-black text-white text-sm leading-none tabular-nums">{vehicles.length}</span>
+                    <span className="text-white/70 text-[9px] font-bold ml-1 uppercase tracking-wide">fordon</span>
+                </div>
+
+                {/* Icon button group */}
+                <div className="pointer-events-auto flex items-center h-9 rounded-full shadow-lg border border-white/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 px-1 gap-0.5">
+
+                    {/* Layers */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowLayers(!showLayers)}
+                            title="Lager"
+                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 text-sm ${showLayers
+                                ? 'bg-sky-500 text-white shadow-md'
+                                : 'text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
+                                }`}
+                        >
+                            <FontAwesomeIcon icon={faLayerGroup} className="text-xs" />
+                        </button>
+
+                        {showLayers && (
+                            <div className="absolute top-full right-0 mt-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-[2000] animate-in slide-in-from-top-2 fade-in duration-150">
+                                <div className="px-3 py-2 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                    <span className="font-black text-xs text-slate-700 dark:text-white uppercase tracking-wider">Lager</span>
+                                    <button onClick={() => setShowLayers(false)} className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
+                                        <FontAwesomeIcon icon={faXmark} className="text-[9px]" />
+                                    </button>
+                                </div>
+                                <div className="p-1.5 space-y-0.5">
+                                    {[
+                                        { id: 'BUS', icon: faBus, bg: 'bg-sky-500', label: 'Bussar' },
+                                        { id: 'TRAM', icon: faTram, bg: 'bg-teal-500', label: 'Spårvagnar' },
+                                        { id: 'TRAIN', icon: faTrain, bg: 'bg-fuchsia-500', label: 'Tåg & Pendel' },
+                                        { id: 'FERRY', icon: faShip, bg: 'bg-indigo-500', label: 'Båtar' }
+                                    ].map(m => {
+                                        const isActive = activeFilters.includes(m.id);
+                                        return (
+                                            <button
+                                                key={m.id}
+                                                onClick={() => toggleFilter(m.id)}
+                                                className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] ${m.bg} ${isActive ? 'opacity-100' : 'opacity-30 grayscale'} transition-all`}>
+                                                        <FontAwesomeIcon icon={m.icon} />
+                                                    </div>
+                                                    <span className={`font-bold text-xs ${isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>{m.label}</span>
+                                                </div>
+                                                <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${isActive ? 'bg-green-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-200 ${isActive ? 'left-[18px]' : 'left-0.5'}`} />
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Depot filter & Labels Toggle */}
+                                <div className="mx-2 my-1 border-t border-slate-100 dark:border-white/5" />
+
+                                {/* Depot Toggle */}
+                                <button
+                                    onClick={() => setHideDepot(h => !h)}
+                                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] bg-slate-400 ${hideDepot ? 'opacity-100' : 'opacity-30 grayscale'} transition-all`}>
+                                            🏭
+                                        </div>
+                                        <div className="text-left">
+                                            <span className={`font-bold text-xs block ${hideDepot ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Dölj depåfordon</span>
+                                            <span className="text-[9px] text-slate-400">Fordon utan aktiv linje</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${hideDepot ? 'bg-green-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-200 ${hideDepot ? 'left-[18px]' : 'left-0.5'}`} />
+                                    </div>
+                                </button>
+
+                                {/* Show Labels Toggle */}
+                                <button
+                                    onClick={() => setShowLabels(s => !s)}
+                                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] bg-slate-400 ${showLabels ? 'opacity-100' : 'opacity-30 grayscale'} transition-all`}>
+                                            🏷️
+                                        </div>
+                                        <div className="text-left">
+                                            <span className={`font-bold text-xs block ${showLabels ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Visa ID-etiketter</span>
+                                            <span className="text-[9px] text-slate-400">Sista 4 siffrorna i ikonen</span>
+                                        </div>
+                                    </div>
+                                    <div className={`w-8 h-4 rounded-full relative transition-colors duration-200 ${showLabels ? 'bg-green-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-200 ${showLabels ? 'left-[18px]' : 'left-0.5'}`} />
+                                    </div>
+                                </button>
+
+                                {/* Kartlägen */}
+                                <div className="mx-2 my-1 border-t border-slate-100 dark:border-white/5" />
+                                <div className="px-2.5 py-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Kartläge</span>
+                                    <div className="flex gap-1">
+                                        {[
+                                            { value: 'light', label: '🗺️ Ljust' },
+                                            { value: 'satellite', label: '🛰️ Satellit' },
+                                            { value: 'hybrid', label: '🔗 Hybrid' }
+                                        ].map(mode => (
+                                            <button
+                                                key={mode.value}
+                                                onClick={() => setMapMode(mode.value as 'light' | 'dark' | 'satellite' | 'hybrid')}
+                                                className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${mapMode === mode.value
+                                                    ? 'bg-sky-500 text-white shadow-md'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                    }`}
+                                            >
+                                                {mode.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-0.5" />
+
+                    {/* Dark mode */}
+                    <button
+                        onClick={toggleDark}
+                        title={isDark ? 'Ljust läge' : 'Mörkt läge'}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${isDark ? 'text-amber-400 hover:bg-amber-400/10' : 'text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'}`}
+                    >
+                        <FontAwesomeIcon icon={isDark ? faSun : faMoon} className="text-xs" />
+                    </button>
+
+                    {/* Fullscreen */}
+                    <button
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-all active:scale-90"
+                    >
+                        <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-xs" />
+                    </button>
                 </div>
             </div>
         </div>

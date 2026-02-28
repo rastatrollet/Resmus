@@ -1,93 +1,107 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Marker, Popup } from 'react-leaflet';
+import { Marker } from 'react-leaflet';
 import L from 'leaflet';
-// Simple Lerp
-const lerp = (start: number, end: number, t: number) => {
-    return start * (1 - t) + end * t;
-};
 
 interface AnimatedMarkerProps {
     position: [number, number];
     icon: L.DivIcon | L.Icon;
-    rotationAngle?: number;
     children?: React.ReactNode;
     eventHandlers?: L.LeafletEventHandlerFnMap;
+    title?: string;
+    speed?: number; // km/h
+    bearing?: number; // degrees
 }
 
-export const AnimatedMarker: React.FC<AnimatedMarkerProps> = ({ position, icon, rotationAngle = 0, children, eventHandlers }) => {
-    const markerRef = useRef<L.Marker>(null);
-    const prevPosRef = useRef(position);
-    const targetPosRef = useRef(position);
-    const startTimeRef = useRef<number>(0);
-    const animationFrameRef = useRef<number>();
+const R = 6378137; // Earth Radius
 
-    // Duration matches refresh rate (15s) + small buffer.
-    // If set too long (30s) while updates come at 15s, the vehicle appears to move at half speed.
-    // 16s ensures it moves at ~real speed and bridges small gaps.
-    const DURATION = 16000;
+export const AnimatedMarker: React.FC<AnimatedMarkerProps> = ({
+    position,
+    icon,
+    children,
+    eventHandlers,
+    title,
+    speed = 0,
+    bearing = 0
+}) => {
+    const markerRef = useRef<L.Marker>(null);
+    const rafId = useRef<number>();
+
+    const virtPos = useRef<{ lat: number, lng: number }>({ lat: position[0], lng: position[1] });
+    const lastTick = useRef<number>(performance.now());
+    const targetPos = useRef<{ lat: number, lng: number }>({ lat: position[0], lng: position[1] });
+    const lastPositionUpdate = useRef<number>(performance.now());
+
+    useEffect(() => {
+        targetPos.current = { lat: position[0], lng: position[1] };
+        lastPositionUpdate.current = performance.now();
+
+        // If we are way too far off (e.g. initial load or >500m jump), snap directly
+        const distSq = Math.pow(virtPos.current.lat - position[0], 2) + Math.pow(virtPos.current.lng - position[1], 2);
+        if (distSq > 0.0001) {
+            virtPos.current = { lat: position[0], lng: position[1] };
+        }
+    }, [position[0], position[1]]);
 
     useEffect(() => {
         const marker = markerRef.current;
         if (!marker) return;
 
-        // If position changed significantly
-        if (position[0] !== targetPosRef.current[0] || position[1] !== targetPosRef.current[1]) {
-            // Start from current actual position (if mid-animation) or previous target
-            // Actually, best to start from where it IS right now (marker.getLatLng())
-            const currentLatLng = marker.getLatLng();
-            prevPosRef.current = [currentLatLng.lat, currentLatLng.lng];
-            targetPosRef.current = position;
-            startTimeRef.current = performance.now();
+        const step = (now: number) => {
+            const dt = (now - lastTick.current) / 1000; // seconds
+            lastTick.current = now;
 
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+            if (dt > 0 && dt < 1) { // Ignore huge frame drops
+                let rawNewLat = virtPos.current.lat;
+                let rawNewLng = virtPos.current.lng;
 
-            const animate = (time: number) => {
-                const elapsed = time - startTimeRef.current;
-                const t = Math.min(elapsed / DURATION, 1);
+                // 1. Continuous Forward Dead Reckoning
+                // Only dead-reckon if data is fresh (received within the last 15 seconds)
+                const timeSinceLastUpdate = now - lastPositionUpdate.current;
 
-                // Linear Interpolation for map movement (standard)
-                const newLat = lerp(prevPosRef.current[0], targetPosRef.current[0], t);
-                const newLng = lerp(prevPosRef.current[1], targetPosRef.current[1], t);
+                if (speed > 0 && timeSinceLastUpdate < 15000) {
+                    const speedMps = speed / 3.6;
+                    const d = speedMps * dt;
+                    const brng = (bearing * Math.PI) / 180;
+                    const lat1 = (rawNewLat * Math.PI) / 180;
+                    const lon1 = (rawNewLng * Math.PI) / 180;
 
-                marker.setLatLng([newLat, newLng]);
+                    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(brng));
+                    const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
 
-                if (t < 1) {
-                    animationFrameRef.current = requestAnimationFrame(animate);
-                } else {
-                    // Snap to exact target at end to prevent float drift
-                    marker.setLatLng(targetPosRef.current);
+                    rawNewLat = (lat2 * 180) / Math.PI;
+                    rawNewLng = (lon2 * 180) / Math.PI;
                 }
-            };
 
-            animationFrameRef.current = requestAnimationFrame(animate);
-        }
+                // 2. Smoothly pull towards the true server target 
+                // Using exponential decay: corrects 63% of the discrepancy per second
+                const pullFactor = 1 - Math.exp(-1.0 * dt);
 
-        return () => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+                virtPos.current.lat = rawNewLat + (targetPos.current.lat - rawNewLat) * pullFactor;
+                virtPos.current.lng = rawNewLng + (targetPos.current.lng - rawNewLng) * pullFactor;
+
+                // Update marker visually
+                marker.setLatLng([virtPos.current.lat, virtPos.current.lng]);
+            }
+
+            rafId.current = requestAnimationFrame(step);
         };
-    }, [position[0], position[1]]);
 
-    // We pass the *initial* position to the Marker to mount it.
-    // Subsequent moves are handled by the effect calling setLatLng directly.
-    // This avoids React renders for every frame.
-    // IMPORTANT: We use a ref to hold the initial pos so it doesn't change on re-renders,
-    // protecting against React-Leaflet fighting us.
-    // Actually, if we pass 'position' prop to Marker, React-Leaflet updates it.
-    // We should pass 'prevPosRef.current' or just the initial mount position?
-    // If we pass 'position', React-Leaflet calls setLatLng too.
-    // TRICK: We pass a separate state 'initialPos' that never updates after mount?
-    // Or we just accept that React-Leaflet calls setLatLng once on prop change (snap), 
-    // and we override it? No, that causes jump.
-    // FIX: AnimatedMarker should NOT pass changed 'position' down to Marker.
+        lastTick.current = performance.now();
+        rafId.current = requestAnimationFrame(step);
 
-    const [initialPos] = useState(position);
+        return () => { if (rafId.current) cancelAnimationFrame(rafId.current); };
+    }, [speed, bearing]); // Re-bind loop if physics constants change
+
+    // Prevent React-Leaflet from snapping by fixing the initial mount position
+    const [mountPos] = useState<[number, number]>([position[0], position[1]]);
 
     return (
         <Marker
             ref={markerRef}
-            position={initialPos} // Only used for initial placement
+            position={mountPos}
             icon={icon}
             eventHandlers={eventHandlers}
+            title={title}
         >
             {children}
         </Marker>

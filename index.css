@@ -57,3 +57,19 @@
   padding: 2px 4px;
   margin: -2px -4px;
 }
+
+/* React-Leaflet Custom Clean Popup Overrides */
+.clean-popup .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.clean-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.clean-popup .leaflet-popup-tip-container {
+  display: none;
+}

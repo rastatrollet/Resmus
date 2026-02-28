@@ -143,7 +143,53 @@ const getVasttrafikToken = async (): Promise<string | null> => {
     console.log("[Auth] Fetching new Västtrafik token...");
 
     // Explicit 2 retries handled by fetchWithCors now, but complex logic here might need explicit handling
-    // Using simple fetchWithCors with retry logic built-in
+    // Try multiple proxies for the Token endpoint since it's a POST request and some proxies are flaky
+    const proxies = [
+        (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}` // specific fallback for post
+    ];
+
+    for (const proxyGen of proxies) {
+        try {
+            console.log(`[Auth] Attempting token fetch with proxy...`);
+            // We construct the manual URL here to bypass fetchWithCors's single proxy logic
+            // But we can verify if fetchWithCors can be used. 
+            // Let's just do a direct fetch with the proxy URL to ensure we control it.
+
+            const targetUrl = `${API_URLS.VASTTRAFIK_TOKEN}?grant_type=client_credentials`; // Move params to URL for some proxies? No, body is better for POST.
+            // Actually VT accepts params in body.
+
+            // Standard construction
+            const finalUrl = proxyGen(API_URLS.VASTTRAFIK_TOKEN);
+
+            const res = await fetch(finalUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH.trim()}`
+                },
+                body: 'grant_type=client_credentials'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.access_token) {
+                    vtToken = data.access_token;
+                    vtTokenExpiry = Date.now() + (data.expires_in * 1000) - 30000;
+                    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token: vtToken, expiry: vtTokenExpiry }));
+                    return vtToken;
+                }
+            } else {
+                console.warn(`[Auth] Proxy failed with status ${res.status}`);
+            }
+        } catch (e) {
+            console.warn("[Auth] Proxy attempt error", e);
+        }
+    }
+
+    // Fallback to fetchWithCors logic (which uses corsproxy.io with retry) if manual loop failed/didn't cover all cases
+    // But since we just tried them, we might be out of luck.
+    // Let's try one last Hail Mary with the standard helper just in case the manual construction was off.
     try {
         const res = await fetchWithCors(API_URLS.VASTTRAFIK_TOKEN, {
             method: 'POST',
@@ -152,29 +198,20 @@ const getVasttrafikToken = async (): Promise<string | null> => {
                 'Authorization': `Basic ${API_KEYS.VASTTRAFIK_AUTH.trim()}`
             },
             body: 'grant_type=client_credentials'
-        }, false, 3); // Don't cache the token request result itself, but do retry
+        }, false, 1);
 
-        if (!res.ok) {
-            console.error("[Auth] Failed to fetch token", res.status);
-            return null;
+        if (res.ok) {
+            const data = await res.json();
+            if (data.access_token) {
+                vtToken = data.access_token;
+                vtTokenExpiry = Date.now() + (data.expires_in * 1000) - 30000;
+                localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token: vtToken, expiry: vtTokenExpiry }));
+                return vtToken;
+            }
         }
+    } catch (e) { }
 
-        const data = await res.json();
-        if (data.access_token) {
-            vtToken = data.access_token;
-            // Set expiry 30 seconds before actual to be safe
-            vtTokenExpiry = Date.now() + (data.expires_in * 1000) - 30000;
-
-            // Persist
-            localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({
-                token: vtToken,
-                expiry: vtTokenExpiry
-            }));
-
-            return vtToken;
-        }
-    } catch (e) { console.error("[Auth] Token fetch error", e); }
-
+    console.error("[Auth] All token fetch attempts failed.");
     return null;
 };
 
@@ -867,7 +904,12 @@ export const TransitService = {
         if (journeyRef.startsWith('http')) {
             url = journeyRef;
         }
-        // Otherwise assume it is a 'detailsReference' and use the V4 endpoint requested by User
+        // If it's pure numeric (GTFS TripId / ServiceJourney GID), use servicejourneys endpoint
+        else if (/^\d+$/.test(journeyRef)) {
+            // V4 ServiceJourney endpoint for detailed call list
+            url = `${API_URLS.VASTTRAFIK_API}/servicejourneys/${journeyRef}?include=calls`;
+        }
+        // Otherwise assume it is a complex 'detailsReference' (base64-ish)
         else {
             url = `${API_URLS.VASTTRAFIK_API}/journeys/${encodeURIComponent(journeyRef)}/details?includes=servicejourneycalls`;
         }
@@ -881,17 +923,17 @@ export const TransitService = {
             // Locate the calls array in the complex V4 structure
             let calls: any[] = [];
 
-            // 1. Direct ServiceJourneys (if response is simple)
-            if (data.serviceJourneys && data.serviceJourneys[0]?.callsOnServiceJourney) {
+            // 0. Direct ServiceJourney Response (from /servicejourneys/{gid})
+            if (data.calls) {
+                calls = data.calls;
+            }
+            // 1. Direct ServiceJourneys (if response is array or wrapped)
+            else if (data.serviceJourneys && data.serviceJourneys[0]?.callsOnServiceJourney) {
                 calls = data.serviceJourneys[0].callsOnServiceJourney;
             }
             // 2. TripLegs structure (standard V4 Journey Details)
             else if (data.tripLegs && data.tripLegs[0]?.serviceJourneys && data.tripLegs[0].serviceJourneys[0]?.callsOnServiceJourney) {
                 calls = data.tripLegs[0].serviceJourneys[0].callsOnServiceJourney;
-            }
-            // 3. Fallback to basic 'calls' (legacy/other endpoint)
-            else if (data.calls) {
-                calls = data.calls;
             }
 
             if (!calls || calls.length === 0) return [];
@@ -900,7 +942,7 @@ export const TransitService = {
                 const format = (iso: string | undefined | null) => iso ? new Date(iso).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : undefined;
 
                 // V4 uses 'estimated' and 'planned' prefix
-                // V3 uses 'Arrival'/'Departure' suffix
+                // ServiceJourney calls sometimes name these differently? No, usually consistent.
 
                 const pArr = call.plannedArrivalTime || call.plannedArrival;
                 const pDep = call.plannedDepartureTime || call.plannedDeparture;
@@ -917,6 +959,8 @@ export const TransitService = {
                     date: finalTime,
                     isCancelled: call.isCancelled,
                     isDeparture: !!(pDep),
+                    // ServiceJourney calls might not include geometry directly? 
+                    // Usually they do if "include=calls" is used on servicejourney endpoint.
                     coords: call.stopPoint?.geometry ? { lat: call.stopPoint.geometry.latitude, lng: call.stopPoint.geometry.longitude } : undefined,
                     arrivalTime: format(pArr),
                     departureTime: format(pDep),
@@ -931,22 +975,16 @@ export const TransitService = {
     },
 
     getVehiclePositions: async (minLat?: number, minLng?: number, maxLat?: number, maxLng?: number, operatorId?: string): Promise<any[]> => {
-        // 1. Fetch Västtrafik (High quality, local) - ONLY if appropriate operator
-        const shouldFetchVt = !operatorId || operatorId === 'sweden' || operatorId === 'vt';
-        const vtPromise = shouldFetchVt
-            ? fetchVehiclePositions(minLat, minLng, maxLat, maxLng)
-            : Promise.resolve([]);
+        // 1. Fetch Västtrafik (REMOVED per user request - relies on GPS data issues according to user)
+        // We now rely solely on Trafiklab GTFS-RT which provides trip_id, stop_id etc.
 
         // 2. Fetch Trafiklab Sweden (Broad coverage)
-        // Only fetch if we have coords, to filter.
-        let tlPromise: Promise<any[]> = Promise.resolve([]);
+        let tlVehicles: any[] = [];
         if (minLat && minLng && maxLat && maxLng) {
             // Use specific operator if selected, otherwise fallback to 'sweden'
             const op = operatorId || 'sweden';
-            tlPromise = TrafiklabService.getLiveVehicles(op, { minLat, minLng, maxLat, maxLng });
+            tlVehicles = await TrafiklabService.getLiveVehicles(op, { minLat, minLng, maxLat, maxLng });
         }
-
-        const [vtVehicles, tlVehicles] = await Promise.all([vtPromise, tlPromise]);
 
         // Map Trafiklab vehicles to TransitService schema
         const tlMapped = tlVehicles.map(v => ({
@@ -956,23 +994,22 @@ export const TransitService = {
             bearing: v.bearing,
             speed: v.speed,
             line: v.line,
-            dest: v.direction,
-            transportMode: v.type === 'TRAM' ? 'TRAM' : 'BUS', // Simple mapping
-            detailsReference: null, // GTFS-RT doesn't give this easily for Västtrafik API
-            timestamp: new Date().getTime() / 1000
+            dest: v.direction, // Will be mapped to tripHeadsign later
+            transportMode: v.type === 'TRAM' ? 'TRAM' : 'BUS',
+            detailsReference: null,
+            timestamp: v.timestamp ?? (Date.now() / 1000),
+            // GTFS-RT trip linkage – pass through for shape resolution
+            tripId: v.tripId,
+            routeId: v.routeId,
+            vehicleLabel: v.vehicleLabel,
+            currentStatus: v.currentStatus,
+            stopId: v.stopId,
+            stopSequence: v.stopSequence,
+            occupancyStatus: v.occupancyStatus,
+            operator: v.operator,
         }));
 
-        // Deduplication:
-        // If we are in Västtrafik area, Västtrafik API (vtVehicles) is better.
-        // We can exclude Trafiklab vehicles that overlap or just show both if IDs differ?
-        // Västtrafik GTFS-RT uses purely numeric IDs often. 
-        // Let's blindly merge for now but prefer VT if ID matches? IDs won't match.
-        // Let's just return both, filtering duplicates by approximate location? 
-        // Too complex for now. Just merging. users can see double ghosts if they are unlucky.
-        // Better: Filter out Trafiklab vehicles if operator is Västtrafik? Trafiklab 'operator' field might help.
-
-        const combined = [...vtVehicles, ...tlMapped];
-        return combined;
+        return tlMapped;
     },
 
     getMapStopAreas: async (minLat: number, minLng: number, maxLat: number, maxLng: number): Promise<any[]> => {
